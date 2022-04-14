@@ -1,7 +1,7 @@
 {
-  "name": "pg-query-stream",
+  "name": "VQueryStream",
   "version": "4.2.3",
-  "description": "Postgres query result returned as readable stream",
+  "description": "Vertica query result returned as readable stream",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
@@ -9,8 +9,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/brianc/node-postgres.git",
-    "directory": "packages/pg-query-stream"
+    "url": "git://github.com/vertica/vertica-nodejs.git",
+    "directory": "packages/VQueryStream"
   },
   "keywords": [
     "postgres",
@@ -23,10 +23,10 @@
     "/dist/*{js,ts,map}",
     "/src"
   ],
-  "author": "Brian M. Carlson",
+  "author": "Vertica",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/brianc/node-postgres/issues"
+    "url": "https://github.com/vertica/vertica-nodejs/issues"
   },
   "devDependencies": {
     "@types/chai": "^4.2.13",
@@ -44,6 +44,6 @@
     "typescript": "^4.0.3"
   },
   "dependencies": {
-    "pg-cursor": "^2.7.3"
+    "VCursor": "^2.7.3"
   }
 }

@@ -1,7 +1,7 @@
 {
-  "name": "pg-cursor",
+  "name": "VCursor",
   "version": "2.7.3",
-  "description": "Query cursor extension for node-postgres",
+  "description": "Query cursor extension for vertica-nodejs",
   "main": "index.js",
   "directories": {
     "test": "test"
@@ -11,16 +11,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/brianc/node-postgres.git",
-    "directory": "packages/pg-cursor"
+    "url": "git://github.com/vertica/vertica-nodejs.git",
+    "directory": "packages/VCursor"
   },
-  "author": "Brian M. Carlson",
+  "author": "Vertica",
   "license": "MIT",
   "devDependencies": {
     "mocha": "^7.1.2",
-    "pg": "^8.7.3"
+    "vertica": "^8.7.3"
   },
   "peerDependencies": {
-    "pg": "^8"
+    "vertica": "^8"
   }
 }

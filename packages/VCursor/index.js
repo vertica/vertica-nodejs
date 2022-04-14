@@ -1,6 +1,6 @@
 'use strict'
-const Result = require('pg/lib/result.js')
-const prepare = require('pg/lib/utils.js').prepareValue
+const Result = require('vertica/lib/result.js')
+const prepare = require('vertica/lib/utils.js').prepareValue
 const EventEmitter = require('events').EventEmitter
 const util = require('util')
 

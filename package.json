@@ -1,10 +1,10 @@
 {
-  "name": "node-postgres",
-  "description": "node postgres monorepo",
+  "name": "vertica-nodejs",
+  "description": "vertica node.js monorepo",
   "main": "index.js",
   "private": true,
-  "repository": "git@github.com:brianc/node-postgres.git",
-  "author": "Brian M. Carlson <brian.m.carlson@gmail.com>",
+  "repository": "git@github.com:vertica/vertica-nodejs.git",
+  "author": "Vertica",
   "license": "MIT",
   "workspaces": [
     "packages/*"

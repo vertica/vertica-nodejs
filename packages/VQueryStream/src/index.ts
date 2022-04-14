@@ -1,6 +1,6 @@
 import { Readable } from 'stream'
-import { Submittable, Connection } from 'pg'
-import Cursor from 'pg-cursor'
+import { Submittable, Connection } from 'vertica'
+import Cursor from 'VCursor'
 
 interface QueryStreamConfig {
   batchSize?: number

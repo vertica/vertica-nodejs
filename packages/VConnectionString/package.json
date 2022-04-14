@@ -1,7 +1,7 @@
 {
-  "name": "pg-connection-string",
+  "name": "VConnectionString",
   "version": "2.5.0",
-  "description": "Functions for dealing with a PostgresSQL connection string",
+  "description": "Functions for dealing with a Vertica connection string",
   "main": "./index.js",
   "types": "./index.d.ts",
   "scripts": {
@@ -11,8 +11,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/brianc/node-postgres.git",
-    "directory": "packages/pg-connection-string"
+    "url": "git://github.com/vertica/vertica-nodejs.git",
+    "directory": "packages/VConnectionString"
   },
   "keywords": [
     "pg",
@@ -20,12 +20,12 @@
     "string",
     "parse"
   ],
-  "author": "Blaine Bublitz <blaine@iceddev.com> (http://iceddev.com/)",
+  "author": "Vertica",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/brianc/node-postgres/issues"
+    "url": "https://github.com/vertica/vertica-nodejs/issues"
   },
-  "homepage": "https://github.com/brianc/node-postgres/tree/master/packages/pg-connection-string",
+  "homepage": "https://github.com/vertica/vertica-nodejs/tree/master/packages/VConnectionString",
   "devDependencies": {
     "chai": "^4.1.1",
     "coveralls": "^3.0.4",

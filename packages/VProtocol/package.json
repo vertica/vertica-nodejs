@@ -1,7 +1,7 @@
 {
-  "name": "pg-protocol",
+  "name": "VProtocol",
   "version": "1.5.0",
-  "description": "The postgres client/server binary protocol, implemented in TypeScript",
+  "description": "The Vertica client/server binary protocol, implemented in TypeScript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
@@ -24,8 +24,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/brianc/node-postgres.git",
-    "directory": "packages/pg-protocol"
+    "url": "git://github.com/vertica/vertica-nodejs.git",
+    "directory": "packages/VProtocol"
   },
   "files": [
     "/dist/*{js,ts,map}",
