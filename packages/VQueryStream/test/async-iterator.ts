@@ -1,5 +1,5 @@
 import QueryStream from '../src'
-import vertica from 'vertica'
+import vertica from 'vertica-nodejs'
 import assert from 'assert'
 
 const queryText = 'SELECT * FROM generate_series(0, 200) num'

@@ -1,4 +1,4 @@
-import vertica from 'vertica'
+import vertica from 'vertica-nodejs'
 
 export default function (name, cb) {
   describe(name, function () {

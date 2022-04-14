@@ -1,7 +1,7 @@
 'use strict'
 const assert = require('assert')
 const Cursor = require('../')
-const vertica = require('vertica')
+const vertica = require('vertica-nodejs')
 
 const text = 'SELECT generate_series as num FROM generate_series(0, 50)'
 

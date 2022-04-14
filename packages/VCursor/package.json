@@ -18,9 +18,9 @@
   "license": "MIT",
   "devDependencies": {
     "mocha": "^7.1.2",
-    "vertica": "^8.7.3"
+    "vertica-nodejs": "^8.7.3"
   },
   "peerDependencies": {
-    "vertica": "^8"
+    "vertica-nodejs": "^8"
   }
 }

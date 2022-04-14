@@ -1,5 +1,5 @@
 const assert = require('assert')
-const vertica = require('vertica')
+const vertica = require('vertica-nodejs')
 const Cursor = require('../')
 
 describe('queries with no data', function () {

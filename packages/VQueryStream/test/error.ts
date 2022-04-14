@@ -1,7 +1,7 @@
 import assert from 'assert'
 import helper from './helper'
 import QueryStream from '../src'
-import { Pool, Client } from 'vertica'
+import { Pool, Client } from 'vertica-nodejs'
 
 helper('error', function (client) {
   it('receives error on stream', function (done) {

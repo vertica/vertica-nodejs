@@ -1,4 +1,4 @@
-import vertica from 'vertica'
+import vertica from 'vertica-nodejs'
 import assert from 'assert'
 import QueryStream from '../src'
 
@@ -7,7 +7,7 @@ describe('client options', function () {
     const types = {
       getTypeParser: () => (string) => string,
     }
-    //@ts-expect-error
+    
     const client = new vertica.Client({ types })
     client.connect()
     const stream = new QueryStream('SELECT * FROM generate_series(0, 10) num')

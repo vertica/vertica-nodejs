@@ -1,5 +1,5 @@
 {
-  "name": "vertica",
+  "name": "vertica-nodejs",
   "version": "8.7.3",
   "description": "Vertica client - pure javascript & libpq with the same API",
   "keywords": [
@@ -15,7 +15,7 @@
   "repository": {
     "type": "git",
     "url": "git://github.com/vertica/vertica-nodejs.git",
-    "directory": "packages/vertica"
+    "directory": "packages/vertica-nodejs"
   },
   "author": "Vertica",
   "main": "./lib",

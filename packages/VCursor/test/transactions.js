@@ -1,6 +1,6 @@
 const assert = require('assert')
 const Cursor = require('../')
-const vertica = require('vertica')
+const vertica = require('vertica-nodejs')
 
 describe('transactions', () => {
   it('can execute multiple statements in a transaction', async () => {

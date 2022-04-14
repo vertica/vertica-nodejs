@@ -1,4 +1,4 @@
-import vertica from 'vertica'
+import vertica from 'vertica-nodejs'
 import QueryStream from '../src'
 
 describe('end semantics race condition', function () {
