@@ -16,7 +16,7 @@ suite.testAsync('it should connect over ssl', async () => {
     : {
         rejectUnauthorized: false,
       }
-  const client = new helper.pg.Client({ ssl })
+  const client = new helper.vertica.Client({ ssl })
   await client.connect()
   const { rows } = await client.query('SELECT NOW()')
   assert.strictEqual(rows.length, 1)
@@ -25,7 +25,7 @@ suite.testAsync('it should connect over ssl', async () => {
 
 suite.testAsync('it should fail with self-signed cert error w/o rejectUnauthorized being passed', async () => {
   const ssl = helper.args.native ? 'verify-ca' : {}
-  const client = new helper.pg.Client({ ssl })
+  const client = new helper.vertica.Client({ ssl })
   try {
     await client.connect()
   } catch (e) {

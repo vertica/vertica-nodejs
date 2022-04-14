@@ -1,6 +1,6 @@
 'use strict'
 var helper = require('../test-helper')
-const pool = new helper.pg.Pool()
+const pool = new helper.vertica.Pool()
 
 pool.connect(function (err, client) {
   var q = {

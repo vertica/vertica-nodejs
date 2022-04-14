@@ -233,7 +233,7 @@ const rejection = (promise) =>
 module.exports = {
   Sink: Sink,
   Suite: Suite,
-  pg: require('./../lib/'),
+  vertica: require('./../lib/'),
   args: args,
   config: args,
   sys: sys,

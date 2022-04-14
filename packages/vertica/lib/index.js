@@ -3,8 +3,8 @@
 var Client = require('./client')
 var defaults = require('./defaults')
 var Connection = require('./connection')
-var Pool = require('pg-pool')
-const { DatabaseError } = require('pg-protocol')
+var Pool = require('VPool')
+const { DatabaseError } = require('VProtocol')
 
 const poolFactory = (Client) => {
   return class BoundPool extends Pool {

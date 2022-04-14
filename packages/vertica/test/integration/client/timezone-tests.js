@@ -7,7 +7,7 @@ process.env.TZ = 'Europe/Berlin'
 
 var date = new Date()
 
-const pool = new helper.pg.Pool()
+const pool = new helper.vertica.Pool()
 const suite = new helper.Suite()
 
 pool.connect(function (err, client, done) {

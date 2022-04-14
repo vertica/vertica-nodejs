@@ -1,18 +1,18 @@
 'use strict'
 var helper = require('../test-helper')
-var pg = helper.pg
+var vertica = helper.vertica
 
 var suite = new helper.Suite()
 
 suite.test('parsing array decimal results', function (done) {
-  const pool = new pg.Pool()
+  const pool = new vertica.Pool()
   pool.connect(
     assert.calls(function (err, client, release) {
       assert(!err)
       client.query('CREATE TEMP TABLE why(names text[], numbors integer[], decimals double precision[])')
       client
         .query(
-          new pg.Query(
+          new vertica.Query(
             'INSERT INTO why(names, numbors, decimals) VALUES(\'{"aaron", "brian","a b c" }\', \'{1, 2, 3}\', \'{.1, 0.05, 3.654}\')'
           )
         )

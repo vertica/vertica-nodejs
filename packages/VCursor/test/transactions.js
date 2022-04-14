@@ -1,10 +1,10 @@
 const assert = require('assert')
 const Cursor = require('../')
-const pg = require('pg')
+const vertica = require('vertica')
 
 describe('transactions', () => {
   it('can execute multiple statements in a transaction', async () => {
-    const client = new pg.Client()
+    const client = new vertica.Client()
     await client.connect()
     await client.query('begin')
     await client.query('CREATE TEMP TABLE foobar(id SERIAL PRIMARY KEY)')
@@ -18,7 +18,7 @@ describe('transactions', () => {
   })
 
   it('can execute multiple statements in a transaction if ending cursor early', async () => {
-    const client = new pg.Client()
+    const client = new vertica.Client()
     await client.connect()
     await client.query('begin')
     await client.query('CREATE TEMP TABLE foobar(id SERIAL PRIMARY KEY)')
@@ -29,7 +29,7 @@ describe('transactions', () => {
   })
 
   it('can execute multiple statements in a transaction if no data', async () => {
-    const client = new pg.Client()
+    const client = new vertica.Client()
     await client.connect()
     await client.query('begin')
     // create a cursor that has no data response

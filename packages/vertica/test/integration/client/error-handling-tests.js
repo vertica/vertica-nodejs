@@ -3,9 +3,9 @@
 var helper = require('./test-helper')
 var util = require('util')
 
-var pg = helper.pg
-const Client = pg.Client
-const DatabaseError = pg.DatabaseError
+var vertica = helper.vertica
+const Client = vertica.Client
+const DatabaseError = vertica.DatabaseError
 
 var createErorrClient = function () {
   var client = helper.client()
@@ -87,7 +87,7 @@ suite.test('query receives error on client shutdown', function (done) {
       }
       let queryError
       client.query(
-        new pg.Query(config),
+        new vertica.Query(config),
         assert.calls(function (err, res) {
           assert(err instanceof Error)
           queryError = err
@@ -103,7 +103,7 @@ suite.test('query receives error on client shutdown', function (done) {
 })
 
 var ensureFuture = function (testClient, done) {
-  var goodQuery = testClient.query(new pg.Query('select age from boom'))
+  var goodQuery = testClient.query(new vertica.Query('select age from boom'))
   assert.emits(goodQuery, 'row', function (row) {
     assert.equal(row.age, 28)
     done()
@@ -117,7 +117,7 @@ suite.test('when query is parsing', (done) => {
 
   // this query wont parse since there isn't a table named bang
   var query = client.query(
-    new pg.Query({
+    new vertica.Query({
       text: 'select * from bang where name = $1',
       values: ['0'],
     })
@@ -134,7 +134,7 @@ suite.test('when a query is binding', function (done) {
   var q = client.query({ text: 'CREATE TEMP TABLE boom(age integer); INSERT INTO boom (age) VALUES (28);' })
 
   var query = client.query(
-    new pg.Query({
+    new vertica.Query({
       text: 'select * from boom where age = $1',
       values: ['asldkfjasdf'],
     })
@@ -214,7 +214,7 @@ suite.test('non-query error', function (done) {
 suite.test('within a simple query', (done) => {
   var client = createErorrClient()
 
-  var query = client.query(new pg.Query("select eeeee from yodas_dsflsd where pixistix = 'zoiks!!!'"))
+  var query = client.query(new vertica.Query("select eeeee from yodas_dsflsd where pixistix = 'zoiks!!!'"))
 
   assert.emits(query, 'error', function (error) {
     if (!helper.config.native) {

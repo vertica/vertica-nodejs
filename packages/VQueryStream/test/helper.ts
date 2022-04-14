@@ -1,8 +1,8 @@
-import pg from 'pg'
+import vertica from 'vertica'
 
 export default function (name, cb) {
   describe(name, function () {
-    const client = new pg.Client()
+    const client = new vertica.Client()
 
     before(function (done) {
       client.connect(done)

@@ -1,11 +1,11 @@
 'use strict'
 var helper = require('./test-helper')
-var pg = helper.pg
+var vertica = helper.vertica
 var sink
 const suite = new helper.Suite()
 
 var testForTypeCoercion = function (type) {
-  const pool = new pg.Pool()
+  const pool = new vertica.Pool()
   suite.test(`test type coercion ${type.name}`, (cb) => {
     pool.connect(function (err, client, done) {
       assert(!err)
@@ -24,7 +24,7 @@ var testForTypeCoercion = function (type) {
             )
 
             var query = client.query(
-              new pg.Query({
+              new vertica.Query({
                 name: 'get type ' + type.name,
                 text: 'select col from test_type',
               })
@@ -152,7 +152,7 @@ suite.test('timestampz round trip', function (cb) {
     values: ['now', now],
   })
   var result = client.query(
-    new pg.Query({
+    new vertica.Query({
       name: 'get date',
       text: 'select * from date_tests where name = $1',
       values: ['now'],
@@ -176,7 +176,7 @@ suite.test('timestampz round trip', function (cb) {
 })
 
 suite.test('selecting nulls', (cb) => {
-  const pool = new pg.Pool()
+  const pool = new vertica.Pool()
   pool.connect(
     assert.calls(function (err, client, done) {
       assert.ifError(err)

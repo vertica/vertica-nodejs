@@ -3,6 +3,6 @@
 //
 var helper = require('./test-helper')
 
-var client = new helper.pg.Client(helper.config)
+var client = new helper.vertica.Client(helper.config)
 client.connect()
 client.end()

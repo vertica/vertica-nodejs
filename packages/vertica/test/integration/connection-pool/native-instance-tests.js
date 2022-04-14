@@ -1,9 +1,9 @@
 'use strict'
 var helper = require('./../test-helper')
-var pg = helper.pg
+var vertica = helper.vertica
 var native = helper.args.native
 
-var pool = new pg.Pool()
+var pool = new vertica.Pool()
 
 pool.connect(
   assert.calls(function (err, client, done) {

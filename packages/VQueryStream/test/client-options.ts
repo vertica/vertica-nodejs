@@ -1,4 +1,4 @@
-import pg from 'pg'
+import vertica from 'vertica'
 import assert from 'assert'
 import QueryStream from '../src'
 
@@ -8,7 +8,7 @@ describe('client options', function () {
       getTypeParser: () => (string) => string,
     }
     //@ts-expect-error
-    const client = new pg.Client({ types })
+    const client = new vertica.Client({ types })
     client.connect()
     const stream = new QueryStream('SELECT * FROM generate_series(0, 10) num')
     const query = client.query(stream)

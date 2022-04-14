@@ -5,7 +5,7 @@ const suite = new helper.Suite()
 
 helper.testPoolSize = function (max) {
   suite.test(`test ${max} queries executed on a pool rapidly`, (cb) => {
-    const pool = new helper.pg.Pool({ max: 10 })
+    const pool = new helper.vertica.Pool({ max: 10 })
 
     var sink = new helper.Sink(max, function () {
       pool.end(cb)

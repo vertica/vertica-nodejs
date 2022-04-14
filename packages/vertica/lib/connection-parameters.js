@@ -4,7 +4,7 @@ var dns = require('dns')
 
 var defaults = require('./defaults')
 
-var parse = require('pg-connection-string').parse // parses a connection string
+var parse = require('VConnectionString').parse // parses a connection string
 
 var val = function (key, config, envVar) {
   if (envVar === undefined) {

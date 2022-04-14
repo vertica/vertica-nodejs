@@ -1,6 +1,6 @@
 'use strict'
 var args = require('../test/cli')
-var pg = require('../lib')
+var vertica = require('../lib')
 
 var people = [
   { name: 'Aaron', age: 10 },
@@ -31,7 +31,7 @@ var people = [
   { name: 'Zanzabar', age: 260 },
 ]
 
-var con = new pg.Client({
+var con = new vertica.Client({
   host: args.host,
   port: args.port,
   user: args.user,

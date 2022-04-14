@@ -1,10 +1,10 @@
 const assert = require('assert')
-const pg = require('pg')
+const vertica = require('vertica')
 const Cursor = require('../')
 
 describe('queries with no data', function () {
   beforeEach(function (done) {
-    const client = (this.client = new pg.Client())
+    const client = (this.client = new vertica.Client())
     client.connect(done)
   })
 

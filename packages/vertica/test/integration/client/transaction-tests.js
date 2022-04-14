@@ -1,9 +1,9 @@
 'use strict'
 var helper = require('./test-helper')
 const suite = new helper.Suite()
-const pg = helper.pg
+const vertica = helper.vertica
 
-const client = new pg.Client()
+const client = new vertica.Client()
 client.connect(
   assert.success(function () {
     client.query('begin')
@@ -64,7 +64,7 @@ client.connect(
 )
 
 suite.test('gh#36', function (cb) {
-  const pool = new pg.Pool()
+  const pool = new vertica.Pool()
   pool.connect(
     assert.success(function (client, done) {
       client.query('BEGIN')

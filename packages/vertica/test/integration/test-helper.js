@@ -4,7 +4,7 @@ var helper = require('./../test-helper')
 if (helper.args.native) {
   Client = require('./../../lib/native')
   helper.Client = Client
-  helper.pg = helper.pg.native
+  helper.vertica = helper.vertica.native
 }
 
 // creates a client from cli parameters

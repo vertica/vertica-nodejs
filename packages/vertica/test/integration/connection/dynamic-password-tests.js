@@ -2,8 +2,8 @@
 const assert = require('assert')
 const helper = require('./../test-helper')
 const suite = new helper.Suite()
-const pg = require('../../../lib/index')
-const Client = pg.Client
+const vertica = require('../../../lib/index')
+const Client = vertica.Client
 
 const password = process.env.PGPASSWORD || null
 const sleep = (millis) => new Promise((resolve) => setTimeout(resolve, millis))

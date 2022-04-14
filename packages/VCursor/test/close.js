@@ -1,11 +1,11 @@
 const assert = require('assert')
 const Cursor = require('../')
-const pg = require('pg')
+const vertica = require('vertica')
 
 const text = 'SELECT generate_series as num FROM generate_series(0, 50)'
 describe('close', function () {
   beforeEach(function (done) {
-    const client = (this.client = new pg.Client())
+    const client = (this.client = new vertica.Client())
     client.connect(done)
   })
 

@@ -1,5 +1,5 @@
 'use strict'
-const Cursor = require('pg-cursor')
+const Cursor = require('VCursor')
 const expect = require('expect.js')
 const describe = require('mocha').describe
 const it = require('mocha').it

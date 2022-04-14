@@ -7,16 +7,16 @@ if (!helper.args.native) {
 }
 
 var assert = require('assert')
-var pg = require('../../../lib')
+var vertica = require('../../../lib')
 var native = require('../../../lib').native
 
 var JsClient = require('../../../lib/client')
 var NativeClient = require('../../../lib/native')
 
-assert(pg.Client === JsClient)
+assert(vertica.Client === JsClient)
 assert(native.Client === NativeClient)
 
-const jsPool = new pg.Pool()
+const jsPool = new vertica.Pool()
 const nativePool = new native.Pool()
 
 const suite = new helper.Suite()

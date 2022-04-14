@@ -2,10 +2,10 @@
 var async = require('async')
 
 var helper = require('./test-helper')
-var Query = helper.pg.Query
+var Query = helper.vertica.Query
 var suite = new helper.Suite()
 
-const Pool = helper.pg.Pool
+const Pool = helper.vertica.Pool
 
 suite.test('no domain', function (cb) {
   assert(!process.domain)

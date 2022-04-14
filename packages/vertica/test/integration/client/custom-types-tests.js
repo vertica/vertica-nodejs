@@ -1,6 +1,6 @@
 'use strict'
 const helper = require('./test-helper')
-const Client = helper.pg.Client
+const Client = helper.vertica.Client
 const suite = new helper.Suite()
 
 const customTypes = {

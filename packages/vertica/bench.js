@@ -1,4 +1,4 @@
-const pg = require('./lib')
+const vertica = require('./lib')
 
 const params = {
   text:
@@ -36,7 +36,7 @@ const bench = async (client, q, time) => {
 }
 
 const run = async () => {
-  const client = new pg.Client()
+  const client = new vertica.Client()
   await client.connect()
   console.log('start')
   await client.query('CREATE TEMP TABLE foobar(name TEXT, age NUMERIC)')

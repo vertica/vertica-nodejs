@@ -1,9 +1,9 @@
 'use strict'
 var helper = require('../test-helper')
-var pg = helper.pg
+var vertica = helper.vertica
 
 new helper.Suite().test('parsing array results', function (cb) {
-  const pool = new pg.Pool()
+  const pool = new vertica.Pool()
   pool.connect(
     assert.success(function (client, done) {
       client.query('CREATE TEMP TABLE test_table(bar integer, "baz\'s" integer)')

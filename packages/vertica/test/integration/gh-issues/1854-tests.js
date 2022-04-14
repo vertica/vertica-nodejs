@@ -8,7 +8,7 @@ suite.test('Parameter serialization errors should not cause query to hang', (don
     // pg-native cannot handle non-string parameters so skip this entirely
     return done()
   }
-  const client = new helper.pg.Client()
+  const client = new helper.vertica.Client()
   const expectedErr = new Error('Serialization error')
   client
     .connect()

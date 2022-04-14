@@ -1,6 +1,6 @@
 'use strict'
 const net = require('net')
-const pg = require('../../../lib/index.js')
+const vertica = require('../../../lib/index.js')
 const helper = require('./test-helper')
 
 const suite = new helper.Suite()
@@ -19,7 +19,7 @@ suite.test('setting keep alive', (done) => {
       done()
     }
 
-    const client = new pg.Client({
+    const client = new vertica.Client({
       host: 'localhost',
       port: 7777,
       keepAlive: true,

@@ -1,6 +1,6 @@
 'use strict'
 var helper = require('./test-helper')
-var pg = helper.pg
+var vertica = helper.vertica
 
 var suite = new helper.Suite()
 
@@ -12,7 +12,7 @@ for (var key in process.env) {
 }
 
 suite.test('default values are used in new clients', function () {
-  assert.same(pg.defaults, {
+  assert.same(vertica.defaults, {
     user: process.env.USER,
     database: undefined,
     password: null,
@@ -28,7 +28,7 @@ suite.test('default values are used in new clients', function () {
     parseInputDatesAsUTC: false,
   })
 
-  var client = new pg.Client()
+  var client = new vertica.Client()
   assert.same(client, {
     user: process.env.USER,
     database: process.env.USER,
@@ -38,11 +38,11 @@ suite.test('default values are used in new clients', function () {
 })
 
 suite.test('modified values are passed to created clients', function () {
-  pg.defaults.user = 'boom'
-  pg.defaults.password = 'zap'
-  pg.defaults.database = 'pow'
-  pg.defaults.port = 1234
-  pg.defaults.host = 'blam'
+  vertica.defaults.user = 'boom'
+  vertica.defaults.password = 'zap'
+  vertica.defaults.database = 'pow'
+  vertica.defaults.port = 1234
+  vertica.defaults.host = 'blam'
 
   var client = new Client()
   assert.same(client, {
@@ -56,7 +56,7 @@ suite.test('modified values are passed to created clients', function () {
 
 suite.test('database defaults to user when user is non-default', () => {
   {
-    pg.defaults.database = undefined
+    vertica.defaults.database = undefined
 
     const client = new Client({
       user: 'foo',
@@ -66,7 +66,7 @@ suite.test('database defaults to user when user is non-default', () => {
   }
 
   {
-    pg.defaults.database = 'bar'
+    vertica.defaults.database = 'bar'
 
     const client = new Client({
       user: 'foo',

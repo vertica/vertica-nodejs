@@ -1,7 +1,7 @@
 const assert = require('assert')
 const helper = require('../test-helper')
 const suite = new helper.Suite()
-const { Client } = helper.pg
+const { Client } = helper.vertica
 
 suite.test('it sends options', async () => {
   const client = new Client({

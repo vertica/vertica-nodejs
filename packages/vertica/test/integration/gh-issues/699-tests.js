@@ -5,7 +5,7 @@ var copyFrom = require('pg-copy-streams').from
 
 if (helper.args.native) return
 
-const pool = new helper.pg.Pool()
+const pool = new helper.vertica.Pool()
 pool.connect(function (err, client, done) {
   if (err) throw err
 

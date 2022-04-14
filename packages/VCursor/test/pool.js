@@ -1,7 +1,7 @@
 'use strict'
 const assert = require('assert')
 const Cursor = require('../')
-const pg = require('pg')
+const vertica = require('vertica')
 
 const text = 'SELECT generate_series as num FROM generate_series(0, 50)'
 
@@ -33,7 +33,7 @@ function poolQueryPromise(pool, readRowCount) {
 
 describe('pool', function () {
   beforeEach(function () {
-    this.pool = new pg.Pool({ max: 1 })
+    this.pool = new vertica.Pool({ max: 1 })
   })
 
   afterEach(function () {
@@ -85,7 +85,7 @@ describe('pool', function () {
   })
 
   it('can close multiple times on a pool', async function () {
-    const pool = new pg.Pool({ max: 1 })
+    const pool = new vertica.Pool({ max: 1 })
     const run = async () => {
       const cursor = new Cursor(text)
       const client = await pool.connect()

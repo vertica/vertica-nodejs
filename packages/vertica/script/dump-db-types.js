@@ -1,11 +1,11 @@
 'use strict'
-var pg = require('../lib')
+var vertica = require('../lib')
 var args = require('../test/cli')
 
 var queries = ['select CURRENT_TIMESTAMP', "select interval '1 day' + interval '1 hour'", "select TIMESTAMP 'today'"]
 
 queries.forEach(function (query) {
-  var client = new pg.Client({
+  var client = new vertica.Client({
     user: args.user,
     database: args.database,
     password: args.password,

@@ -86,7 +86,7 @@ class Pool extends EventEmitter {
     this.options.allowExitOnIdle = this.options.allowExitOnIdle || false
     this.options.maxLifetimeSeconds = this.options.maxLifetimeSeconds || 0
     this.log = this.options.log || function () {}
-    this.Client = this.options.Client || Client || require('pg').Client
+    this.Client = this.options.Client || Client || require('vertica').Client
     this.Promise = this.options.Promise || global.Promise
 
     if (typeof this.options.idleTimeoutMillis === 'undefined') {

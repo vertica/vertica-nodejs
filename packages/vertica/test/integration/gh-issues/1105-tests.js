@@ -1,4 +1,4 @@
-const pg = require('../../../lib')
+const vertica = require('../../../lib')
 const helper = require('../test-helper')
 const suite = new helper.Suite()
 

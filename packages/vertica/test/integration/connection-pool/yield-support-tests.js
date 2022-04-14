@@ -2,7 +2,7 @@
 var helper = require('./test-helper')
 var co = require('co')
 
-const pool = new helper.pg.Pool()
+const pool = new helper.vertica.Pool()
 new helper.Suite().test(
   'using coroutines works with promises',
   co.wrap(function* () {

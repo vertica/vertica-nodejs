@@ -1,8 +1,8 @@
 'use strict'
 var helper = require('./test-helper')
 var util = require('util')
-var Query = helper.pg.Query
-var DatabaseError = helper.pg.DatabaseError
+var Query = helper.vertica.Query
+var DatabaseError = helper.vertica.DatabaseError
 
 test('error during query execution', function () {
   var client = new Client(helper.args)

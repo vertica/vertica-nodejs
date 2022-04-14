@@ -4,7 +4,7 @@ var helper = require('./../test-helper')
 const suite = new helper.Suite()
 
 suite.test('calling end during active query should return a promise', (done) => {
-  const client = new helper.pg.Client()
+  const client = new helper.vertica.Client()
   let callCount = 0
   // ensure both the query rejects and the end promise resolves
   const after = () => {
@@ -19,7 +19,7 @@ suite.test('calling end during active query should return a promise', (done) => 
 })
 
 suite.test('calling end during an active query should call end callback', (done) => {
-  const client = new helper.pg.Client()
+  const client = new helper.vertica.Client()
   let callCount = 0
   // ensure both the query rejects and the end callback fires
   const after = () => {

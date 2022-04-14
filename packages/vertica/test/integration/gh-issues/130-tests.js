@@ -2,9 +2,9 @@
 var helper = require('../test-helper')
 var exec = require('child_process').exec
 
-helper.pg.defaults.poolIdleTimeout = 1000
+helper.vertica.defaults.poolIdleTimeout = 1000
 
-const pool = new helper.pg.Pool()
+const pool = new helper.vertica.Pool()
 pool.connect(function (err, client, done) {
   assert.ifError(err)
   client.once('error', function (err) {

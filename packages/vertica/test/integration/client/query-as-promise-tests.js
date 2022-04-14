@@ -1,7 +1,7 @@
 'use strict'
 var bluebird = require('bluebird')
 var helper = require('../test-helper')
-var pg = helper.pg
+var vertica = helper.vertica
 
 process.on('unhandledRejection', function (e) {
   console.error(e, e.stack)
@@ -11,7 +11,7 @@ process.on('unhandledRejection', function (e) {
 const suite = new helper.Suite()
 
 suite.test('promise API', (cb) => {
-  const pool = new pg.Pool()
+  const pool = new vertica.Pool()
   pool.connect().then((client) => {
     client
       .query('SELECT $1::text as name', ['foo'])
@@ -33,7 +33,7 @@ suite.test('promise API', (cb) => {
 })
 
 suite.test('promise API with configurable promise type', (cb) => {
-  const client = new pg.Client({ Promise: bluebird })
+  const client = new vertica.Client({ Promise: bluebird })
   const connectPromise = client.connect()
   assert(connectPromise instanceof bluebird, 'Client connect() returns configured promise')
 

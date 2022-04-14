@@ -1,5 +1,5 @@
 import QueryStream from '../src'
-import pg from 'pg'
+import vertica from 'vertica'
 import assert from 'assert'
 
 const queryText = 'SELECT * FROM generate_series(0, 200) num'
@@ -9,7 +9,7 @@ if (!process.version.startsWith('v8')) {
   describe('Async iterator', () => {
     it('works', async () => {
       const stream = new QueryStream(queryText, [])
-      const client = new pg.Client()
+      const client = new vertica.Client()
       await client.connect()
       const query = client.query(stream)
       const rows = []
@@ -22,7 +22,7 @@ if (!process.version.startsWith('v8')) {
 
     it('can async iterate and then do a query afterwards', async () => {
       const stream = new QueryStream(queryText, [])
-      const client = new pg.Client()
+      const client = new vertica.Client()
       await client.connect()
       const query = client.query(stream)
       const iteratorRows = []
@@ -36,7 +36,7 @@ if (!process.version.startsWith('v8')) {
     })
 
     it('can async iterate multiple times with a pool', async () => {
-      const pool = new pg.Pool({ max: 1 })
+      const pool = new vertica.Pool({ max: 1 })
 
       const allRows = []
       const run = async () => {
@@ -59,7 +59,7 @@ if (!process.version.startsWith('v8')) {
     })
 
     it('can break out of iteration early', async () => {
-      const pool = new pg.Pool({ max: 1 })
+      const pool = new vertica.Pool({ max: 1 })
       const client = await pool.connect()
       const rows = []
       for await (const row of client.query(new QueryStream(queryText, [], { batchSize: 1 }))) {
@@ -80,7 +80,7 @@ if (!process.version.startsWith('v8')) {
     })
 
     it('only returns rows on first iteration', async () => {
-      const pool = new pg.Pool({ max: 1 })
+      const pool = new vertica.Pool({ max: 1 })
       const client = await pool.connect()
       const rows = []
       const stream = client.query(new QueryStream(queryText, []))
@@ -105,7 +105,7 @@ if (!process.version.startsWith('v8')) {
     })
 
     it('can read with delays', async () => {
-      const pool = new pg.Pool({ max: 1 })
+      const pool = new vertica.Pool({ max: 1 })
       const client = await pool.connect()
       const rows = []
       const stream = client.query(new QueryStream(queryText, [], { batchSize: 1 }))
@@ -119,7 +119,7 @@ if (!process.version.startsWith('v8')) {
     })
 
     it('supports breaking with low watermark', async function () {
-      const pool = new pg.Pool({ max: 1 })
+      const pool = new vertica.Pool({ max: 1 })
       const client = await pool.connect()
 
       for await (const _ of client.query(new QueryStream('select TRUE', [], { highWaterMark: 1 }))) break

@@ -4,10 +4,10 @@ var utils = require('./../../lib/utils')
 var defaults = require('./../../lib').defaults
 
 test('ensure types is exported on root object', function () {
-  var pg = require('../../lib')
-  assert(pg.types)
-  assert(pg.types.getTypeParser)
-  assert(pg.types.setTypeParser)
+  var vertica = require('../../lib')
+  assert(vertica.types)
+  assert(vertica.types.getTypeParser)
+  assert(vertica.types.setTypeParser)
 })
 
 // this tests the monkey patching

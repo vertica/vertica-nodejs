@@ -1,8 +1,8 @@
 'use strict'
 var helper = require('./test-helper')
-var pg = helper.pg
+var vertica = helper.vertica
 
-const pool = new pg.Pool()
+const pool = new vertica.Pool()
 new helper.Suite().test('should return insert metadata', function () {
   pool.connect(
     assert.calls(function (err, client, done) {

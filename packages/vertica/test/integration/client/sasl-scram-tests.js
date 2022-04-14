@@ -1,6 +1,6 @@
 'use strict'
 const helper = require('./../test-helper')
-const pg = helper.pg
+const vertica = helper.vertica
 const suite = new helper.Suite()
 const { native } = helper.args
 
@@ -45,7 +45,7 @@ if (!config.user || !config.password) {
 }
 
 suite.testAsync('can connect using sasl/scram', async () => {
-  const client = new pg.Client(config)
+  const client = new vertica.Client(config)
   let usingSasl = false
   client.connection.once('authenticationSASL', () => {
     usingSasl = true
@@ -56,7 +56,7 @@ suite.testAsync('can connect using sasl/scram', async () => {
 })
 
 suite.testAsync('sasl/scram fails when password is wrong', async () => {
-  const client = new pg.Client({
+  const client = new vertica.Client({
     ...config,
     password: config.password + 'append-something-to-make-it-bad',
   })

@@ -1,8 +1,8 @@
 'use strict'
 var helper = require('./test-helper')
-var pg = helper.pg
+var vertica = helper.vertica
 const suite = new helper.Suite()
-const pool = new pg.Pool()
+const pool = new vertica.Pool()
 
 suite.test('can access results when no rows are returned', function (done) {
   var checkResult = function (result) {
@@ -14,7 +14,7 @@ suite.test('can access results when no rows are returned', function (done) {
 
   pool.connect(
     assert.success(function (client, release) {
-      const q = new pg.Query('select $1::text as val limit 0', ['hi'])
+      const q = new vertica.Query('select $1::text as val limit 0', ['hi'])
       var query = client.query(
         q,
         assert.success(function (result) {
