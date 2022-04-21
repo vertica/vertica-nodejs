@@ -6,7 +6,7 @@
   },
   "include": [],
   "references": [
-    {"path": "./packages/VQueryStream"},
-    {"path": "./packages/VProtocol"}
+    {"path": "./packages/v-query-stream"},
+    {"path": "./packages/v-protocol"}
   ]
 }

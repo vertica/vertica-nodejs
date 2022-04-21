@@ -1,5 +1,5 @@
 'use strict'
-const Cursor = require('VCursor')
+const Cursor = require('v-cursor')
 const expect = require('expect.js')
 const describe = require('mocha').describe
 const it = require('mocha').it

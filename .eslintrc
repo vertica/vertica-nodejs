@@ -2,7 +2,7 @@
   "plugins": ["prettier"],
   "parser": "@typescript-eslint/parser",
   "extends": ["plugin:prettier/recommended", "prettier/@typescript-eslint"],
-  "ignorePatterns": ["node_modules", "coverage", "packages/VProtocol/dist/**/*", "packages/VQueryStream/dist/**/*"],
+  "ignorePatterns": ["node_modules", "coverage", "packages/v-protocol/dist/**/*", "packages/v-query-stream/dist/**/*"],
   "parserOptions": {
     "ecmaVersion": 2017,
     "sourceType": "module"

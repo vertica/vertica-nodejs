@@ -1,5 +1,5 @@
 {
-  "name": "VProtocol",
+  "name": "v-protocol",
   "version": "1.5.0",
   "description": "The Vertica client/server binary protocol, implemented in TypeScript",
   "main": "dist/index.js",
@@ -25,7 +25,7 @@
   "repository": {
     "type": "git",
     "url": "git://github.com/vertica/vertica-nodejs.git",
-    "directory": "packages/VProtocol"
+    "directory": "packages/v-protocol"
   },
   "files": [
     "/dist/*{js,ts,map}",

@@ -1,6 +1,6 @@
 import { Readable } from 'stream'
 import { Submittable, Connection } from 'vertica-nodejs'
-import Cursor from 'VCursor'
+import Cursor from 'v-cursor'
 
 interface QueryStreamConfig {
   batchSize?: number

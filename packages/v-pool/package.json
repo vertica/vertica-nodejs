@@ -1,5 +1,5 @@
 {
-  "name": "VPool",
+  "name": "v-pool",
   "version": "3.5.1",
   "description": "Connection pool for Vertica",
   "main": "index.js",
@@ -12,7 +12,7 @@
   "repository": {
     "type": "git",
     "url": "git://github.com/vertica/vertica-nodejs.git",
-    "directory": "packages/VPool"
+    "directory": "packages/v-pool"
   },
   "keywords": [
     "pg",
