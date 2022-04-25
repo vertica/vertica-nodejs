@@ -1,0 +1,26 @@
+{
+  "name": "v-cursor",
+  "version": "2.7.3",
+  "description": "Query cursor extension for vertica-nodejs",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/vertica/vertica-nodejs.git",
+    "directory": "packages/v-cursor"
+  },
+  "author": "Vertica",
+  "license": "MIT",
+  "devDependencies": {
+    "mocha": "^7.1.2",
+    "vertica-nodejs": "^8.7.3"
+  },
+  "peerDependencies": {
+    "vertica-nodejs": "^8"
+  }
+}
