@@ -8,7 +8,7 @@ var parse = require('v-connection-string').parse // parses a connection string
 
 var val = function (key, config, envVar) {
   if (envVar === undefined) {
-    envVar = process.env['PG' + key.toUpperCase()]
+    envVar = process.env['V_' + key.toUpperCase()]
   } else if (envVar === false) {
     // do nothing ... use false
   } else {

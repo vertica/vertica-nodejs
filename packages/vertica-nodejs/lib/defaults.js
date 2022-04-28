@@ -19,7 +19,7 @@ module.exports = {
   connectionString: undefined,
 
   // database port
-  port: 5432,
+  port: 5433,
 
   // number of rows to return at a time from a prepared statement's
   // portal. 0 will return all rows at once

@@ -2,9 +2,9 @@
 require('./test-helper')
 var assert = require('assert')
 
-var pguser = process.env['PGUSER'] || process.env.USER
-var pgdatabase = process.env['PGDATABASE'] || process.env.USER
-var pgport = process.env['PGPORT'] || 5432
+var pguser = process.env['V_USER'] || process.env.USER
+var pgdatabase = process.env['V_DATABASE'] || process.env.USER
+var pgport = process.env['V_PORT'] || 5433
 
 test('client settings', function () {
   test('defaults', function () {
@@ -89,67 +89,68 @@ test('initializing from a config string', function () {
 
   test('when not including all values the defaults are used', function () {
     var client = new Client('postgres://host1')
-    assert.equal(client.user, process.env['PGUSER'] || process.env.USER)
-    assert.equal(client.password, process.env['PGPASSWORD'] || null)
+    assert.equal(client.user, process.env['V_USER'] || process.env.USER)
+    assert.equal(client.password, process.env['V_PASSWORD'] || null)
     assert.equal(client.host, 'host1')
-    assert.equal(client.port, process.env['PGPORT'] || 5432)
-    assert.equal(client.database, process.env['PGDATABASE'] || process.env.USER)
+    assert.equal(client.port, process.env['V_PORT'] || 5433)
+    assert.equal(client.database, process.env['V_DATABASE'] || process.env.USER)
   })
 
-  test('when not including all values the environment variables are used', function () {
-    var envUserDefined = process.env['PGUSER'] !== undefined
-    var envPasswordDefined = process.env['PGPASSWORD'] !== undefined
-    var envDBDefined = process.env['PGDATABASE'] !== undefined
-    var envHostDefined = process.env['PGHOST'] !== undefined
-    var envPortDefined = process.env['PGPORT'] !== undefined
+  test('when not including all values, the environment variables are used', function () {
+    var envUserDefined = process.env['V_USER'] !== undefined
+    var envPasswordDefined = process.env['V_PASSWORD'] !== undefined
+    var envDBDefined = process.env['V_DATABASE'] !== undefined
+    var envHostDefined = process.env['V_HOST'] !== undefined
+    var envPortDefined = process.env['V_PORT'] !== undefined
 
-    var savedEnvUser = process.env['PGUSER']
-    var savedEnvPassword = process.env['PGPASSWORD']
-    var savedEnvDB = process.env['PGDATABASE']
-    var savedEnvHost = process.env['PGHOST']
-    var savedEnvPort = process.env['PGPORT']
+    var savedEnvUser = process.env['V_USER']
+    var savedEnvPassword = process.env['V_PASSWORD']
+    var savedEnvDB = process.env['V_DATABASE']
+    var savedEnvHost = process.env['V_HOST']
+    var savedEnvPort = process.env['V_PORT']
 
-    process.env['PGUSER'] = 'utUser1'
-    process.env['PGPASSWORD'] = 'utPass1'
-    process.env['PGDATABASE'] = 'utDB1'
-    process.env['PGHOST'] = 'utHost1'
-    process.env['PGPORT'] = 5464
+    process.env['V_USER'] = 'utUser1'
+    process.env['V_PASSWORD'] = 'utPass1'
+    process.env['V_DATABASE'] = 'utDB1'
+    process.env['V_HOST'] = 'utHost1'
+    process.env['V_PORT'] = 5464
 
     var client = new Client('postgres://host1')
-    assert.equal(client.user, process.env['PGUSER'])
-    assert.equal(client.password, process.env['PGPASSWORD'])
+
+    assert.equal(client.user, process.env['V_USER'])
+    assert.equal(client.password, process.env['V_PASSWORD'])
     assert.equal(client.host, 'host1')
-    assert.equal(client.port, process.env['PGPORT'])
-    assert.equal(client.database, process.env['PGDATABASE'])
+    assert.equal(client.port, process.env['V_PORT'])
+    assert.equal(client.database, process.env['V_DATABASE'])
 
     if (envUserDefined) {
-      process.env['PGUSER'] = savedEnvUser
+      process.env['V_USER'] = savedEnvUser
     } else {
-      delete process.env['PGUSER']
+      delete process.env['V_USER']
     }
 
     if (envPasswordDefined) {
-      process.env['PGPASSWORD'] = savedEnvPassword
+      process.env['V_PASSWORD'] = savedEnvPassword
     } else {
-      delete process.env['PGPASSWORD']
+      delete process.env['V_PASSWORD']
     }
 
     if (envDBDefined) {
-      process.env['PGDATABASE'] = savedEnvDB
+      process.env['V_DATABASE'] = savedEnvDB
     } else {
-      delete process.env['PGDATABASE']
+      delete process.env['V_DATABASE']
     }
 
     if (envHostDefined) {
-      process.env['PGHOST'] = savedEnvHost
+      process.env['V_HOST'] = savedEnvHost
     } else {
-      delete process.env['PGHOST']
+      delete process.env['V_HOST']
     }
 
     if (envPortDefined) {
-      process.env['PGPORT'] = savedEnvPort
+      process.env['V_PORT'] = savedEnvPort
     } else {
-      delete process.env['PGPORT']
+      delete process.env['V_PORT']
     }
   })
 })

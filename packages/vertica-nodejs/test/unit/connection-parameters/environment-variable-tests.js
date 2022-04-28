@@ -24,11 +24,11 @@ const clearEnv = () => {
 
 suite.test('ConnectionParameters initialized from environment variables', function () {
   clearEnv()
-  process.env['PGHOST'] = 'local'
-  process.env['PGUSER'] = 'bmc2'
-  process.env['PGPORT'] = 7890
-  process.env['PGDATABASE'] = 'allyerbase'
-  process.env['PGPASSWORD'] = 'open'
+  process.env['V_HOST'] = 'local'
+  process.env['V_USER'] = 'bmc2'
+  process.env['V_PORT'] = 7890
+  process.env['V_DATABASE'] = 'allyerbase'
+  process.env['V_PASSWORD'] = 'open'
 
   var subject = new ConnectionParameters()
   assert.equal(subject.host, 'local', 'env host')
@@ -40,13 +40,13 @@ suite.test('ConnectionParameters initialized from environment variables', functi
 
 suite.test('ConnectionParameters initialized from mix', function () {
   clearEnv()
-  process.env['PGHOST'] = 'local'
-  process.env['PGUSER'] = 'bmc2'
-  process.env['PGPORT'] = 7890
-  process.env['PGDATABASE'] = 'allyerbase'
-  process.env['PGPASSWORD'] = 'open'
-  delete process.env['PGPASSWORD']
-  delete process.env['PGDATABASE']
+  process.env['V_HOST'] = 'local'
+  process.env['V_USER'] = 'bmc2'
+  process.env['V_PORT'] = 7890
+  process.env['V_DATABASE'] = 'allyerbase'
+  process.env['V_PASSWORD'] = 'open'
+  delete process.env['V_PASSWORD']
+  delete process.env['V_DATABASE']
   var subject = new ConnectionParameters({
     user: 'testing',
     database: 'zugzug',
