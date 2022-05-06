@@ -1,77 +1,94 @@
-pg-connection-string
-====================
+# v-connection-string
 
-[![NPM](https://nodei.co/npm/pg-connection-string.png?compact=true)](https://nodei.co/npm/pg-connection-string/)
+<!-- refer back to original node-postgres for samples once compatibility with Vertica is ensured -->
 
-[![Build Status](https://travis-ci.org/iceddev/pg-connection-string.svg?branch=master)](https://travis-ci.org/iceddev/pg-connection-string)
-[![Coverage Status](https://coveralls.io/repos/github/iceddev/pg-connection-string/badge.svg?branch=master)](https://coveralls.io/github/iceddev/pg-connection-string?branch=master)
+<!-- NPM package when published -->
+<!-- NPM downloads when published -->
+[![License](https://img.shields.io/github/license/vertica/vertica-nodejs)](https://opensource.org/licenses/MIT)
 
-Functions for dealing with a PostgresSQL connection string
+Non-blocking Vertica client for Node.js. Pure JavaScript and optional native libpq bindings.
 
-`parse` method taken from [node-postgres](https://github.com/brianc/node-postgres.git)
-Copyright (c) 2010-2014 Brian Carlson (brian.m.carlson@gmail.com)
-MIT License
+## DISCLAIMER: 
+vertica-nodejs is still pre-release and actively being improved. As of 5/5/22 this is not intended for use in production environments. 
 
+<!--
+## Documentation
+
+Each package in this repo should have its own readme more focused on how to develop/contribute. For more information on how to contribute, check out our [contributing guidelines](#contributing-guidelines).-->
+
+<!-- ## Installation
+    To install vertica-nodejs with npm: ``` TO DO ```
+
+    To use vertica-nodejs linked locally from source (not recommended in production): ``` TO DO - Take notes from http://confluence.verticacorp.com/display/DEV/Node.js+Development+Resources```
+
+-->
 ## Usage
 
-```js
 var parse = require('pg-connection-string').parse;
-
-var config = parse('postgres://someuser:somepassword@somehost:381/somedatabase')
-```
+var config = parse('vertica://someuser:somepassword@somehost:381/somedatabase')
 
 The resulting config contains a subset of the following properties:
-
-* `host` - Postgres server hostname or, for UNIX domain sockets, the socket filename
+* `host` - Vertica server hostname 
 * `port` - port on which to connect
 * `user` - User with which to authenticate to the server
 * `password` - Corresponding password
 * `database` - Database name within the server
-* `client_encoding` - string encoding the client will use
-* `ssl`, either a boolean or an object with properties
-  * `rejectUnauthorized`
-  * `cert`
-  * `key`
-  * `ca`
-* any other query parameters (for example, `application_name`) are preserved intact.
+### Features
 
-## Connection Strings
+- Pure JavaScript client and native libpq bindings share _the same API_
+- Connection pooling
+- Extensible JS ↔ Vertica data-type coercion
+<!-- - Supported Vertica features -->
+  <!-- - Async notifications with `LISTEN/NOTIFY` verifiy this -->
+  <!-- - Bulk import & export with `COPY TO/COPY FROM` not part of the MVP -->
 
-The short summary of acceptable URLs is:
+## Support
 
- * `socket:<path>?<query>` - UNIX domain socket
- * `postgres://<user>:<password>@<host>:<port>/<database>?<query>` - TCP connection
+vertica-nodejs is free software. If you encounter a bug with the library please open an issue on the [GitHub repo](https://github.com/vertica/vertica-nodejs). If you have questions unanswered by the documentation please open an issue pointing out how the documentation was unclear and we will address it as needed. 
 
-But see below for more details.
+When you open an issue please provide:
 
-### UNIX Domain Sockets
+- version of Node
+- version of Vertica
+- smallest possible snippet of code to reproduce the problem
 
-When user and password are not given, the socket path follows `socket:`, as in `socket:/var/run/pgsql`.
-This form can be shortened to just a path: `/var/run/pgsql`.
+<!-- 
+## Contributing
 
-When user and password are given, they are included in the typical URL positions, with an empty `host`, as in `socket://user:pass@/var/run/pgsql`.
+Outside contributions to this project are greatly appreciated. Following standard Vertica open source practices, please see [CONTRIBUTING.md](CONTRIBUTING.md)
+-->
 
-Query parameters follow a `?` character, including the following special query parameters:
 
- * `db=<database>` - sets the database name (urlencoded)
- * `encoding=<encoding>` - sets the `client_encoding` property
+### Setting up for local development
 
-### TCP Connections
+1. Clone the repo
+2. From your workspace root run `yarn` and then `yarn lerna bootstrap`
+3. Ensure you have a Vertica instance running with 
+4. Ensure you have the proper environment variables configured for connecting to the instance (V_HOST, V_PORT, V_USER, V_PASSWORD, V_DATABASE)
+5. Run `yarn test` to run all the tests, or run `yarn test` from within an individual package to only run that package's tests. 
 
-TCP connections to the Postgres server are indicated with `pg:` or `postgres:` schemes (in fact, any scheme but `socket:` is accepted).
-If username and password are included, they should be urlencoded.
-The database name, however, should *not* be urlencoded.
+## Troubleshooting and FAQ
 
-Query parameters follow a `?` character, including the following special query parameters:
- * `host=<host>` - sets `host` property, overriding the URL's host
- * `encoding=<encoding>` - sets the `client_encoding` property
- * `ssl=1`, `ssl=true`, `ssl=0`, `ssl=false` - sets `ssl` to true or false, accordingly
- * `sslmode=<sslmode>`
-   * `sslmode=disable` - sets `ssl` to false
-   * `sslmode=no-verify` - sets `ssl` to `{ rejectUnauthorized: false }`
-   * `sslmode=prefer`, `sslmode=require`, `sslmode=verify-ca`, `sslmode=verify-full` - sets `ssl` to true
- * `sslcert=<filename>` - reads data from the given file and includes the result as `ssl.cert`
- * `sslkey=<filename>` - reads data from the given file and includes the result as `ssl.key`
- * `sslrootcert=<filename>` - reads data from the given file and includes the result as `ssl.ca`
+The causes and solutions to common errors can be found among the [Frequently Asked Questions (FAQ)](https://github.com/vertica/vertica-nodejs/wiki/FAQ)
 
-A bare relative URL, such as `salesdata`, will indicate a database name while leaving other properties empty.
+## License
+
+<!-- Copyright (c) 2010-2020 Brian Carlson (brian.m.carlson@gmail.com) are we allowed to change this and if so do we have an open source email to use -->
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.

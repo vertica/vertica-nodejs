@@ -1,49 +1,68 @@
-# pg-query-stream
+# v-query-stream
+<!-- Is any part of this relevant to the MVP -->
 
-Receive result rows from [pg](https://github.com/brianc/node-postgres) as a readable (object) stream.
+<!-- NPM package when published -->
+<!-- NPM downloads when published -->
+[![License](https://img.shields.io/github/license/vertica/vertica-nodejs)](https://opensource.org/licenses/MIT)
 
-## installation
+Non-blocking Vertica client for Node.js. Pure JavaScript and optional native libpq bindings.
 
-```bash
-$ npm install pg --save
-$ npm install pg-query-stream --save
-```
+## DISCLAIMER: 
+vertica-nodejs is still pre-release and actively being improved. As of 5/5/22 this is not intended for use in production environments. 
 
-_requires pg>=2.8.1_
+<!--
+## Documentation
 
-## use
+Each package in this repo should have its own readme more focused on how to develop/contribute. For more information on how to contribute, check out our [contributing guidelines](#contributing-guidelines).-->
 
-```js
-const pg = require('pg')
-const QueryStream = require('pg-query-stream')
-const JSONStream = require('JSONStream')
+<!-- ## Installation
+    To install vertica-nodejs with npm: ``` TO DO ```
 
-//pipe 1,000,000 rows to stdout without blowing up your memory usage
-pg.connect((err, client, done) => {
-  if (err) throw err
-  const query = new QueryStream('SELECT * FROM generate_series(0, $1) num', [1000000])
-  const stream = client.query(query)
-  //release the client when the stream is finished
-  stream.on('end', done)
-  stream.pipe(JSONStream.stringify()).pipe(process.stdout)
-})
-```
+    To use vertica-nodejs linked locally from source (not recommended in production): ``` TO DO - Take notes from http://confluence.verticacorp.com/display/DEV/Node.js+Development+Resources```
 
-The stream uses a cursor on the server so it efficiently keeps only a low number of rows in memory.
+-->
 
-This is especially useful when doing [ETL](http://en.wikipedia.org/wiki/Extract,_transform,_load) on a huge table. Using manual `limit` and `offset` queries to fake out async itteration through your data is cumbersome, and _way way way_ slower than using a cursor.
+### Features
 
-_note: this module only works with the JavaScript client, and does not work with the native bindings. libpq doesn't expose the protocol at a level where a cursor can be manipulated directly_
+- Pure JavaScript client and native libpq bindings share _the same API_
+- Connection pooling
+- Extensible JS ↔ Vertica data-type coercion
+<!-- - Supported Vertica features -->
+  <!-- - Async notifications with `LISTEN/NOTIFY` verifiy this -->
+  <!-- - Bulk import & export with `COPY TO/COPY FROM` not part of the MVP -->
 
-## contribution
+## Support
 
-I'm very open to contribution! Open a pull request with your code or idea and we'll talk about it. If it's not way insane we'll merge it in too: isn't open source awesome?
+vertica-nodejs is free software. If you encounter a bug with the library please open an issue on the [GitHub repo](https://github.com/vertica/vertica-nodejs). If you have questions unanswered by the documentation please open an issue pointing out how the documentation was unclear and we will address it as needed. 
 
-## license
+When you open an issue please provide:
 
-The MIT License (MIT)
+- version of Node
+- version of Vertica
+- smallest possible snippet of code to reproduce the problem
 
-Copyright (c) 2013-2020 Brian M. Carlson
+<!-- 
+## Contributing
+
+Outside contributions to this project are greatly appreciated. Following standard Vertica open source practices, please see [CONTRIBUTING.md](CONTRIBUTING.md)
+-->
+
+
+### Setting up for local development
+
+1. Clone the repo
+2. From your workspace root run `yarn` and then `yarn lerna bootstrap`
+3. Ensure you have a Vertica instance running with 
+4. Ensure you have the proper environment variables configured for connecting to the instance (V_HOST, V_PORT, V_USER, V_PASSWORD, V_DATABASE)
+5. Run `yarn test` to run all the tests, or run `yarn test` from within an individual package to only run that package's tests. 
+
+## Troubleshooting and FAQ
+
+The causes and solutions to common errors can be found among the [Frequently Asked Questions (FAQ)](https://github.com/vertica/vertica-nodejs/wiki/FAQ)
+
+## License
+
+<!-- Copyright (c) 2010-2020 Brian Carlson (brian.m.carlson@gmail.com) are we allowed to change this and if so do we have an open source email to use -->
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
