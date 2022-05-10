@@ -32,6 +32,10 @@ Each package in this repo should have its own readme more focused on how to deve
 
 -->
 
+## Vertica Data Types
+
+See [DATATYPES.md](https://github.com/vertica/vertica-nodejs/blob/master/DATATPYES.md) to view the mappings from type IDs to Vertica data types.
+
 ### Features
 
 - Pure JavaScript client and native libpq bindings share _the same API_
