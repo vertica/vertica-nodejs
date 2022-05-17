@@ -1,6 +1,8 @@
 'use strict'
 
 const { EventEmitter } = require('events')
+const { ParameterDescriptionMessage } = require('v-protocol/dist/messages')
+const { Parser } = require('v-protocol/dist/parser')
 
 const Result = require('./result')
 const utils = require('./utils')
@@ -197,6 +199,15 @@ class Query extends EventEmitter {
       })
     }
 
+    connection.describe({
+      type: 'S',
+      name: this.name || '',
+    })
+    
+    connection.flush()
+  }
+
+  handleParameterDescription(msg, connection) {
     // because we're mapping user supplied values to
     // postgres wire protocol compatible values it could
     // throw an exception, so try/catch this section
@@ -207,16 +218,12 @@ class Query extends EventEmitter {
         values: this.values,
         binary: this.binary,
         valueMapper: utils.prepareValue,
+        dataTypeIDs: msg.dataTypeIDs,
       })
     } catch (err) {
       this.handleError(err, connection)
       return
     }
-
-    connection.describe({
-      type: 'P',
-      name: this.portal || '',
-    })
 
     this._getRows(connection, this.rows)
   }

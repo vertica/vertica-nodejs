@@ -196,6 +196,7 @@ class Client extends EventEmitter {
     con.on('copyInResponse', this._handleCopyInResponse.bind(this))
     con.on('copyData', this._handleCopyData.bind(this))
     con.on('notification', this._handleNotification.bind(this))
+    con.on('parameterDescription', this._handleParameterDescription.bind(this))
   }
 
   // TODO(bmc): deprecate pgpass "built in" integration since this.password can be a function
@@ -346,8 +347,13 @@ class Client extends EventEmitter {
   }
 
   _handlePortalSuspended(msg) {
-    // delegate portalSuspended to active query
-    this.activeQuery.handlePortalSuspended(this.connection)
+    // Handle portalSuspended the same way commandComplete is handled
+    this.activeQuery.handleCommandComplete(msg, this.connection)
+  }
+
+  _handleParameterDescription(msg) {
+    // delegate parameterDescription to active query
+    this.activeQuery.handleParameterDescription(msg, this.connection)
   }
 
   _handleEmptyQuery(msg) {

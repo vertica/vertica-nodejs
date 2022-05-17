@@ -110,6 +110,7 @@ type BindOpts = {
   values?: any[]
   // optional map from JS value to postgres value per parameter
   valueMapper?: ValueMapper
+  dataTypeIDs?: number[]
 }
 
 const paramWriter = new Writer()
@@ -124,19 +125,13 @@ const writeValues = function (values: any[], valueMapper?: ValueMapper): void {
   for (let i = 0; i < values.length; i++) {
     const mappedVal = valueMapper ? valueMapper(values[i], i) : values[i]
     if (mappedVal == null) {
-      // add the param type (string) to the writer
-      writer.addInt16(ParamType.STRING)
       // write -1 to the param writer to indicate null
       paramWriter.addInt32(-1)
     } else if (mappedVal instanceof Buffer) {
-      // add the param type (binary) to the writer
-      writer.addInt16(ParamType.BINARY)
       // add the buffer to the param writer
       paramWriter.addInt32(mappedVal.length)
       paramWriter.add(mappedVal)
     } else {
-      // add the param type (string) to the writer
-      writer.addInt16(ParamType.STRING)
       paramWriter.addInt32(Buffer.byteLength(mappedVal))
       paramWriter.addString(mappedVal)
     }
@@ -150,17 +145,44 @@ const bind = (config: BindOpts = {}): Buffer => {
   const binary = config.binary || false
   const values = config.values || emptyArray
   const len = values.length
+  const dataTypeIDs = config.dataTypeIDs || emptyArray
 
   writer.addCString(portal).addCString(statement)
-  writer.addInt16(len)
 
+  // parameter format codes
+  writer.addInt16(len)
+  for (let i = 0; i < len; i++) {
+    const valueMapper = config.valueMapper
+    const mappedVal = valueMapper ? valueMapper(values[i], i) : values[i]
+    if (mappedVal == null) {
+      // add the param type (string) to the writer
+      writer.addInt16(ParamType.STRING)
+    } else if (mappedVal instanceof Buffer) {
+      // add the param type (binary) to the writer
+      writer.addInt16(ParamType.BINARY)
+    } else {
+      // add the param type (string) to the writer
+      writer.addInt16(ParamType.STRING)
+    }
+  }
+
+  // OIDs
+  writer.addInt16(len)
+  for (let i = 0; i < len; i++) {
+    writer.addInt32(dataTypeIDs[i])
+  }
+  
+
+  // parameter values
   writeValues(values, config.valueMapper)
 
-  writer.addInt16(len)
   writer.add(paramWriter.flush())
 
-  // format code
+  // result format codes
+  // assume same format for all result fields for now
+  writer.addInt16(1)
   writer.addInt16(binary ? ParamType.BINARY : ParamType.STRING)
+
   return writer.flush(code.bind)
 }
 
