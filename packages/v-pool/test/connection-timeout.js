@@ -128,7 +128,7 @@ describe('connection timeout', () => {
         expect(err).to.be.an(Error)
         expect(result).to.be(undefined)
         release()
-        pool.query('select $1::text as name', ['brianc'], (err, res) => {
+        pool.query('select ?::varchar as name', ['brianc'], (err, res) => {
           expect(err).to.be(undefined)
           expect(res.rows).to.have.length(1)
           pool.end(done)
@@ -164,7 +164,7 @@ describe('connection timeout', () => {
     pool.connect((err, client, release) => {
       expect(err).to.be(connectionFailure)
 
-      pool.query('select $1::text as name', ['brianc'], (err, res) => {
+      pool.query('select ?::varchar as name', ['brianc'], (err, res) => {
         expect(err).to.be(undefined)
         expect(res.rows).to.have.length(1)
         pool.end(done)
@@ -219,7 +219,7 @@ describe('connection timeout', () => {
       expect(called++).to.be(0)
       expect(err).to.be.an(Error)
 
-      pool.query('select $1::text as name', ['brianc'], (err, res) => {
+      pool.query('select ?::varchar as name', ['brianc'], (err, res) => {
         expect(err).to.be(undefined)
         expect(res.rows).to.have.length(1)
         pool.end(done)

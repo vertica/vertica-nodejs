@@ -190,6 +190,8 @@ class Query extends EventEmitter {
     // complete or when an error is encountered
     this.isPreparedStatement = true
 
+    this.name = this.name || connection.makeStatementName()
+
     // TODO refactor this poor encapsulation
     if (!this.hasBeenParsed(connection)) {
       connection.parse({
@@ -201,7 +203,7 @@ class Query extends EventEmitter {
 
     connection.describe({
       type: 'S',
-      name: this.name || '',
+      name: this.name,
     })
     
     connection.flush()

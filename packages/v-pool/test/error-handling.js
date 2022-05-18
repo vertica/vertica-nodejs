@@ -196,7 +196,7 @@ describe('pool error handling', function () {
         expect(errors).to.have.length(20)
         expect(pool.idleCount).to.equal(0)
         expect(pool.query).to.be.a(Function)
-        const res = yield pool.query('SELECT $1::text as name', ['brianc'])
+        const res = yield pool.query('SELECT ?::varchar as name', ['brianc'])
         expect(res.rows).to.have.length(1)
         expect(res.rows[0].name).to.equal('brianc')
         return pool.end()

@@ -14,7 +14,7 @@ describe('pool size of 1', () => {
       const pool = new Pool({ max: 1 })
       expect(pool.waitingCount).to.equal(0)
       const client = yield pool.connect()
-      const res = yield client.query('SELECT $1::text as name', ['hi'])
+      const res = yield client.query('SELECT ?::varchar as name', ['hi'])
       expect(res.rows[0].name).to.equal('hi')
       client.release()
       pool.end()
@@ -47,7 +47,7 @@ describe('pool size of 1', () => {
       const version = parseInt(versionResult.rows[0].server_version_num, 10)
       const queryColumn = version < 90200 ? 'current_query' : 'query'
 
-      const queryText = 'SELECT COUNT(*) as counts FROM pg_stat_activity WHERE ' + queryColumn + ' = $1'
+      const queryText = 'SELECT COUNT(*) as counts FROM pg_stat_activity WHERE ' + queryColumn + ' = ?'
       const queries = _.times(20, () => pool.query(queryText, [queryText]))
       const results = yield Promise.all(queries)
       const counts = results.map((res) => parseInt(res.rows[0].counts, 10))

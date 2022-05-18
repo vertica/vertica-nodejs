@@ -14,7 +14,7 @@ describe('maxUses', () => {
       const pool = new Pool({ maxUses: 2 })
       expect(pool.waitingCount).to.equal(0)
       const client = yield pool.connect()
-      const res = yield client.query('SELECT $1::text as name', ['hi'])
+      const res = yield client.query('SELECT ?::varchar as name', ['hi'])
       expect(res.rows[0].name).to.equal('hi')
       client.release()
       pool.end()

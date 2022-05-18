@@ -44,7 +44,7 @@ describe('pool', function () {
 
     it('can run a query with a callback', function (done) {
       const pool = new Pool()
-      pool.query('SELECT $1::text as name', ['brianc'], function (err, res) {
+      pool.query('SELECT ?::varchar as name', ['brianc'], function (err, res) {
         expect(res.rows[0]).to.eql({ name: 'brianc' })
         pool.end(function () {
           done(err)
@@ -54,7 +54,7 @@ describe('pool', function () {
 
     it('passes connection errors to callback', function (done) {
       const pool = new Pool({ port: 53922 })
-      pool.query('SELECT $1::text as name', ['brianc'], function (err, res) {
+      pool.query('SELECT ?::varchar as name', ['brianc'], function (err, res) {
         expect(res).to.be(undefined)
         expect(err).to.be.an(Error)
         // a connection error should not polute the pool with a dead client
@@ -157,7 +157,7 @@ describe('pool', function () {
     it('connects, queries, and disconnects', function () {
       const pool = new Pool()
       return pool.connect().then(function (client) {
-        return client.query('select $1::text as name', ['hi']).then(function (res) {
+        return client.query('select ?::varchar as name', ['hi']).then(function (res) {
           expect(res.rows).to.eql([{ name: 'hi' }])
           client.release()
           return pool.end()
@@ -167,7 +167,7 @@ describe('pool', function () {
 
     it('executes a query directly', () => {
       const pool = new Pool()
-      return pool.query('SELECT $1::text as name', ['hi']).then((res) => {
+      return pool.query('SELECT ?::varchar as name', ['hi']).then((res) => {
         expect(res.rows).to.have.length(1)
         expect(res.rows[0].name).to.equal('hi')
         return pool.end()
@@ -178,7 +178,7 @@ describe('pool', function () {
       const pool = new Pool({ poolSize: 9 })
       const promises = _.times(30, function () {
         return pool.connect().then(function (client) {
-          return client.query('select $1::text as name', ['hi']).then(function (res) {
+          return client.query('select ?::varchar as name', ['hi']).then(function (res) {
             client.release()
             return res
           })
@@ -193,7 +193,7 @@ describe('pool', function () {
 
     it('supports just running queries', function () {
       const pool = new Pool({ poolSize: 9 })
-      const text = 'select $1::text as name'
+      const text = 'select ?::varchar as name'
       const values = ['hi']
       const query = { text: text, values: values }
       const promises = _.times(30, () => pool.query(query))
@@ -216,7 +216,7 @@ describe('pool', function () {
         expect(errors).to.have.length(30)
         expect(pool.totalCount).to.equal(0)
         expect(pool.idleCount).to.equal(0)
-        return pool.query('SELECT $1::text as name', ['hi']).then(function (res) {
+        return pool.query('SELECT ?::varchar as name', ['hi']).then(function (res) {
           expect(res.rows).to.eql([{ name: 'hi' }])
           return pool.end()
         })

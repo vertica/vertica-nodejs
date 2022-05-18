@@ -22,6 +22,10 @@ class Connection extends EventEmitter {
     this.ssl = config.ssl || false
     this._ending = false
     this._emitMessage = false
+    this.statementCounterBuffer = new SharedArrayBuffer(32)
+    this.statementCounter = new Int32Array(this.statementCounterBuffer)
+    this.statementCounter[0] = 0
+
     var self = this
     this.on('newListener', function (eventName) {
       if (eventName === 'message') {
@@ -215,6 +219,10 @@ class Connection extends EventEmitter {
 
   sendCopyFail(msg) {
     this._send(serialize.copyFail(msg))
+  }
+
+  makeStatementName() {
+    return "s" + Atomics.add(this.statementCounter, 0, 1)
   }
 }
 

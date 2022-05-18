@@ -106,7 +106,7 @@ describe('cursor', function () {
   })
 
   it('normalizes parameter values', function (done) {
-    const text = 'SELECT $1::json me'
+    const text = 'SELECT ?::json me'
     const values = [{ name: 'brian' }]
     const cursor = this.pgCursor(text, values)
     cursor.read(1, function (err, rows) {
@@ -168,7 +168,7 @@ describe('cursor', function () {
     this.client
       .query('CREATE TEMPORARY TABLE pg_cursor_test (foo VARCHAR(1), bar VARCHAR(1))')
       .then(function () {
-        const cursor = pgCursor('insert into pg_cursor_test values($1, $2)', ['a', 'b'])
+        const cursor = pgCursor('insert into pg_cursor_test values(?, ?)', ['a', 'b'])
         cursor.read(1, function (err, rows, result) {
           assert.ifError(err)
           assert.strictEqual(rows.length, 0)
