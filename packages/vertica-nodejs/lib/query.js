@@ -1,8 +1,6 @@
 'use strict'
 
 const { EventEmitter } = require('events')
-const { ParameterDescriptionMessage } = require('v-protocol/dist/messages')
-const { Parser } = require('v-protocol/dist/parser')
 
 const Result = require('./result')
 const utils = require('./utils')
@@ -201,6 +199,7 @@ class Query extends EventEmitter {
       })
     }
 
+    // [VERTICA specific] The statement needs to be sent, not a portal
     connection.describe({
       type: 'S',
       name: this.name,
@@ -209,6 +208,8 @@ class Query extends EventEmitter {
     connection.flush()
   }
 
+  // [VERTICA specific] Bind and Execute are not sent until ParameterDescription is received because the dataTypeIDs
+  // are not available for the Bind message otherwise
   handleParameterDescription(msg, connection) {
     // because we're mapping user supplied values to
     // postgres wire protocol compatible values it could

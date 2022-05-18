@@ -149,6 +149,7 @@ const bind = (config: BindOpts = {}): Buffer => {
 
   writer.addCString(portal).addCString(statement)
 
+  // [VERTICA specific] The parameter format codes need to be added up front instead of being interleaved with the parameter values
   // parameter format codes
   writer.addInt16(len)
   for (let i = 0; i < len; i++) {
@@ -166,6 +167,7 @@ const bind = (config: BindOpts = {}): Buffer => {
     }
   }
 
+  // [VERTICA specific] The type OIDs need to be added here
   // OIDs
   writer.addInt16(len)
   for (let i = 0; i < len; i++) {
