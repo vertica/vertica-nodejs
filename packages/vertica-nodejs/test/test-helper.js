@@ -8,6 +8,8 @@ const args = require('./cli')
 
 global.Client = require('./../lib').Client
 
+global.defaults = require('./../lib').defaults
+
 process.on('uncaughtException', function (d) {
   if ('stack' in d && 'message' in d) {
     console.log('Message: ' + d.message)

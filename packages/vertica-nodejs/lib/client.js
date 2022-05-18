@@ -33,6 +33,8 @@ class Client extends EventEmitter {
 
     this.replication = this.connectionParameters.replication
 
+    this.client_label = this.connectionParameters.client_label;
+
     var c = config || {}
 
     this._Promise = c.Promise || global.Promise
@@ -51,6 +53,7 @@ class Client extends EventEmitter {
         keepAlive: c.keepAlive || false,
         keepAliveInitialDelayMillis: c.keepAliveInitialDelayMillis || 0,
         encoding: this.connectionParameters.client_encoding || 'utf8',
+        client_label: this.client_label,
       })
     this.queryQueue = []
     this.binary = c.binary || defaults.binary
@@ -197,6 +200,7 @@ class Client extends EventEmitter {
     con.on('copyData', this._handleCopyData.bind(this))
     con.on('notification', this._handleNotification.bind(this))
     con.on('parameterDescription', this._handleParameterDescription.bind(this))
+    // if you want to add a handler for parameter status messages, you can probably start here. 
   }
 
   // TODO(bmc): deprecate pgpass "built in" integration since this.password can be a function
@@ -414,6 +418,10 @@ class Client extends EventEmitter {
     }
     if (params.options) {
       data.options = params.options
+    }
+
+    if (params.client_label) {
+      data.client_label = params.client_label
     }
 
     return data

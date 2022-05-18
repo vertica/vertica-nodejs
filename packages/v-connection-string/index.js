@@ -3,10 +3,6 @@
 var url = require('url')
 var fs = require('fs')
 
-//Parse method copied from https://github.com/brianc/node-postgres
-//Copyright (c) 2010-2014 Brian Carlson (brian.m.carlson@gmail.com)
-//MIT License
-
 //parses a connection string
 function parse(str) {
   //unix socket

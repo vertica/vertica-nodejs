@@ -106,6 +106,8 @@ class ConnectionParameters {
     this.idle_in_transaction_session_timeout = val('idle_in_transaction_session_timeout', config, false)
     this.query_timeout = val('query_timeout', config, false)
 
+    this.client_label = val('client_label', config, false)
+
     if (config.connectionTimeoutMillis === undefined) {
       this.connect_timeout = process.env.PGCONNECT_TIMEOUT || 0
     } else {
