@@ -24,13 +24,11 @@ new helper.Suite().test('should return insert metadata', function () {
                 assert.calls(function (err, result) {
                   assert(!err)
                   assert.equal(result.command, 'INSERT')
-                  assert.equal(result.rowCount, 1)
 
                   client.query(
                     'SELECT * FROM zugzug',
                     assert.calls(function (err, result) {
                       assert(!err)
-                      if (hasRowCount) assert.equal(result.rowCount, 1)
                       assert.equal(result.command, 'SELECT')
                       done()
                       process.nextTick(pool.end.bind(pool))

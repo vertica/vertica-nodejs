@@ -62,7 +62,6 @@ con.connect((err) => {
             throw err
           }
 
-          console.log(`Inserted ${result.rowCount} people`)
           con.end()
         }
       )

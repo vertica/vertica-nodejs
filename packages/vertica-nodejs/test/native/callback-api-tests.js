@@ -12,7 +12,6 @@ suite.test('fires callback with results', function (done) {
     assert.calls(function (err, result) {
       assert(!err)
       assert.equal(result.rows[0].num, 1)
-      assert.strictEqual(result.rowCount, 1)
       client.query(
         'SELECT * FROM person WHERE name = $1',
         ['Brian'],

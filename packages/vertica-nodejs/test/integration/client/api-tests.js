@@ -115,7 +115,6 @@ suite.test('callback API', (done) => {
 
   client.query('SELECT * FROM peep ORDER BY name COLLATE "C"', (err, res) => {
     assert(!err)
-    assert.equal(res.rowCount, 3)
     assert.deepEqual(res.rows, [
       {
         name: 'aaron',

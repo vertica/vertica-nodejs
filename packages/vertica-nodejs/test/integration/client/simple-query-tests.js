@@ -61,7 +61,6 @@ test('prepared statements do not mutate params', function () {
 
   query.on('end', function (result) {
     assert.lengthIs(rows, 26, 'result returned wrong number of rows')
-    assert.lengthIs(rows, result.rowCount)
     assert.equal(rows[0].name, 'Aaron')
     assert.equal(rows[25].name, 'Zanzabar')
   })

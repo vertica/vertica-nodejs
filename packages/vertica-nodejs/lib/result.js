@@ -2,7 +2,7 @@
 
 var types = require('pg-types')
 
-var matchRegexp = /^([A-Za-z]+)(?: (\d+))?(?: (\d+))?/
+var matchRegexp = /^([A-Za-z]+)(?: (\d+))?/
 
 // result object returned from query
 // in the 'end' event and also
@@ -10,7 +10,6 @@ var matchRegexp = /^([A-Za-z]+)(?: (\d+))?(?: (\d+))?/
 class Result {
   constructor(rowMode, types) {
     this.command = null
-    this.rowCount = null
     this.oid = null
     this.rows = []
     this.fields = []
@@ -35,13 +34,10 @@ class Result {
     }
     if (match) {
       this.command = match[1]
-      if (match[3]) {
+      // [VERTICA specific] Unlike Postgres, rowCount is not sent back by Vertica, but if it ever is supported, it could be set here
+      if (match[2]) {
         // COMMMAND OID ROWS
         this.oid = parseInt(match[2], 10)
-        this.rowCount = parseInt(match[3], 10)
-      } else if (match[2]) {
-        // COMMAND ROWS
-        this.rowCount = parseInt(match[2], 10)
       }
     }
   }

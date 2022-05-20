@@ -162,20 +162,4 @@ describe('cursor', function () {
       done()
     })
   })
-
-  it('returns rowCount on insert', function (done) {
-    const pgCursor = this.pgCursor
-    this.client
-      .query('CREATE TEMPORARY TABLE pg_cursor_test (foo VARCHAR(1), bar VARCHAR(1))')
-      .then(function () {
-        const cursor = pgCursor('insert into pg_cursor_test values(?, ?)', ['a', 'b'])
-        cursor.read(1, function (err, rows, result) {
-          assert.ifError(err)
-          assert.strictEqual(rows.length, 0)
-          assert.strictEqual(result.rowCount, 1)
-          done()
-        })
-      })
-      .catch(done)
-  })
 })

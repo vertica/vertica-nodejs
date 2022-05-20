@@ -23,20 +23,19 @@ var testForTag = function (tagText, callback) {
   })
 }
 
-var check = function (oid, rowCount, command) {
+var check = function (oid, command) {
   return function (result) {
     if (oid != null) {
       assert.equal(result.oid, oid)
     }
-    assert.equal(result.rowCount, rowCount)
     assert.equal(result.command, command)
   }
 }
 
-testForTag('INSERT 0 3', check(0, 3, 'INSERT'))
-testForTag('INSERT 841 1', check(841, 1, 'INSERT'))
-testForTag('DELETE 10', check(null, 10, 'DELETE'))
-testForTag('UPDATE 11', check(null, 11, 'UPDATE'))
-testForTag('SELECT 20', check(null, 20, 'SELECT'))
-testForTag('COPY', check(null, null, 'COPY'))
-testForTag('COPY 12345', check(null, 12345, 'COPY'))
+testForTag('INSERT 0 3', check(0, 'INSERT'))
+testForTag('INSERT 841 1', check(841, 'INSERT'))
+testForTag('DELETE 10', check(null, 'DELETE'))
+testForTag('UPDATE 11', check(null, 'UPDATE'))
+testForTag('SELECT 20', check(null, 'SELECT'))
+testForTag('COPY', check(null, 'COPY'))
+testForTag('COPY 12345', check(null, 'COPY'))
