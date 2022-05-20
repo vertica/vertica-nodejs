@@ -11,6 +11,6 @@ if (module === require.main) {
   })
 
   setTimeout(() => {
-    pool.query('SELECT * from generate_series(0, 1000)', (err, res) => console.log('completed second'))
+    pool.query('SELECT 40/25', (err, res) => console.log('completed second'))
   }, 50)
 }
