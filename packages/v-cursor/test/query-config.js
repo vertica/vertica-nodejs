@@ -1,7 +1,7 @@
 'use strict'
 const assert = require('assert')
 const Cursor = require('../')
-const pg = require('pg')
+const pg = require('vertica-nodejs')
 
 describe('query config passed to result', () => {
   it('passes rowMode to result', (done) => {

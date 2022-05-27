@@ -40,15 +40,15 @@ describe('pool size of 1', () => {
   it(
     'can only send 1 query at a time',
     co.wrap(function* () {
+      
+      // This operation takes some additional time
+      this.timeout(10000)
+
       const pool = new Pool({ max: 1 })
 
-      // the query text column name changed in PostgreSQL 9.2
-      const versionResult = yield pool.query('SHOW server_version_num')
-      const version = parseInt(versionResult.rows[0].server_version_num, 10)
-      const queryColumn = version < 90200 ? 'current_query' : 'query'
-
-      const queryText = 'SELECT COUNT(*) as counts FROM pg_stat_activity WHERE ' + queryColumn + ' = ?'
-      const queries = _.times(20, () => pool.query(queryText, [queryText]))
+      const queryText = "SELECT COUNT(*) as counts FROM query_requests WHERE is_executing='t' AND request LIKE ?"
+      const queryTextMatch = "SELECT COUNT(*) as counts FROM query_requests WHERE is_executing='t' AND request %"
+      const queries = _.times(20, () => pool.query(queryText, [queryTextMatch]))
       const results = yield Promise.all(queries)
       const counts = results.map((res) => parseInt(res.rows[0].counts, 10))
       expect(counts).to.eql(_.times(20, (i) => 1))
