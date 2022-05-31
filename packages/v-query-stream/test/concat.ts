@@ -3,10 +3,11 @@ import concat from 'concat-stream'
 import { Transform } from 'stream'
 import helper from './helper'
 import QueryStream from '../src'
+import {generateSeriesStatement} from './helper'
 
 helper('concat', function (client) {
   it('concats correctly', function (done) {
-    const stream = new QueryStream('SELECT * FROM generate_series(0, 200) num', [])
+    const stream = new QueryStream(generateSeriesStatement(201), [])
     const query = client.query(stream)
     query
       .pipe(

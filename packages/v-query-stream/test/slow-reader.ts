@@ -1,6 +1,7 @@
 import helper from './helper'
 import QueryStream from '../src'
 import concat from 'concat-stream'
+import {generateSeriesStatement} from './helper'
 
 import { Transform } from 'stream'
 
@@ -14,7 +15,7 @@ mapper._transform = function (obj, enc, cb) {
 helper('slow reader', function (client) {
   it('works', function (done) {
     this.timeout(50000)
-    const stream = new QueryStream('SELECT * FROM generate_series(0, 201) num', [], {
+    const stream = new QueryStream(generateSeriesStatement(201), [], {
       highWaterMark: 100,
       batchSize: 50,
     })

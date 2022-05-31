@@ -45,7 +45,7 @@ con.connect((err) => {
   }
 
   con.query(
-    'DROP TABLE IF EXISTS person;' + ' CREATE TABLE person (id serial, name varchar(10), age integer)',
+    'select set_vertica_options(\'basic\',\'DISABLE_DEPARSE_CHECK\');DROP TABLE IF EXISTS person;' + ' CREATE TABLE person (id auto_increment, name varchar(10), age integer)',
     (err) => {
       if (err) {
         throw err
@@ -54,9 +54,11 @@ con.connect((err) => {
       console.log('Created table person')
       console.log('Filling it with people')
 
+      let q = people.map((person) => `INSERT INTO person (name, age) VALUES ('${person.name}', ${person.age})`).join(';')
+      console.log('Query: ' + q)
+
       con.query(
-        'INSERT INTO person (name, age) VALUES' +
-          people.map((person) => ` ('${person.name}', ${person.age})`).join(','),
+        q,
         (err, result) => {
           if (err) {
             throw err

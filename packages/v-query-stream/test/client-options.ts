@@ -1,6 +1,7 @@
 import vertica from 'vertica-nodejs'
 import assert from 'assert'
 import QueryStream from '../src'
+import {generateSeriesStatement} from './helper'
 
 describe('client options', function () {
   it('uses custom types from client config', function (done) {
@@ -10,7 +11,7 @@ describe('client options', function () {
     
     const client = new vertica.Client({ types })
     client.connect()
-    const stream = new QueryStream('SELECT * FROM generate_series(0, 10) num')
+    const stream = new QueryStream(generateSeriesStatement(11))
     const query = client.query(stream)
     const result = []
     query.on('data', (datum) => {

@@ -1,8 +1,9 @@
 import QueryStream from '../src'
 import vertica from 'vertica-nodejs'
 import assert from 'assert'
+import {generateSeriesStatement} from './helper'
 
-const queryText = 'SELECT * FROM generate_series(0, 200) num'
+const queryText = generateSeriesStatement(201)
 
 // node v8 do not support async iteration
 if (!process.version.startsWith('v8')) {
@@ -35,11 +36,13 @@ if (!process.version.startsWith('v8')) {
       await client.end()
     })
 
-    it('can async iterate multiple times with a pool', async () => {
+    it('can async iterate multiple times with a pool', async function() {
+      this.timeout(10000)
       const pool = new vertica.Pool({ max: 1 })
 
       const allRows = []
       const run = async () => {
+
         // get the client
         const client = await pool.connect()
         // stream some rows
@@ -58,7 +61,8 @@ if (!process.version.startsWith('v8')) {
       await pool.end()
     })
 
-    it('can break out of iteration early', async () => {
+    it('can break out of iteration early', async function() {
+      this.timeout(10000)
       const pool = new vertica.Pool({ max: 1 })
       const client = await pool.connect()
       const rows = []

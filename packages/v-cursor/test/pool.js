@@ -2,8 +2,9 @@
 const assert = require('assert')
 const Cursor = require('../')
 const vertica = require('vertica-nodejs')
+const helper = require('./test-helper')
 
-const text = 'SELECT generate_series as num FROM generate_series(0, 50)'
+const text = helper.generateSeriesStatement(50)
 
 function poolQueryPromise(pool, readRowCount) {
   return new Promise((resolve, reject) => {
@@ -50,6 +51,7 @@ describe('pool', function () {
   })
 
   it('closes cursor early, saturated pool', function (done) {
+    this.timeout(10000)
     const promises = []
     for (let i = 0; i < 10; i++) {
       promises.push(poolQueryPromise(this.pool, 25))
@@ -72,6 +74,7 @@ describe('pool', function () {
   })
 
   it('closes exhausted cursor, saturated pool', function (done) {
+    this.timeout(10000)
     const promises = []
     for (let i = 0; i < 10; i++) {
       promises.push(poolQueryPromise(this.pool, 100))

@@ -2,13 +2,14 @@ import assert from 'assert'
 import concat from 'concat-stream'
 import QueryStream from '../src'
 import helper from './helper'
+import {generateSeriesStatement} from './helper'
 
 if (process.version.startsWith('v8.')) {
   console.error('warning! node less than 10lts stream closing semantics may not behave properly')
 } else {
   helper('close', function (client) {
     it('emits close', function (done) {
-      const stream = new QueryStream('SELECT * FROM generate_series(0, $1) num', [3], {
+      const stream = new QueryStream(generateSeriesStatement(4), [], {
         batchSize: 2,
         highWaterMark: 2,
       })
@@ -20,7 +21,8 @@ if (process.version.startsWith('v8.')) {
 
   helper('early close', function (client) {
     it('can be closed early', function (done) {
-      const stream = new QueryStream('SELECT * FROM generate_series(0, $1) num', [20000], {
+      this.timeout(10000)
+      const stream = new QueryStream(generateSeriesStatement(1000), [], {
         batchSize: 2,
         highWaterMark: 2,
       })
@@ -40,7 +42,8 @@ if (process.version.startsWith('v8.')) {
     })
 
     it('can destroy stream while reading', function (done) {
-      const stream = new QueryStream('SELECT * FROM generate_series(0, 100), pg_sleep(1)')
+      this.timeout(10000)
+      const stream = new QueryStream(generateSeriesStatement(101) + ', sleep(1)')
       client.query(stream)
       stream.on('data', () => done(new Error('stream should not have returned rows')))
       setTimeout(() => {
@@ -50,7 +53,7 @@ if (process.version.startsWith('v8.')) {
     })
 
     it('emits an error when calling destroy with an error', function (done) {
-      const stream = new QueryStream('SELECT * FROM generate_series(0, 100), pg_sleep(1)')
+      const stream = new QueryStream(generateSeriesStatement(101) + ', sleep(1)')
       client.query(stream)
       stream.on('data', () => done(new Error('stream should not have returned rows')))
       setTimeout(() => {
@@ -76,7 +79,7 @@ if (process.version.startsWith('v8.')) {
     })
 
     it('does not crash when destroying the stream immediately after calling read', function (done) {
-      const stream = new QueryStream('SELECT * from generate_series(0, 100), pg_sleep(1);')
+      const stream = new QueryStream(generateSeriesStatement(101) + ', sleep(1)')
       client.query(stream)
       stream.on('data', () => done(new Error('stream should not have returned rows')))
       stream.destroy()
@@ -84,7 +87,7 @@ if (process.version.startsWith('v8.')) {
     })
 
     it('does not crash when destroying the stream before its submitted', function (done) {
-      const stream = new QueryStream('SELECT * from generate_series(0, 100), pg_sleep(1);')
+      const stream = new QueryStream(generateSeriesStatement(101) + ', sleep(1)')
       stream.on('data', () => done(new Error('stream should not have returned rows')))
       stream.destroy()
       stream.on('close', done)
