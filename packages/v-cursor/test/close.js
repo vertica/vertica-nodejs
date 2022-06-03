@@ -1,8 +1,9 @@
 const assert = require('assert')
 const Cursor = require('../')
 const vertica = require('vertica-nodejs')
+const helper = require('./test-helper')
 
-const text = 'SELECT generate_series as num FROM generate_series(0, 50)'
+const text = helper.generateSeriesStatement(50)
 describe('close', function () {
   beforeEach(function (done) {
     const client = (this.client = new vertica.Client())

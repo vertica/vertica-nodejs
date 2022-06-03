@@ -1,10 +1,11 @@
 import assert from 'assert'
 import helper from './helper'
 import QueryStream from '../src'
+import {generateSeriesStatement} from './helper'
 
 helper('passing options', function (client) {
   it('passes row mode array', function (done) {
-    const stream = new QueryStream('SELECT * FROM generate_series(0, 10) num', [], { rowMode: 'array' })
+    const stream = new QueryStream(generateSeriesStatement(11), [], { rowMode: 'array' })
     const query = client.query(stream)
     const result = []
     query.on('data', (datum) => {
@@ -21,7 +22,7 @@ helper('passing options', function (client) {
     const types = {
       getTypeParser: () => (string) => string,
     }
-    const stream = new QueryStream('SELECT * FROM generate_series(0, 10) num', [], { types })
+    const stream = new QueryStream(generateSeriesStatement(11), [], { rowMode: 'array' })
     const query = client.query(stream)
     const result = []
     query.on('data', (datum) => {

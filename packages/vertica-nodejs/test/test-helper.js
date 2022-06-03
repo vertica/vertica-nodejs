@@ -224,6 +224,15 @@ var resetTimezoneOffset = function () {
   Date.prototype.getTimezoneOffset = getTimezoneOffset
 }
 
+var generateSeriesStatement = function (count) {
+  let text = 'SELECT 0'
+  for (let i = 1; i < count; i++) {
+    text += "union SELECT " + i
+  }
+  return text
+}
+
+
 const rejection = (promise) =>
   promise.then(
     (value) => {
@@ -243,4 +252,5 @@ module.exports = {
   setTimezoneOffset: setTimezoneOffset,
   resetTimezoneOffset: resetTimezoneOffset,
   rejection: rejection,
+  generateSeriesStatement: generateSeriesStatement
 }

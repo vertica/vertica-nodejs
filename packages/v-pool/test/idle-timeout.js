@@ -52,6 +52,7 @@ describe('idle timeout', () => {
   it(
     'can remove idle clients and recreate them',
     co.wrap(function* () {
+      this.timeout(10000)
       const pool = new Pool({ idleTimeoutMillis: 1 })
       const results = []
       for (var i = 0; i < 20; i++) {
@@ -70,6 +71,7 @@ describe('idle timeout', () => {
   it(
     'does not time out clients which are used',
     co.wrap(function* () {
+      this.timeout(10000)
       const pool = new Pool({ idleTimeoutMillis: 1 })
       const results = []
       for (var i = 0; i < 20; i++) {

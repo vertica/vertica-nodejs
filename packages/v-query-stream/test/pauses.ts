@@ -3,11 +3,12 @@ import concat from 'concat-stream'
 import tester from 'stream-tester'
 import JSONStream from 'JSONStream'
 import QueryStream from '../src'
+import {generateSeriesStatement} from './helper'
 
 helper('pauses', function (client) {
   it('pauses', function (done) {
     this.timeout(5000)
-    const stream = new QueryStream('SELECT * FROM generate_series(0, $1) num', [200], {
+    const stream = new QueryStream(generateSeriesStatement(200), [], {
       batchSize: 2,
       highWaterMark: 2,
     })

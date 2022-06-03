@@ -1,10 +1,11 @@
 import assert from 'assert'
 import helper from './helper'
 import QueryStream from '../src'
+import {generateSeriesStatement} from './helper'
 
 helper('fast reader', function (client) {
   it('works', function (done) {
-    const stream = new QueryStream('SELECT * FROM generate_series(0, 200) num', [])
+    const stream = new QueryStream(generateSeriesStatement(200), [])
     const query = client.query(stream)
     const result = []
     stream.on('readable', function () {

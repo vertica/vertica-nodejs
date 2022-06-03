@@ -32,9 +32,9 @@ suite.test(
     yield client.connect()
 
     const text = `
-  SELECT * FROM generate_series(2, 4) as foo;
-  SELECT * FROM generate_series(8, 10) as bar;
-  SELECT * FROM generate_series(20, 22) as baz;
+  SELECT 1 UNION SELECT 2 UNION SELECT 3 as foo;
+  SELECT 8 UNION SELECT 9 UNION SELECT 10 as bar;
+  SELECT 20 UNION SELECT 21 UNION SELECT 22 as baz;
   `
 
     const results = yield client.query(text)

@@ -1,8 +1,9 @@
 const assert = require('assert')
 const Cursor = require('../')
 const vertica = require('vertica-nodejs')
+const helper = require('./test-helper')
 
-const text = 'SELECT generate_series as num FROM generate_series(0, 5)'
+const text = helper.generateSeriesStatement(6)
 
 describe('cursor', function () {
   beforeEach(function (done) {
@@ -84,7 +85,7 @@ describe('cursor', function () {
 
   it('read huge result', function (done) {
     this.timeout(10000)
-    const text = 'SELECT generate_series as num FROM generate_series(0, 100000)'
+    const text = helper.generateSeriesStatement(10000)
     const values = []
     const cursor = this.pgCursor(text, values)
     let count = 0
