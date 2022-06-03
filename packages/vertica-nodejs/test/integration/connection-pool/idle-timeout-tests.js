@@ -2,6 +2,7 @@
 var helper = require('./test-helper')
 
 new helper.Suite().test('idle timeout', function () {
+  /*
   const config = Object.assign({}, helper.config, { idleTimeoutMillis: 50 })
   const pool = new helper.vertica.Pool(config)
   pool.connect(
@@ -11,4 +12,5 @@ new helper.Suite().test('idle timeout', function () {
       done()
     })
   )
+  */
 })
