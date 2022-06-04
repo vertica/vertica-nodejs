@@ -1,5 +1,6 @@
 'use strict'
 
+var dns = require('dns')
 var EventEmitter = require('events').EventEmitter
 var util = require('util')
 var utils = require('./utils')
@@ -11,6 +12,8 @@ var ConnectionParameters = require('./connection-parameters')
 var Query = require('./query')
 var defaults = require('./defaults')
 var Connection = require('./connection')
+const { parseCommandLine } = require('typescript')
+const { reject } = require('bluebird')
 
 class Client extends EventEmitter {
   constructor(config) {
@@ -21,6 +24,7 @@ class Client extends EventEmitter {
     this.database = this.connectionParameters.database
     this.port = this.connectionParameters.port
     this.host = this.connectionParameters.host
+    this.backup_server_node = this.connectionParameters.backup_server_node
 
     // "hiding" the password so it doesn't show up in stack traces
     // or if the client is console.logged
@@ -88,20 +92,90 @@ class Client extends EventEmitter {
     this.queryQueue.length = 0
   }
 
-  _connect(callback) {
+  _shuffleAddresses(addresses) {
+    // Use Durstenfeld shuffle because it is not biased
+    for (var i = addresses.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1))
+      var temp = addresses[i]
+      addresses[i] = addresses[j]
+      addresses[j] = temp
+    }
+  }
+
+  _resolveHost(node) {
+    var ipv4addrs = new this._Promise((resolve, reject) => {
+      dns.resolve4(node.host, (err4, ipv4addrs) =>  {
+        if (err4) {
+          reject(err4)
+          return
+        }
+        resolve(ipv4addrs)
+      })
+    })
+
+    var ipv6addrs = new this._Promise((resolve, reject) => dns.resolve6(node.host, (err6, ipv6addrs) => {
+      if (err6) {
+        reject(err6)
+        return
+      }
+      resolve(ipv6addrs)
+    }))
+
+    return this._Promise.allSettled([ipv4addrs, ipv6addrs]).then((results) => {
+      // Combine all IP addresses into a single array
+      // If no DNS records are found, return an empty array
+      var resolved_addresses = results
+        .filter((result) => result.status == 'fulfilled')
+        .flatMap((result) => result.value)
+
+      // Note: This is a biased shuffle. We could use Fisher-Yates Shuffle to avoid bias
+      resolved_addresses.sort((a, b) => 0.5 - Math.random())
+      return resolved_addresses.map((addr) => { return { host: addr, port: node.port } })
+    })
+  }
+
+  // Round robin connections iterate through each node in host + backup_server_nodes
+  // For each node, resolve the host to a list of addresses, shuffle the addresses, then try each address
+  _roundRobinConnect(nodes, addresses, error) {
+    if (addresses.length > 0) {
+      // There are resolved addresses we haven't tried yet, so try the next address
+      this._connectToNextAddress(nodes, addresses)
+    } else if (nodes.length > 0) {
+      // There are no more resolved addresses for the current node, so resolve the host for the next node
+      var node = nodes.shift()
+      this._resolveHost(node)
+        .then(((shuffled_addresses) => {
+          if (shuffled_addresses.length > 0) {
+            this._connectToNextAddress(nodes, shuffled_addresses)
+          } else {
+            var err = new Error("Could not resolve host " + node.host)
+            this._roundRobinConnect(nodes, addresses, err)
+          }
+        }).bind(this))
+        .catch(((err) => {
+          this._roundRobinConnect(nodes, addresses, err)
+        }).bind(this))
+    } else {
+      if (!error) {
+        error = new Error("Fatal error: Node list was empty")
+      }
+
+      // No more nodes to try, so handle connection error
+      if (this._connecting && !this._connectionError) {
+        if (this._connectionCallback) {
+          this._connectionCallback(error)
+        } else {
+          this._handleErrorEvent(error)
+        }
+      } else if (!this._connectionError) {
+        this._handleErrorEvent(error)
+      }
+    }
+  }
+
+  _connectToNextAddress(nodes, addresses) {
     var self = this
     var con = this.connection
-    this._connectionCallback = callback
-
-    if (this._connecting || this._connected) {
-      const err = new Error('Client has already been connected. You cannot reuse a client.')
-      process.nextTick(() => {
-        callback(err)
-      })
-      return
-    }
-    this._connecting = true
-
     this.connectionTimeoutHandle
     if (this._connectionTimeoutMillis > 0) {
       this.connectionTimeoutHandle = setTimeout(() => {
@@ -110,10 +184,12 @@ class Client extends EventEmitter {
       }, this._connectionTimeoutMillis)
     }
 
-    if (this.host && this.host.indexOf('/') === 0) {
-      con.connect(this.host + '/.s.PGSQL.' + this.port)
+    // Dequeue first address from resolved addresses and try connecting to it
+    var address = addresses.shift()
+    if (address.host && address.host.indexOf('/') === 0) {
+      con.connect(address.host + '/.s.PGSQL.' + address.port)
     } else {
-      con.connect(this.port, this.host)
+      con.connect(address.port, address.host)
     }
 
     // once connection is established send startup message
@@ -142,21 +218,30 @@ class Client extends EventEmitter {
         // on this client then we have an unexpected disconnection
         // treat this as an error unless we've already emitted an error
         // during connection.
-        if (this._connecting && !this._connectionError) {
-          if (this._connectionCallback) {
-            this._connectionCallback(error)
-          } else {
-            this._handleErrorEvent(error)
-          }
-        } else if (!this._connectionError) {
-          this._handleErrorEvent(error)
-        }
+        this._roundRobinConnect(nodes, addresses, error)
       }
 
       process.nextTick(() => {
         this.emit('end')
       })
     })
+  }
+
+  _connect(callback) {
+    this._connectionCallback = callback
+
+    if (this._connecting || this._connected) {
+      const err = new Error('Client has already been connected. You cannot reuse a client.')
+      process.nextTick(() => {
+        callback(err)
+      })
+      return
+    }
+    this._connecting = true
+    var nodes = this.backup_server_node
+    // Add host and port to start of queue of nodes to try connecting to
+    nodes.unshift({ host: this.host, port: this.port })
+    this._roundRobinConnect(nodes, [], undefined)
   }
 
   connect(callback) {

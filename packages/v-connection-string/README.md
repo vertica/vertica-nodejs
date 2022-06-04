@@ -64,7 +64,7 @@ Outside contributions to this project are greatly appreciated. Following standar
 1. Clone the repo
 2. From your workspace root run `yarn` and then `yarn lerna bootstrap`
 3. Ensure you have a Vertica instance running with 
-4. Ensure you have the proper environment variables configured for connecting to the instance (V_HOST, V_PORT, V_USER, V_PASSWORD, V_DATABASE)
+4. Ensure you have the proper environment variables configured for connecting to the instance (V_HOST, V_PORT, V_USER, V_PASSWORD, V_DATABASE, V_BACKUP_SERVER_NODE)
 5. Run `yarn test` to run all the tests, or run `yarn test` from within an individual package to only run that package's tests. 
 
 ## Troubleshooting and FAQ

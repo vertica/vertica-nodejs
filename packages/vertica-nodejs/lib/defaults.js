@@ -69,6 +69,9 @@ module.exports = {
 
   // A string to identify the vertica-nodejs connection's session on the server
   client_label: '',
+
+  // A comma separated string listing all backup nodes to connect to. Each node is a host-port pair separated by a colon.
+  backup_server_node: '',
 }
 
 var pgTypes = require('pg-types')

@@ -45,6 +45,16 @@ var add = function (params, config, paramName) {
   }
 }
 
+var parseBackupServerNodes = function (str) {
+  return str.split(',')
+    .filter(entry => entry.length > 0)
+    .map(entry => entry.split(':'))
+    .filter(pair => pair[0].length > 0)
+    .map(pair => pair[1] ?
+      { host: pair[0], port: parseInt(pair[1]) } :
+      { host: pair[0], port: defaults.port })
+}
+
 class ConnectionParameters {
   constructor(config) {
     // if a string is passed, it is a raw connection string so we parse it into a config
@@ -106,6 +116,7 @@ class ConnectionParameters {
     this.idle_in_transaction_session_timeout = val('idle_in_transaction_session_timeout', config, false)
     this.query_timeout = val('query_timeout', config, false)
 
+    this.backup_server_node = parseBackupServerNodes(val('backup_server_node', config))
     this.client_label = val('client_label', config, false)
 
     if (config.connectionTimeoutMillis === undefined) {
@@ -134,6 +145,7 @@ class ConnectionParameters {
     add(params, this, 'fallback_application_name')
     add(params, this, 'connect_timeout')
     add(params, this, 'options')
+    add(params, this, 'backup_server_node')
 
     var ssl = typeof this.ssl === 'object' ? this.ssl : this.ssl ? { sslmode: this.ssl } : {}
     add(params, ssl, 'sslmode')
