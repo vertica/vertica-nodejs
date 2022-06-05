@@ -15,8 +15,6 @@ This repo is a monorepo which contains the core [vertica-nodejs](https://github.
 
 - [vertica-nodejs](https://github.com/vertica/vertica-nodejs/tree/master/packages/vertica-nodejs)
 - [v-pool](https://github.com/vertica/vertica-nodejs/tree/master/packages/v-pool)
-- [v-cursor](https://github.com/vertica/vertica-nodejs/tree/master/packages/v-cursor)
-- [v-query-stream](https://github.com/vertica/vertica-nodejs/tree/master/packages/v-query-stream)
 - [v-connection-string](https://github.com/vertica/vertica-nodejs/tree/master/packages/v-connection-string)
 - [v-protocol](https://github.com/vertica/vertica-nodejs/tree/master/packages/v-protocol)
 
