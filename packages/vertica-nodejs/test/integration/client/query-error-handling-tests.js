@@ -8,7 +8,7 @@ test('error during query execution', function () {
   var client = new Client(helper.args)
   client.connect(
     assert.success(function () {
-      var queryText = 'select pg_sleep(10)'
+      var queryText = 'select sleep(10)'
       var sleepQuery = new Query(queryText)
       var pidColName = 'procpid'
       var queryColName = 'current_query'

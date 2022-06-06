@@ -73,7 +73,7 @@ if (!helper.args.native) {
     var client = new Client(conf)
     client.connect(
       assert.success(function () {
-        client.query('SELECT pg_sleep( 1 )', function (error) {
+        client.query('SELECT sleep( 1 )', function (error) {
           client.end()
           assert.strictEqual(error.code, '57014') // query_cancelled
           done()

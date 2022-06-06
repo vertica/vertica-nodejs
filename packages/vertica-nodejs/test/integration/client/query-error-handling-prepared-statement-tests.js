@@ -9,7 +9,7 @@ suite.test('client end during query execution of prepared statement', function (
   var client = new Client()
   client.connect(
     assert.success(function () {
-      var sleepQuery = 'select pg_sleep($1)'
+      var sleepQuery = 'select sleep($1)'
 
       var queryConfig = {
         name: 'sleep query',
@@ -89,7 +89,7 @@ suite.test('query killed during query execution of prepared statement', function
   var client = new Client(helper.args)
   client.connect(
     assert.success(function () {
-      var sleepQuery = 'select pg_sleep($1)'
+      var sleepQuery = 'select sleep($1)'
 
       const queryConfig = {
         name: 'sleep query',

@@ -141,7 +141,7 @@ suite.test('handles socket error during pool.query and destroys it immediately',
   const pool = new vertica.Pool({ max: 1 })
 
   if (native) {
-    pool.query('SELECT pg_sleep(10)', [], (err) => {
+    pool.query('SELECT sleep(10)', [], (err) => {
       assert.equal(err.message, 'canceling statement due to user request')
       cb()
     })
@@ -152,7 +152,7 @@ suite.test('handles socket error during pool.query and destroys it immediately',
       })
     }, 100)
   } else {
-    pool.query('SELECT pg_sleep(10)', [], (err) => {
+    pool.query('SELECT sleep(10)', [], (err) => {
       assert.equal(err.message, 'network issue')
       assert.equal(stream.destroyed, true)
       cb()

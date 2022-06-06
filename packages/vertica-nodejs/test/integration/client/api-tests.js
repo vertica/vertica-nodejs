@@ -53,7 +53,7 @@ suite.test('query timeout', (cb) => {
   const pool = new vertica.Pool({ query_timeout: 1000 })
   pool.connect().then((client) => {
     client.query(
-      'SELECT pg_sleep(2)',
+      'SELECT sleep(2)',
       assert.calls(function (err, result) {
         assert(err)
         assert(err.message === 'Query read timeout')
@@ -68,7 +68,7 @@ suite.test('query recover from timeout', (cb) => {
   const pool = new vertica.Pool({ query_timeout: 1000 })
   pool.connect().then((client) => {
     client.query(
-      'SELECT pg_sleep(20)',
+      'SELECT sleep(20)',
       assert.calls(function (err, result) {
         assert(err)
         assert(err.message === 'Query read timeout')
@@ -92,7 +92,7 @@ suite.test('query no timeout', (cb) => {
   const pool = new vertica.Pool({ query_timeout: 10000 })
   pool.connect().then((client) => {
     client.query(
-      'SELECT pg_sleep(1)',
+      'SELECT sleep(1)',
       assert.calls(function (err, result) {
         assert(!err)
         client.release()

@@ -21,7 +21,7 @@ describe('lifetime timeout', () => {
   })
   it('connection lifetime should expire and remove the client after the client is done working', (done) => {
     const pool = new Pool({ maxLifetimeSeconds: 1 })
-    pool.query('SELECT pg_sleep(1.01)')
+    pool.query('SELECT sleep(2)')
     pool.on('remove', () => {
       console.log('expired while busy - on-remove event')
       expect(pool.expiredCount).to.equal(0)
@@ -33,7 +33,7 @@ describe('lifetime timeout', () => {
     'can remove expired clients and recreate them',
     co.wrap(function* () {
       const pool = new Pool({ maxLifetimeSeconds: 1 })
-      let query = pool.query('SELECT pg_sleep(1)')
+      let query = pool.query('SELECT sleep(1)')
       expect(pool.expiredCount).to.equal(0)
       expect(pool.totalCount).to.equal(1)
       yield query

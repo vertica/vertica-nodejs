@@ -236,7 +236,7 @@ describe('pool error handling', function () {
     pool.on('error', () => {
       // We double close the connection in this test, prevent exception caused by that
     })
-    pool.query('SELECT pg_sleep(5)', [], (err) => {
+    pool.query('SELECT sleep(5)', [], (err) => {
       expect(err).to.be.an(Error)
       done()
     })
