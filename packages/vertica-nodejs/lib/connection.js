@@ -1,6 +1,7 @@
 'use strict'
 
 var net = require('net')
+var fs = require('fs')
 var EventEmitter = require('events').EventEmitter
 
 const { parse, serialize } = require('v-protocol')
@@ -19,12 +20,16 @@ class Connection extends EventEmitter {
     this._keepAliveInitialDelayMillis = config.keepAliveInitialDelayMillis
     this.lastBuffer = false
     this.parsedStatements = {}
-    this.ssl = config.ssl || false
     this._ending = false
     this._emitMessage = false
     this.statementCounterBuffer = new SharedArrayBuffer(32)
     this.statementCounter = new Int32Array(this.statementCounterBuffer)
     this.statementCounter[0] = 0
+
+    // encryption
+    this.tls_mode = config.tls_mode || 'disable'
+    this.tls_key_file = config.tls_key_file
+    this.tls_cert_file = config.tls_cert_file
 
     var self = this
     this.on('newListener', function (eventName) {
@@ -61,43 +66,81 @@ class Connection extends EventEmitter {
       self.emit('end')
     })
 
-    if (!this.ssl) {
+    if (this.tls_mode === 'disable') {
       return this.attachListeners(this.stream)
     }
 
     this.stream.once('data', function (buffer) {
       var responseCode = buffer.toString('utf8')
       switch (responseCode) {
-        case 'S': // Server supports SSL connections, continue with a secure connection
+        case 'S': // Server supports TLS connections, continue with a secure connection
           break
-        case 'N': // Server does not support SSL connections
+        case 'N': // Server does not support TLS connections
           self.stream.end()
-          return self.emit('error', new Error('The server does not support SSL connections'))
+          return self.emit('error', new Error('The server does not support TLS connections'))
         default:
           // Any other response byte, including 'E' (ErrorResponse) indicating a server error
           self.stream.end()
-          return self.emit('error', new Error('There was an error establishing an SSL connection'))
+          return self.emit('error', new Error('There was an error establishing a TLS connection'))
       }
+      // tls_mode LOGIC
       var tls = require('tls')
-      const options = {
-        socket: self.stream,
-      }
+      var tls_options = {socket: self.stream}
+      // Instead of keeping track of whether mutual mode is on or not, just check to see if the properties 
+      // needed for mutual mode are defined. If they are and mutual mode is off, sending it won't cause a 
+      // problem because the server won't be asking for them.
+      // Also, terminology conflicts between vertica documentation and the node tls package may make this 
+      // seem confusing. checkServerIdentity is the function equivalent to the hostname verifier.
+      // With an undefined checkServerIdentity function, we are still checking to see that the server
+      // certificate is signed by the CA (default or provided).
 
-      if (self.ssl !== true) {
-        Object.assign(options, self.ssl)
-
-        if ('key' in self.ssl) {
-          options.key = self.ssl.key
+      if (self.tls_mode === 'require') { // basic TLS connection, does not verify CA certificate
+        tls_options.rejectUnauthorized = false
+        tls_options.checkServerIdentity = (host , cert) => undefined
+        if (self.tls_key_file) {// the client won't know whether or not this is required, depends on server mode
+          tls_options.pfx = self.tls_key_file
+        }
+        try {
+          self.stream = tls.connect(tls_options);
+        } catch (err) {
+          return self.emit('error', err)
         }
       }
-
-      if (net.isIP(host) === 0) {
-        options.servername = host
+      else if (self.tls_mode === 'verify-ca') { //verify that the server certificate is signed by a trusted CA
+        try {
+          tls_options.rejectUnauthorized = true
+          tls_options.checkServerIdentity = (host, cer) => undefined
+          if (self.tls_cert_file) {
+            tls_options.ca = fs.readFileSync(self.tls_cert_file).toString()
+          } else {
+            throw new Error('verify-ca mode requires setting tls_cert_file property')
+          }
+          if (self.tls_key_file) {// the client won't know whether or not this is required, depends on server mode
+            tls_options.pfx = self.tls_key_file
+          }
+          self.stream = tls.connect(tls_options)
+        } catch (err) {
+          return self.emit('error', err)
+        }
       }
-      try {
-        self.stream = tls.connect(options)
-      } catch (err) {
-        return self.emit('error', err)
+      else if (self.tls_mode === 'verify-full') { //verify that the name on the CA-signed server certificate matches it's hostname
+        try {
+          tls_options.rejectUnauthorized = true
+          if (self.tls_cert_file) {
+            tls_options.ca = fs.readFileSync(self.tls_cert_file).toString()
+          } else {
+            throw new Error('verify-ca mode requires setting tls_cert_file property')
+          }
+          if (self.tls_key_file) {
+            tls_options.pfx = self.tls_key_file
+          }
+          self.stream = tls.connect(tls_options)
+        } catch (err){
+          return self.emit('error', err)
+        }
+      }
+      else {
+        self.emit('error', 'Invalid TLS mode has been entered'); // should be unreachable
       }
       self.attachListeners(self.stream)
       self.stream.on('error', reportStreamError)

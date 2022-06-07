@@ -53,45 +53,9 @@ function parse(str) {
   }
   config.database = pathname && decodeURI(pathname)
 
-  if (config.ssl === 'true' || config.ssl === '1') {
-    config.ssl = true
-  }
-
-  if (config.ssl === '0') {
-    config.ssl = false
-  }
-
-  if (config.sslcert || config.sslkey || config.sslrootcert || config.sslmode) {
-    config.ssl = {}
-  }
-
-  if (config.sslcert) {
-    config.ssl.cert = fs.readFileSync(config.sslcert).toString()
-  }
-
-  if (config.sslkey) {
-    config.ssl.key = fs.readFileSync(config.sslkey).toString()
-  }
-
-  if (config.sslrootcert) {
-    config.ssl.ca = fs.readFileSync(config.sslrootcert).toString()
-  }
-
-  switch (config.sslmode) {
-    case 'disable': {
-      config.ssl = false
-      break
-    }
-    case 'prefer':
-    case 'require':
-    case 'verify-ca':
-    case 'verify-full': {
-      break
-    }
-    case 'no-verify': {
-      config.ssl.rejectUnauthorized = false
-      break
-    }
+  // if the tls mode specified in the connection string is an invalid option, use the default - disable.
+  if (!['require', 'verify-ca', 'verify-full'].includes(config.tls_mode)) {
+    config.tls_mode = 'disable'
   }
 
   return config

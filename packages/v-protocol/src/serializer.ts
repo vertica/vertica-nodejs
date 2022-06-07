@@ -36,10 +36,10 @@ const startup = (opts: Record<string, string>): Buffer => {
 }
 
 const requestSsl = (): Buffer => {
-  const response = Buffer.allocUnsafe(8)
-  response.writeInt32BE(8, 0)
-  response.writeInt32BE(80877103, 4)
-  return response
+  const request = Buffer.allocUnsafe(8)
+  request.writeInt32BE(8, 0)
+  request.writeInt32BE(80877103, 4)
+  return request
 }
 
 const password = (password: string): Buffer => {

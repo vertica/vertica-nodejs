@@ -18,21 +18,6 @@ var val = function (key, config, envVar) {
   return config[key] || envVar || defaults[key]
 }
 
-var readSSLConfigFromEnvironment = function () {
-  switch (process.env.PGSSLMODE) {
-    case 'disable':
-      return false
-    case 'prefer':
-    case 'require':
-    case 'verify-ca':
-    case 'verify-full':
-      return true
-    case 'no-verify':
-      return { rejectUnauthorized: false }
-  }
-  return defaults.ssl
-}
-
 // Convert arg to a string, surround in single quotes, and escape single quotes and backslashes
 var quoteParamValue = function (value) {
   return "'" + ('' + value).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'"
@@ -88,22 +73,9 @@ class ConnectionParameters {
     this.binary = val('binary', config)
     this.options = val('options', config)
 
-    this.ssl = typeof config.ssl === 'undefined' ? readSSLConfigFromEnvironment() : config.ssl
-
-    if (typeof this.ssl === 'string') {
-      if (this.ssl === 'true') {
-        this.ssl = true
-      }
-    }
-    // support passing in ssl=no-verify via connection string
-    if (this.ssl === 'no-verify') {
-      this.ssl = { rejectUnauthorized: false }
-    }
-    if (this.ssl && this.ssl.key) {
-      Object.defineProperty(this.ssl, 'key', {
-        enumerable: false,
-      })
-    }
+    this.tls_mode = val('tls_mode', config)
+    this.tls_key_file = val('tls_key_file', config)
+    this.tls_cert_file = val('tls_cert_file', config)
 
     this.client_encoding = val('client_encoding', config)
     this.replication = val('replication', config)
@@ -146,13 +118,6 @@ class ConnectionParameters {
     add(params, this, 'connect_timeout')
     add(params, this, 'options')
     add(params, this, 'backup_server_node')
-
-    var ssl = typeof this.ssl === 'object' ? this.ssl : this.ssl ? { sslmode: this.ssl } : {}
-    add(params, ssl, 'sslmode')
-    add(params, ssl, 'sslca')
-    add(params, ssl, 'sslkey')
-    add(params, ssl, 'sslcert')
-    add(params, ssl, 'sslrootcert')
 
     if (this.database) {
       params.push('dbname=' + quoteParamValue(this.database))

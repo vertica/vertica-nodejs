@@ -7,7 +7,7 @@ export interface ConnectionOptions {
   port?: string | null
   database: string | null | undefined
   client_encoding?: string
-  ssl?: boolean | string
+  tls_mode?: string | null
 
   application_name?: string
   fallback_application_name?: string
