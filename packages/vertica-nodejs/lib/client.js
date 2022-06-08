@@ -38,6 +38,7 @@ class Client extends EventEmitter {
     this.replication = this.connectionParameters.replication
 
     this.client_label = this.connectionParameters.client_label;
+    this.protocol_version = this.connectionParameters.protocol_version;
 
     var c = config || {}
 
@@ -59,7 +60,7 @@ class Client extends EventEmitter {
         keepAlive: c.keepAlive || false,
         keepAliveInitialDelayMillis: c.keepAliveInitialDelayMillis || 0,
         encoding: this.connectionParameters.client_encoding || 'utf8',
-        client_label: this.client_label,
+        client_label: this.connectionParameters.client_label,
       })
     this.queryQueue = []
     this.binary = c.binary || defaults.binary
@@ -281,7 +282,7 @@ class Client extends EventEmitter {
     con.on('copyData', this._handleCopyData.bind(this))
     con.on('notification', this._handleNotification.bind(this))
     con.on('parameterDescription', this._handleParameterDescription.bind(this))
-    // if you want to add a handler for parameter status messages, you can probably start here. 
+    con.on('parameterStatus', this._handleParameterStatus.bind(this)) 
   }
 
   // TODO(bmc): deprecate pgpass "built in" integration since this.password can be a function
@@ -316,6 +317,28 @@ class Client extends EventEmitter {
         }
         cb()
       })
+    }
+  }
+
+  _handleParameterStatus(msg) {
+    const min_supported_version = (3 << 16 | 0)         // 3.0 - newest protocol breaks functionality
+    const max_supported_version = this.protocol_version // for now we are enforcing 3.0
+    switch(msg.parameterName) {
+      // right now we only care about the protocol_version
+      // if we want to have the parameterStatus message update any other connection properties, add them here
+      case 'protocol_version':
+        // until we allow past 3.0 this won't matter because we are only supporting one protocol version
+        // with this client right now
+        if (parseInt(msg.parameterValue) < min_supported_version
+         || parseInt(msg.parameterValue) > max_supported_version) {
+
+          // error
+          throw new Error("Unsupported Protocol Version returned by Server. Connection Disallowed.");
+        }
+        this.connectionParameters.protocol_version = parseInt(msg.ParameterValue) // likely to be the same, meaning this has no affect
+        break;
+      default:
+        // do nothing
     }
   }
 
@@ -483,6 +506,7 @@ class Client extends EventEmitter {
     var data = {
       user: params.user,
       database: params.database,
+      protocol_version: params.protocol_version.toString(),
     }
 
     var appName = params.application_name || params.fallback_application_name

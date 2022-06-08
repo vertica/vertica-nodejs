@@ -17,20 +17,25 @@ const enum code {
 }
 
 const writer = new Writer()
+const PROTOCOL_MAJOR_FIXED = 3  // these have no bearing in new servers with protocol version >= 3.7
+const PROTOCOL_MINOR_FIXED = 0  // these are required but unused
 
 const startup = (opts: Record<string, string>): Buffer => {
   // protocol version
-  writer.addInt16(3).addInt16(0)
+  writer.addInt16(PROTOCOL_MAJOR_FIXED).addInt16(PROTOCOL_MINOR_FIXED) // equivalent to adding Int32 (MAJOR << 16 | MINOR)
   for (const key of Object.keys(opts)) {
+    if (key === 'protocol_version') { // the protocol_version is added as a 32 bit integer
+      continue
+    }
     writer.addCString(key).addCString(opts[key])
   }
-
+  writer.addCString('protocol_version').addInt32(parseInt(opts['protocol_version']))
   writer.addCString('client_encoding').addCString('UTF8')
 
   var bodyBuffer = writer.addCString('').flush()
   // this message is sent without a code
 
-  var length = bodyBuffer.length + 4
+  var length = bodyBuffer.length + 4 // server expects length of message to include the int32 telling the length
 
   return new Writer().addInt32(length).add(bodyBuffer).flush()
 }
