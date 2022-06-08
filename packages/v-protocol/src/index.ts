@@ -1,5 +1,6 @@
 import { BackendMessage, DatabaseError } from './messages'
 import { serialize } from './serializer'
+import { VerticaType } from './vertica-types'
 import { Parser, MessageCallback } from './parser'
 
 export function parse(stream: NodeJS.ReadableStream, callback: MessageCallback): Promise<void> {
@@ -8,4 +9,4 @@ export function parse(stream: NodeJS.ReadableStream, callback: MessageCallback):
   return new Promise((resolve) => stream.on('end', () => resolve()))
 }
 
-export { serialize, DatabaseError }
+export { serialize, DatabaseError, VerticaType }

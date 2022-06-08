@@ -1,12 +1,18 @@
 'use strict'
+var types = require('vertica-nodejs').types
+const { VerticaType } = require('v-protocol')
 var helper = require('./test-helper')
-var Query = helper.pg.Query
+var Query = helper.vertica.Query
+
+types.setTypeParser(VerticaType.Integer, function(val) {
+  return parseInt(val, 10)
+})
 
 // before running this test make sure you run the script create-test-tables
 test('simple query interface', function () {
   var client = helper.client()
 
-  var query = client.query(new Query('select name from person order by name collate "C"'))
+  var query = client.query(new Query('select name from person order by name'))
 
   client.on('drain', client.end.bind(client))
 
@@ -47,7 +53,7 @@ test('prepared statements do not mutate params', function () {
 
   var params = [1]
 
-  var query = client.query(new Query('select name from person where $1 = 1 order by name collate "C"', params))
+  var query = client.query(new Query('select name from person where ? = 1 order by name', params))
 
   assert.deepEqual(params, [1])
 
@@ -68,7 +74,7 @@ test('prepared statements do not mutate params', function () {
 
 test('multiple simple queries', function () {
   var client = helper.client()
-  client.query({ text: "create temp table bang(id serial, name varchar(5));insert into bang(name) VALUES('boom');" })
+  client.query({ text: "create table if not exists bang(id identity, name varchar(5)); insert into bang(name) VALUES('boom');" })
   client.query("insert into bang(name) VALUES ('yes');")
   var query = client.query(new Query('select name from bang'))
   assert.emits(query, 'row', function (row) {
@@ -77,16 +83,19 @@ test('multiple simple queries', function () {
       assert.equal(row['name'], 'yes')
     })
   })
+  // Need to drop the bang table since we can't use a temp table with identity/auto-increment types
+  client.query("drop table if exists bang")
   client.on('drain', client.end.bind(client))
 })
 
 test('multiple select statements', function () {
   var client = helper.client()
-  client.query(
-    'create temp table boom(age integer); insert into boom(age) values(1); insert into boom(age) values(2); insert into boom(age) values(3)'
-  )
-  client.query({ text: "create temp table bang(name varchar(5)); insert into bang(name) values('zoom');" })
-  var result = client.query(new Query({ text: 'select age from boom where age < 2; select name from bang' }))
+  client.query("create local temp table boom(age integer) ON COMMIT PRESERVE ROWS; insert into boom(age) values(1); insert into boom(age) values(2); insert into boom(age) values(3);")
+  client.query("create local temp table bang(name varchar(5)) ON COMMIT PRESERVE ROWS; insert into bang(name) values('zoom');")
+  var result = client.query(new Query({
+    text: 'select age from boom where age < 2; select name from bang;',
+    types: types,
+  }))
   assert.emits(result, 'row', function (row) {
     assert.strictEqual(row['age'], 1)
     assert.emits(result, 'row', function (row) {

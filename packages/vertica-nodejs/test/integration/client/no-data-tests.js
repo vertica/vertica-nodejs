@@ -1,19 +1,25 @@
 'use strict'
+var types = require('vertica-nodejs').types
+const { VerticaType } = require('v-protocol')
 var helper = require('./test-helper')
 const suite = new helper.Suite()
+
+types.setTypeParser(VerticaType.Integer, function(val) {
+  return parseInt(val, 10)
+})
 
 suite.test('noData message handling', function () {
   var client = helper.client()
 
   var q = client.query({
     name: 'boom',
-    text: 'create temp table boom(id serial, size integer)',
+    text: 'create table if not exists boom(id identity, size integer)',
   })
 
   client.query(
     {
       name: 'insert',
-      text: 'insert into boom(size) values($1)',
+      text: 'insert into boom(size) values(?)',
       values: [100],
     },
     function (err, result) {
@@ -32,14 +38,17 @@ suite.test('noData message handling', function () {
   var query = client.query(
     {
       name: 'fetch',
-      text: 'select size from boom where size < $1',
+      text: 'select size from boom where size < ?',
       values: [101],
+      types: types,
     },
     (err, res) => {
       var row = res.rows[0]
       assert.strictEqual(row.size, 100)
     }
   )
+
+  client.query('drop table if exists boom')
 
   client.on('drain', client.end.bind(client))
 })

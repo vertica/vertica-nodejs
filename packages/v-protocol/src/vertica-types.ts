@@ -1,4 +1,4 @@
-export const enum VerticaType {
+export enum VerticaType {
   Boolean = 5,
   Integer = 6,
   Float = 7,
