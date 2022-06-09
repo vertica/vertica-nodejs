@@ -23,6 +23,13 @@ buffers.authenticationMD5Password = function () {
     .join(true, 'R')
 }
 
+buffers.authenticationPasswordExpired = function () {
+  return new BufferList()
+    .addInt32(9)
+    .add(Buffer.from([1, 2, 3, 4]))
+    .join(true, 'R')
+}
+
 buffers.authenticationSASL = function () {
   return new BufferList().addInt32(10).addCString('SCRAM-SHA-256').addCString('').join(true, 'R')
 }
