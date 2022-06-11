@@ -35,16 +35,6 @@ describe('serializer', () => {
     assert.deepEqual(actual, expected)
   })
 
-  it('builds SASLInitialResponseMessage message', function () {
-    const actual = serialize.sendSASLInitialResponseMessage('mech', 'data')
-    assert.deepEqual(actual, new BufferList().addCString('mech').addInt32(4).addString('data').join(true, 'p'))
-  })
-
-  it('builds SCRAMClientFinalMessage message', function () {
-    const actual = serialize.sendSCRAMClientFinalMessage('data')
-    assert.deepEqual(actual, new BufferList().addString('data').join(true, 'p'))
-  })
-
   it('builds query message', function () {
     var txt = 'select * from boom'
     const actual = serialize.query(txt)

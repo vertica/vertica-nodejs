@@ -21,18 +21,6 @@ const buffers = {
       .join(true, 'R')
   },
 
-  authenticationSASL: function () {
-    return new BufferList().addInt32(10).addCString('SCRAM-SHA-256').addCString('').join(true, 'R')
-  },
-
-  authenticationSASLContinue: function () {
-    return new BufferList().addInt32(11).addString('data').join(true, 'R')
-  },
-
-  authenticationSASLFinal: function () {
-    return new BufferList().addInt32(12).addString('data').join(true, 'R')
-  },
-
   parameterStatus: function (name: string, value: string) {
     return new BufferList().addCString(name).addCString(value).join(true, 'S')
   },

@@ -383,26 +383,6 @@ export class Parser {
         break
       case 9: // PasswordExpired
         return new DatabaseError('Could not authenticate: Password expired.', 0, 'error')
-      case 10: // AuthenticationSASL
-        message.name = 'authenticationSASL'
-        message.mechanisms = []
-        let mechanism: string
-        do {
-          mechanism = this.reader.cstring()
-
-          if (mechanism) {
-            message.mechanisms.push(mechanism)
-          }
-        } while (mechanism)
-        break
-      case 11: // AuthenticationSASLContinue
-        message.name = 'authenticationSASLContinue'
-        message.data = this.reader.string(length - 8)
-        break
-      case 12: // AuthenticationSASLFinal
-        message.name = 'authenticationSASLFinal'
-        message.data = this.reader.string(length - 8)
-        break
       default:
         throw new Error('Unknown authentication request message type ' + code)
     }
