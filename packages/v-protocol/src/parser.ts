@@ -328,6 +328,13 @@ export class Parser {
           return new AuthenticationMD5Password(length, salt)
         }
         break
+      case 65536:
+      case 66048:
+        // This will not currently be sent by the server as protocol version 3.5 is required for SHA512 auth
+        console.log("Vertica server requested SHA512 Authentication - not supported")
+        break
+      case 9: // PasswordExpired
+        return new DatabaseError('Could not authenticate: Password expired.', 0, 'error')
       case 10: // AuthenticationSASL
         message.name = 'authenticationSASL'
         message.mechanisms = []
@@ -349,7 +356,7 @@ export class Parser {
         message.data = this.reader.string(length - 8)
         break
       default:
-        throw new Error('Unknown authenticationOk message type ' + code)
+        throw new Error('Unknown authentication request message type ' + code)
     }
     return message
   }

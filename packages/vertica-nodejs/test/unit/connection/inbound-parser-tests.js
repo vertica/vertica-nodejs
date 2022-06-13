@@ -294,6 +294,12 @@ test('Connection', function () {
       })
     })
 
+    test('password expired message', function () {
+      var msg = testForMessage(buffers.authenticationPasswordExpired(), {
+        name: 'error',
+      })
+    })
+
     test('with all the fields', function () {
       var buffer = buffers.error([
         {
