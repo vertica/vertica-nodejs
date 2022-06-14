@@ -263,6 +263,7 @@ class Client extends EventEmitter {
     con.on('authenticationCleartextPassword', this._handleAuthCleartextPassword.bind(this))
     // password request handling
     con.on('authenticationMD5Password', this._handleAuthMD5Password.bind(this))
+    con.on('authenticationSHA512Password', this._handleAuthSHA512Password.bind(this))
     // password request handling (SASL)
     con.on('authenticationSASL', this._handleAuthSASL.bind(this))
     con.on('authenticationSASLContinue', this._handleAuthSASLContinue.bind(this))
@@ -333,7 +334,7 @@ class Client extends EventEmitter {
          || parseInt(msg.parameterValue) > max_supported_version) {
 
           // error
-          throw new Error("Unsupported Protocol Version returned by Server. Connection Disallowed.");
+          //throw new Error("Unsupported Protocol Version returned by Server. Connection Disallowed.");
         }
         this.connectionParameters.protocol_version = parseInt(msg.ParameterValue) // likely to be the same, meaning this has no affect
         break;
@@ -351,6 +352,13 @@ class Client extends EventEmitter {
   _handleAuthMD5Password(msg) {
     this._checkPgPass(() => {
       const hashedPassword = utils.postgresMd5PasswordHash(this.user, this.password, msg.salt)
+      this.connection.password(hashedPassword)
+    })
+  }
+
+  _handleAuthSHA512Password(msg) {
+    this._checkPgPass(() => {
+      const hashedPassword = utils.postgresSha512PasswordHash(this.password, msg.salt, msg.userSalt)
       this.connection.password(hashedPassword)
     })
   }

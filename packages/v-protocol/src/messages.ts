@@ -22,6 +22,7 @@ export type MessageName =
   | 'copyOutResponse'
   | 'authenticationOk'
   | 'authenticationMD5Password'
+  | 'authenticationSHA512Password'
   | 'authenticationCleartextPassword'
   | 'authenticationSASL'
   | 'authenticationSASLContinue'
@@ -173,6 +174,11 @@ export class ParameterStatusMessage {
 export class AuthenticationMD5Password implements BackendMessage {
   public readonly name: MessageName = 'authenticationMD5Password'
   constructor(public readonly length: number, public readonly salt: Buffer) {}
+}
+
+export class AuthenticationSHA512Password implements BackendMessage {
+  public readonly name: MessageName = 'authenticationSHA512Password'
+  constructor(public readonly length: number, public readonly salt: Buffer, public readonly userSalt: Buffer) {}
 }
 
 export class BackendKeyDataMessage {

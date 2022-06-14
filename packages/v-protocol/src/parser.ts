@@ -25,6 +25,7 @@ import {
   MessageName,
   AuthenticationMD5Password,
   NoticeMessage,
+  AuthenticationSHA512Password,
 } from './messages'
 import { BufferReader } from './buffer-reader'
 import assert from 'assert'
@@ -331,7 +332,13 @@ export class Parser {
       case 65536:
       case 66048:
         // This will not currently be sent by the server as protocol version 3.5 is required for SHA512 auth
-        console.log("Vertica server requested SHA512 Authentication - not supported")
+        if(message.length == 32) {
+          const salt = this.reader.bytes(4)
+          const userSaltLen = this.reader.int32()
+          const userSalt = this.reader.bytes(16)
+
+          return new AuthenticationSHA512Password(length, salt, userSalt)
+        }
         break
       case 9: // PasswordExpired
         return new DatabaseError('Could not authenticate: Password expired.', 0, 'error')

@@ -168,11 +168,21 @@ const md5 = function (string) {
   return crypto.createHash('md5').update(string, 'utf-8').digest('hex')
 }
 
+const sha512 = function (string) {
+  return crypto.createHash('sha512').update(string, 'utf-8').digest('hex')
+}
+
 // See AuthenticationMD5Password at https://www.postgresql.org/docs/current/static/protocol-flow.html
 const postgresMd5PasswordHash = function (user, password, salt) {
   var inner = md5(password + user)
   var outer = md5(Buffer.concat([Buffer.from(inner), salt]))
   return 'md5' + outer
+}
+
+const postgresSha512PasswordHash = function (password, salt, userSalt) {
+  var inner = sha512(Buffer.concat([Buffer.from(password), userSalt]))
+  var outer = sha512(Buffer.concat([Buffer.from(inner), salt]))
+  return 'sha512' + outer
 }
 
 module.exports = {
@@ -184,4 +194,6 @@ module.exports = {
   normalizeQueryConfig,
   postgresMd5PasswordHash,
   md5,
+  postgresSha512PasswordHash,
+  sha512,
 }
