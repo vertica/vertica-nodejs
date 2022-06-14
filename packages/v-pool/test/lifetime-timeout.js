@@ -28,7 +28,7 @@ describe('lifetime timeout', () => {
       expect(pool.totalCount).to.equal(0)
       done()
     })
-  })
+  }).timeout(3000)
   it(
     'can remove expired clients and recreate them',
     co.wrap(function* () {
