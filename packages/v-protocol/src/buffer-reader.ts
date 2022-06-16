@@ -31,6 +31,12 @@ export class BufferReader {
     return result
   }
 
+  public uint64(): bigint {
+    const result = this.buffer.readBigUInt64BE(this.offset)
+    this.offset += 8
+    return result
+  }
+
   public string(length: number): string {
     const result = this.buffer.toString(this.encoding, this.offset, this.offset + length)
     this.offset += length

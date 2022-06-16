@@ -12,16 +12,22 @@ var suite = new helper.Suite()
   var parseCount = 0
 
   suite.test('first named prepared statement', function (done) {
+
+    client.query('CREATE TABLE IF NOT EXISTS person(name varchar(100), age int);')
+    client.query("INSERT INTO person (name, age) VALUES ('Goofy', 90)")
+    client.query("INSERT INTO person (name, age) VALUES ('Mickey', 94)")
+    client.query("INSERT INTO person (name, age) VALUES ('Donald', 86)")
+
     var query = client.query(
       new Query({
-        text: 'select name from person where age <= $1 and name LIKE $2',
-        values: [20, 'Bri%'],
+        text: 'select name from person where age <= ? and name LIKE ?',
+        values: [92, "Don%"],
         name: queryName,
       })
     )
 
     assert.emits(query, 'row', function (row) {
-      assert.equal(row.name, 'Brian')
+      assert.equal(row.name, 'Donald')
     })
 
     query.on('end', () => done())
@@ -30,14 +36,14 @@ var suite = new helper.Suite()
   suite.test('second named prepared statement with same name & text', function (done) {
     var cachedQuery = client.query(
       new Query({
-        text: 'select name from person where age <= $1 and name LIKE $2',
+        text: 'select name from person where age <= ? and name LIKE ?',
         name: queryName,
-        values: [10, 'A%'],
+        values: [100, 'M%'],
       })
     )
 
     assert.emits(cachedQuery, 'row', function (row) {
-      assert.equal(row.name, 'Aaron')
+      assert.equal(row.name, 'Mickey')
     })
 
     cachedQuery.on('end', () => done())
@@ -47,28 +53,25 @@ var suite = new helper.Suite()
     var q = client.query(
       new Query({
         name: queryName,
-        values: [30, '%n%'],
+        values: [100, '%'],
+        rowMode: 'array',
       })
     )
-
-    assert.emits(q, 'row', function (row) {
-      assert.equal(row.name, 'Aaron')
-
-      // test second row is emitted as well
-      assert.emits(q, 'row', function (row) {
-        assert.equal(row.name, 'Brian')
-      })
+    q.on('end', (res) => {
+      var flattenedResult = res.rows.flat() // coupled with array RowMode, quick way to get an array of result values
+      assert(flattenedResult.includes('Donald'))
+      assert(flattenedResult.includes('Mickey'))
+      assert(flattenedResult.includes('Goofy'))
+      done()
     })
-
-    q.on('end', () => done())
   })
 
   suite.test('with same name, but with different text', function (done) {
     client.query(
       new Query({
-        text: 'select name from person where age >= $1 and name LIKE $2',
+        text: 'select name from person where age >= ? and name LIKE ?',
         name: queryName,
-        values: [30, '%n%'],
+        values: [80, '%'],
       }),
       assert.calls((err) => {
         assert.equal(
@@ -78,111 +81,38 @@ var suite = new helper.Suite()
         done()
       })
     )
+    client.query("DROP TABLE IF EXISTS person")
   })
 })()
+
 ;(function () {
-  var statementName = 'differ'
-  var statement1 = 'select count(*)::int4 as count from person'
-  var statement2 = 'select count(*)::int4 as count from person where age < $1'
+  var client = helper.client()
+  client.on('drain', client.end.bind(client))
 
-  var client1 = helper.client()
-  var client2 = helper.client()
-
-  suite.test('client 1 execution', function (done) {
-    var query = client1.query(
-      {
-        name: statementName,
-        text: statement1,
-      },
-      (err, res) => {
-        assert(!err)
-        assert.equal(res.rows[0].count, 26)
-        done()
+  suite.test('inserting data with prepared statement', function (done) {
+    client.query("CREATE TABLE IF NOT EXISTS insertTest(a boolean, b integer, c char, d varchar(100), e numeric(10, 5))")
+    const rowMode = 'array'
+    const query1 = {
+      name: 'testName',
+      text: 'Insert into insertTest values (?, ?, ?, ?, ?)',
+      values: [true, 5, 'z', "foo", 12345.67890],
+    }
+    client.query(query1, (err, res) => {
+      if (err) {
+        assert(false)
       }
-    )
-  })
-
-  suite.test('client 2 execution', function (done) {
-    var query = client2.query(
-      new Query({
-        name: statementName,
-        text: statement2,
-        values: [11],
-      })
-    )
-
-    assert.emits(query, 'row', function (row) {
-      assert.equal(row.count, 1)
     })
-
-    assert.emits(query, 'end', function () {
+    const query2 = {
+      text: 'SELECT * FROM insertTest',
+      rowMode: 'array',
+    }
+    client.query(query2, (err, res) => {
+      if (err) {
+        assert(false)
+      }
+      assert.equal(JSON.stringify(res.rows.flat()), JSON.stringify(['t', '5', 'z', 'foo', '12345.67890']))
       done()
     })
   })
-
-  suite.test('clean up clients', () => {
-    return client1.end().then(() => client2.end())
-  })
 })()
-;(function () {
-  var client = helper.client()
-  client.query('CREATE TEMP TABLE zoom(name varchar(100));')
-  client.query("INSERT INTO zoom (name) VALUES ('zed')")
-  client.query("INSERT INTO zoom (name) VALUES ('postgres')")
-  client.query("INSERT INTO zoom (name) VALUES ('node postgres')")
 
-  var checkForResults = function (q) {
-    assert.emits(q, 'row', function (row) {
-      assert.equal(row.name, 'node postgres')
-
-      assert.emits(q, 'row', function (row) {
-        assert.equal(row.name, 'postgres')
-
-        assert.emits(q, 'row', function (row) {
-          assert.equal(row.name, 'zed')
-        })
-      })
-    })
-  }
-
-  suite.test('with small row count', function (done) {
-    var query = client.query(
-      new Query(
-        {
-          name: 'get names',
-          text: 'SELECT name FROM zoom ORDER BY name COLLATE "C"',
-          rows: 1,
-        },
-        done
-      )
-    )
-
-    checkForResults(query)
-  })
-
-  suite.test('with large row count', function (done) {
-    var query = client.query(
-      new Query(
-        {
-          name: 'get names',
-          text: 'SELECT name FROM zoom ORDER BY name COLLATE "C"',
-          rows: 1000,
-        },
-        done
-      )
-    )
-    checkForResults(query)
-  })
-
-  suite.testAsync('with no data response and rows', async function () {
-    const result = await client.query({
-      name: 'some insert',
-      text: '',
-      values: [],
-      rows: 1,
-    })
-    assert.equal(result.rows.length, 0)
-  })
-
-  suite.test('cleanup', () => client.end())
-})()
