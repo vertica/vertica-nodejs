@@ -329,10 +329,9 @@ export class Parser {
           return new AuthenticationMD5Password(length, salt)
         }
         break
-      case 65536:
-      case 66048:
-        // This will not currently be sent by the server as protocol version 3.5 is required for SHA512 auth
-        if(message.length == 32) {
+      case 65536: // AuthenticationHashPassword
+      case 66048: // AuthenticationHashSHA512Password
+        if(message.length === 32) {
           const salt = this.reader.bytes(4)
           const userSaltLen = this.reader.int32()
           const userSalt = this.reader.bytes(16)
