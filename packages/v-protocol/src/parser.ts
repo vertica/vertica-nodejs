@@ -274,7 +274,7 @@ export class Parser {
     const columnID = this.reader.int16()
     const parentTypeID = this.reader.int16()
     const isNonNative = this.reader.bytes(1)
-    if (isNonNative) {
+    if (isNonNative[0] == 1) {
       throw new Error("Non native types are not yet supported")
     }
     const dataTypeID = this.reader.int32() // for non native types this would be the index into the type mapping pool
