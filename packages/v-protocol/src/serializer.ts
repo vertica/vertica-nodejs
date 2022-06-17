@@ -18,7 +18,7 @@ const enum code {
 
 const writer = new Writer()
 const PROTOCOL_MAJOR_FIXED = 3  // these have no bearing in new servers with protocol version >= 3.7
-const PROTOCOL_MINOR_FIXED = 0  // these are required but unused
+const PROTOCOL_MINOR_FIXED = 5  // these are required but unused
 
 const startup = (opts: Record<string, string>): Buffer => {
   // protocol version
@@ -122,7 +122,7 @@ const paramWriter = new Writer()
 
 // make this a const enum so typescript will inline the value
 const enum ParamType {
-  STRING = 0,
+  TEXT = 0,
   BINARY = 1,
 }
 
@@ -149,46 +149,26 @@ const bind = (config: BindOpts = {}): Buffer => {
   const statement = config.statement || ''
   const binary = config.binary || false
   const values = config.values || emptyArray
-  const len = values.length
+  const parameterCount = values.length
   const dataTypeIDs = config.dataTypeIDs || emptyArray
-
   writer.addCString(portal).addCString(statement)
-
   // [VERTICA specific] The parameter format codes need to be added up front instead of being interleaved with the parameter values
-  // parameter format codes
-  writer.addInt16(len)
-  for (let i = 0; i < len; i++) {
-    const valueMapper = config.valueMapper
-    const mappedVal = valueMapper ? valueMapper(values[i], i) : values[i]
-    if (mappedVal == null) {
-      // add the param type (string) to the writer
-      writer.addInt16(ParamType.STRING)
-    } else if (mappedVal instanceof Buffer) {
-      // add the param type (binary) to the writer
-      writer.addInt16(ParamType.BINARY)
-    } else {
-      // add the param type (string) to the writer
-      writer.addInt16(ParamType.STRING)
-    }
-  }
+  // parameter format codes.
 
+  writer.addInt16(0) // tell the server that all parameter format codes from the driver will be default, text
+  writer.addInt16(parameterCount) // number of parameters, must match number needed by query
   // [VERTICA specific] The type OIDs need to be added here
   // OIDs
-  writer.addInt16(len)
-  for (let i = 0; i < len; i++) {
+  for (let i = 0; i < parameterCount; i++) {
     writer.addInt32(dataTypeIDs[i])
   }
-  
 
-  // parameter values
   writeValues(values, config.valueMapper)
-
   writer.add(paramWriter.flush())
 
   // result format codes
-  // assume same format for all result fields for now
-  writer.addInt16(1)
-  writer.addInt16(binary ? ParamType.BINARY : ParamType.STRING)
+  // binary transfer not supported, will all be default, text all the time
+  writer.addInt16(0)
 
   return writer.flush(code.bind)
 }

@@ -283,7 +283,8 @@ class Client extends EventEmitter {
     con.on('copyData', this._handleCopyData.bind(this))
     con.on('notification', this._handleNotification.bind(this))
     con.on('parameterDescription', this._handleParameterDescription.bind(this))
-    con.on('parameterStatus', this._handleParameterStatus.bind(this)) 
+    con.on('parameterStatus', this._handleParameterStatus.bind(this))
+    con.on('bindComplete', this._handleBindComplete.bind(this))
   }
 
   // TODO(bmc): deprecate pgpass "built in" integration since this.password can be a function
@@ -341,6 +342,11 @@ class Client extends EventEmitter {
       default:
         // do nothing
     }
+  }
+
+  _handleBindComplete(msg) {
+    const activeQuery = this.activeQuery
+    activeQuery.handleBindComplete(this.connection)
   }
 
   _handleAuthCleartextPassword(msg) {
@@ -464,8 +470,7 @@ class Client extends EventEmitter {
 
   _handlePortalSuspended(msg) {
     // [VERTICA specific] PortalSuspended replaced CommandComplete to indicate completion of the source SQL command
-    // Handle portalSuspended the same way commandComplete is handled
-    this.activeQuery.handleCommandComplete(msg, this.connection)
+    this.activeQuery.handlePortalSuspended(msg, this.connection)
   }
 
   _handleParameterDescription(msg) {
