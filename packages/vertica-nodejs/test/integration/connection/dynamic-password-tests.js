@@ -5,7 +5,7 @@ const suite = new helper.Suite()
 const vertica = require('../../../lib/index')
 const Client = vertica.Client
 
-const password = process.env.PGPASSWORD || null
+const password = process.env.V_PASSWORD || null
 const sleep = (millis) => new Promise((resolve) => setTimeout(resolve, millis))
 
 if (!password) {
@@ -23,8 +23,10 @@ suite.testAsync('Get password from a sync function', () => {
     password: getPassword,
   })
   return client.connect().then(() => {
-    assert.ok(wasCalled, 'Our password function should have been called')
-    return client.end()
+    client.query("select now()").then(() => {
+      assert.ok(wasCalled, 'Our password function should have been called')
+      return client.end()
+    })
   })
 })
 
