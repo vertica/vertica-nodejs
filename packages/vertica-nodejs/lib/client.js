@@ -99,34 +99,20 @@ class Client extends EventEmitter {
   }
 
   _resolveHost(node) {
-    var ipv4addrs = new this._Promise((resolve, reject) => {
-      dns.resolve4(node.host, (err4, ipv4addrs) =>  {
-        if (err4) {
-          reject(err4)
+    return new this._Promise((resolve, reject) => {
+      dns.lookup(node.host, { all: true }, (err, addresses) => {
+        if (err) {
+          reject(err)
           return
         }
-        resolve(ipv4addrs)
+
+        var resolvedAddresses = addresses
+          .filter((addr) => addr.family === 4 || addr.family === 6)
+          .map((addr) => addr.address)
+
+        this._shuffleAddresses(addresses)
+        resolve(resolvedAddresses.map((addr) => { return { host: addr, port: node.port } }))
       })
-    })
-
-    var ipv6addrs = new this._Promise((resolve, reject) => dns.resolve6(node.host, (err6, ipv6addrs) => {
-      if (err6) {
-        reject(err6)
-        return
-      }
-      resolve(ipv6addrs)
-    }))
-
-    return this._Promise.allSettled([ipv4addrs, ipv6addrs]).then((results) => {
-      // Combine all IP addresses into a single array
-      // If no DNS records are found, return an empty array
-      var resolved_addresses = results
-        .filter((result) => result.status == 'fulfilled')
-        .flatMap((result) => result.value)
-
-      // Note: This is a biased shuffle. We could use Fisher-Yates Shuffle to avoid bias
-      resolved_addresses.sort((a, b) => 0.5 - Math.random())
-      return resolved_addresses.map((addr) => { return { host: addr, port: node.port } })
     })
   }
 
