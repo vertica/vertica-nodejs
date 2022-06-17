@@ -4,7 +4,7 @@ const BufferList = require('../../buffer-list')
 var utils = require('../../../lib/utils')
 
 // Test not currently working, waiting on in progress changes that fix the equivalent md5 test
-test('md5 authentication', function () {
+test('sha512 authentication', function () {
   var client = helper.createClient()
   client.password = '!'
   var salt = Buffer.from([1, 2, 3, 4])
