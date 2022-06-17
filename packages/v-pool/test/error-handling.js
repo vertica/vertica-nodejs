@@ -7,6 +7,7 @@ const describe = require('mocha').describe
 const it = require('mocha').it
 
 const Pool = require('../')
+const { assert } = require('console')
 
 describe('pool error handling', function () {
   it('Should complete these queries without dying', function (done) {
@@ -216,13 +217,13 @@ describe('pool error handling', function () {
       pool.connect((err) => {
         expect(err).to.be.an(Error)
         if (err.code) {
-          expect(err.code).to.be('ECONNRESET')
+          assert(err.code === 'ECONNRESET' || err.code === 'EPIPE')
         }
       })
       pool.connect((err) => {
         expect(err).to.be.an(Error)
         if (err.code) {
-          expect(err.code).to.be('ECONNRESET')
+          assert(err.code === 'ECONNRESET' || err.code === 'EPIPE')
         }
         closeServer.close(() => {
           pool.end(done)
