@@ -1,9 +1,9 @@
 'use strict'
 var helper = require('./test-helper')
 
-function createClient(callback) {
+async function createClient(callback) {
   var client = new Client(helper.config)
-  client.connect(function (err) {
+  await client.connect(function (err) {
     return callback(client)
   })
 }

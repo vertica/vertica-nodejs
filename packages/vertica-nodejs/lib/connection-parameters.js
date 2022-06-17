@@ -30,14 +30,21 @@ var add = function (params, config, paramName) {
   }
 }
 
-var parseBackupServerNodes = function (str) {
-  return str.split(',')
-    .filter(entry => entry.length > 0)
-    .map(entry => entry.split(':'))
-    .filter(pair => pair[0].length > 0)
-    .map(pair => pair[1] ?
-      { host: pair[0], port: parseInt(pair[1]) } :
-      { host: pair[0], port: defaults.port })
+var parseBackupServerNodes = function (nodes) {
+  // We need to check the type of the input because the ConnectionParameters
+  // constructor will try to assign config = config, which will
+  // cause an error if we try to parse an already parsed value.
+  if (typeof nodes == 'string') {
+    return nodes.split(',')
+      .filter(entry => entry.length > 0)
+      .map(entry => entry.split(':'))
+      .filter(pair => pair[0].length > 0)
+      .map(pair => pair[1] ?
+        { host: pair[0], port: parseInt(pair[1]) } :
+        { host: pair[0], port: defaults.port })
+  } else {
+    return nodes
+  }
 }
 
 class ConnectionParameters {

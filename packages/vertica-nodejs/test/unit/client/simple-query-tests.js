@@ -4,8 +4,8 @@ var Query = require('../../../lib/query')
 
 test('executing query', function () {
   test('queing query', function () {
-    test('when connection is ready', function () {
-      var client = helper.client()
+    test('when connection is ready', async function () {
+      var client = await helper.client()
       assert.empty(client.connection.queries)
       client.connection.emit('readyForQuery')
       client.query('yes')
@@ -13,8 +13,8 @@ test('executing query', function () {
       assert.equal(client.connection.queries, 'yes')
     })
 
-    test('when connection is not ready', function () {
-      var client = helper.client()
+    test('when connection is not ready', async function () {
+      var client = await helper.client()
 
       test('query is not sent', function () {
         client.query('boom')
@@ -26,10 +26,11 @@ test('executing query', function () {
         assert.lengthIs(client.connection.queries, 1)
         assert.equal(client.connection.queries[0], 'boom')
       })
+
     })
 
-    test('multiple in the queue', function () {
-      var client = helper.client()
+    test('multiple in the queue', async function () {
+      var client = await helper.client()
       var connection = client.connection
       var queries = connection.queries
       client.query('one')
@@ -60,8 +61,8 @@ test('executing query', function () {
     })
   })
 
-  test('query event binding and flow', function () {
-    var client = helper.client()
+  test('query event binding and flow', async function () {
+    var client = await helper.client()
     var con = client.connection
     var query = client.query(new Query('whatever'))
 
@@ -123,8 +124,8 @@ test('executing query', function () {
     })
   })
 
-  test('handles errors', function () {
-    var client = helper.client()
+  test('handles errors', async function () {
+    var client = await helper.client()
 
     test('throws an error when config is null', function () {
       try {

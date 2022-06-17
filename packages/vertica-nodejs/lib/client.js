@@ -132,24 +132,24 @@ class Client extends EventEmitter {
 
   // Round robin connections iterate through each node in host + backup_server_nodes
   // For each node, resolve the host to a list of addresses, shuffle the addresses, then try each address
-  _roundRobinConnect(nodes, addresses, error) {
+  async _roundRobinConnect(nodes, addresses, error) {
     if (addresses.length > 0) {
       // There are resolved addresses we haven't tried yet, so try the next address
-      this._connectToNextAddress(nodes, addresses)
+      await this._connectToNextAddress(nodes, addresses)
     } else if (nodes.length > 0) {
       // There are no more resolved addresses for the current node, so resolve the host for the next node
       var node = nodes.shift()
-      this._resolveHost(node)
-        .then(((shuffled_addresses) => {
+      await this._resolveHost(node)
+        .then((async (shuffled_addresses) => {
           if (shuffled_addresses.length > 0) {
-            this._connectToNextAddress(nodes, shuffled_addresses)
+            await this._connectToNextAddress(nodes, shuffled_addresses)
           } else {
             var err = new Error("Could not resolve host " + node.host)
-            this._roundRobinConnect(nodes, addresses, err)
+            await this._roundRobinConnect(nodes, addresses, err)
           }
         }).bind(this))
-        .catch(((err) => {
-          this._roundRobinConnect(nodes, addresses, err)
+        .catch((async (err) => {
+          await this._roundRobinConnect(nodes, addresses, err)
         }).bind(this))
     } else {
       if (!error) {
@@ -169,7 +169,7 @@ class Client extends EventEmitter {
     }
   }
 
-  _connectToNextAddress(nodes, addresses) {
+  async _connectToNextAddress(nodes, addresses) {
     var self = this
     var con = this.connection
     this.connectionTimeoutHandle
@@ -204,7 +204,7 @@ class Client extends EventEmitter {
 
     this._attachListeners(con)
 
-    con.once('end', () => {
+    con.once('end', async () => {
       const error = this._ending ? new Error('Connection terminated') : new Error('Connection terminated unexpectedly')
 
       clearTimeout(this.connectionTimeoutHandle)
@@ -215,7 +215,7 @@ class Client extends EventEmitter {
         // on this client then we have an unexpected disconnection
         // treat this as an error unless we've already emitted an error
         // during connection.
-        this._roundRobinConnect(nodes, addresses, error)
+        await this._roundRobinConnect(nodes, addresses, error)
       }
 
       process.nextTick(() => {
@@ -224,7 +224,7 @@ class Client extends EventEmitter {
     })
   }
 
-  _connect(callback) {
+  async _connect(callback) {
     this._connectionCallback = callback
 
     if (this._connecting || this._connected) {
@@ -238,15 +238,13 @@ class Client extends EventEmitter {
     var nodes = this.backup_server_node
     // Add host and port to start of queue of nodes to try connecting to
     nodes.unshift({ host: this.host, port: this.port })
-    this._roundRobinConnect(nodes, [], undefined)
+    await this._roundRobinConnect(nodes, [], undefined)
   }
 
-  connect(callback) {
+  async connect(callback) {
     if (callback) {
-      this._connect(callback)
-      return
+      return this._connect(callback)
     }
-
     return new this._Promise((resolve, reject) => {
       this._connect((error) => {
         if (error) {

@@ -2,14 +2,14 @@
 var helper = require('./test-helper')
 var Connection = require('../../../lib/connection')
 
-test('drain', function () {
+test('drain', async function () {
   var con = new Connection({ stream: 'NO' })
   var client = new Client({ connection: con })
-  con.connect = function () {
+  con.connect = async function () {
     con.emit('connect')
   }
   con.query = function () {}
-  client.connect()
+  await client.connect()
 
   var raisedDrain = false
   client.on('drain', function () {

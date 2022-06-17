@@ -3,8 +3,8 @@ var helper = require('./test-helper')
 const BufferList = require('../../buffer-list')
 var utils = require('../../../lib/utils')
 
-test('md5 authentication', function () {
-  var client = helper.createClient()
+test('md5 authentication', async function () {
+  var client = await helper.createClient()
   client.password = '!'
   var salt = Buffer.from([1, 2, 3, 4])
   client.connection.emit('authenticationMD5Password', { salt: salt })

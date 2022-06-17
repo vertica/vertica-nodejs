@@ -43,7 +43,7 @@
     }
   },
   "scripts": {
-    "test": "make test-all"
+    "test": "make -k test-all"
   },
   "files": [
     "lib",

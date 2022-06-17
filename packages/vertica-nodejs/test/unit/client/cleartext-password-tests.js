@@ -4,8 +4,8 @@ const helper = require('./test-helper')
 const createClient = require('./test-helper').createClient
 
 test('cleartext password authentication', function () {
-  test('responds with password', function () {
-    var client = createClient()
+  test('responds with password', async function () {
+    var client = await createClient()
     client.password = '!'
     client.connection.stream.packets = []
     client.connection.emit('authenticationCleartextPassword')
@@ -15,7 +15,7 @@ test('cleartext password authentication', function () {
     assert.equalBuffers(packet, [0x70, 0, 0, 0, 6, 33, 0])
   })
 
-  test('does not crash with null password using pg-pass', function () {
+  test('does not crash with null password using pg-pass', async function () {
     process.env.PGPASSFILE = `${__dirname}/pgpass.file`
     var client = new helper.Client({
       host: 'foo',
@@ -24,7 +24,7 @@ test('cleartext password authentication', function () {
       user: 'baz',
       stream: new MemoryStream(),
     })
-    client.connect()
+    await assert.rejects(client.connect())
     client.connection.emit('authenticationCleartextPassword')
   })
 })

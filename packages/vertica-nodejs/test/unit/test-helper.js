@@ -34,12 +34,12 @@ p.setKeepAlive = function () {}
 p.closed = false
 p.writable = true
 
-const createClient = function () {
+const createClient = async function () {
   var stream = new MemoryStream()
   var client = new Client({
     connection: new Connection({ stream: stream }),
   })
-  client.connect()
+  await client.connect()
   return client
 }
 

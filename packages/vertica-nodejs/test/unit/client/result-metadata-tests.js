@@ -2,8 +2,8 @@
 var helper = require('./test-helper')
 
 var testForTag = function (tagText, callback) {
-  test('includes command tag data for tag ' + tagText, function () {
-    var client = helper.client()
+  test('includes command tag data for tag ' + tagText, async function () {
+    var client = await helper.client()
     client.connection.emit('readyForQuery')
 
     var query = client.query(

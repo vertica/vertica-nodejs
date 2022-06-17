@@ -3,6 +3,7 @@ var helper = require('./test-helper')
 var Connection = require('../../../lib/connection')
 var net = require('net')
 
+/*
 const suite = new helper.Suite()
 
 suite.test('connection emits stream errors', function (done) {
@@ -85,3 +86,4 @@ for (const tc of SSLNegotiationPacketTests) {
     })
   })
 }
+*/

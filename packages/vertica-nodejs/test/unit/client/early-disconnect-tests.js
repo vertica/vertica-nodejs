@@ -9,9 +9,9 @@ var server = net.createServer(function (c) {
   server.close()
 })
 
-server.listen(7777, function () {
-  var client = new vertica.Client('postgres://localhost:7777')
-  client.connect(
+server.listen(7777, async function () {
+  var client = new vertica.Client('vertica://localhost:7777')
+  await client.connect(
     assert.calls(function (err) {
       assert(err)
     })

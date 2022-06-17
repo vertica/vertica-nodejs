@@ -2,7 +2,7 @@
 var helper = require('../test-helper')
 var Connection = require('../../../lib/connection')
 
-var makeClient = function () {
+var makeClient = async function () {
   var connection = new Connection({ stream: 'no' })
   connection.startup = function () {}
   connection.connect = function () {}
@@ -11,7 +11,7 @@ var makeClient = function () {
   }
   connection.queries = []
   var client = new Client({ connection: connection })
-  client.connect()
+  await client.connect()
   client.connection.emit('connect')
   return client
 }
