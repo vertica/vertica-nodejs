@@ -18,7 +18,6 @@ suite.test('SSL Key should not exist in util.inspect output', () => {
   const pool = new helper.vertica.Pool({ ssl: { key: secret_value } })
   const client = new helper.vertica.Client({ ssl: { key: secret_value } })
   const depth = 20
-  console.log("THING: " + util.inspect(pool, { depth }))
   assert(util.inspect(pool, { depth }).indexOf(secret_value) === -1)
   assert(util.inspect(client, { depth }).indexOf(secret_value) === -1)
 })
