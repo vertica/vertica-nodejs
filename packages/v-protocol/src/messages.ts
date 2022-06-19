@@ -25,9 +25,6 @@ export type MessageName =
   | 'authenticationMD5Password'
   | 'authenticationSHA512Password'
   | 'authenticationCleartextPassword'
-  | 'authenticationSASL'
-  | 'authenticationSASLContinue'
-  | 'authenticationSASLFinal'
   | 'error'
   | 'notice'
 

@@ -51,17 +51,6 @@ const password = (password: string): Buffer => {
   return writer.addCString(password).flush(code.startup)
 }
 
-const sendSASLInitialResponseMessage = function (mechanism: string, initialResponse: string): Buffer {
-  // 0x70 = 'p'
-  writer.addCString(mechanism).addInt32(Buffer.byteLength(initialResponse)).addString(initialResponse)
-
-  return writer.flush(code.startup)
-}
-
-const sendSCRAMClientFinalMessage = function (additionalData: string): Buffer {
-  return writer.addString(additionalData).flush(code.startup)
-}
-
 const query = (text: string): Buffer => {
   return writer.addCString(text).flush(code.query)
 }
@@ -263,8 +252,6 @@ const serialize = {
   startup,
   password,
   requestSsl,
-  sendSASLInitialResponseMessage,
-  sendSCRAMClientFinalMessage,
   query,
   parse,
   bind,

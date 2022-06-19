@@ -178,14 +178,6 @@ class Connection extends EventEmitter {
     this._send(serialize.password(password))
   }
 
-  sendSASLInitialResponseMessage(mechanism, initialResponse) {
-    this._send(serialize.sendSASLInitialResponseMessage(mechanism, initialResponse))
-  }
-
-  sendSCRAMClientFinalMessage(additionalData) {
-    this._send(serialize.sendSCRAMClientFinalMessage(additionalData))
-  }
-
   _send(buffer) {
     if (!this.stream.writable) {
       return false
