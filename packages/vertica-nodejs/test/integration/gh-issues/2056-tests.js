@@ -5,12 +5,12 @@ var assert = require('assert')
 const suite = new helper.Suite()
 
 suite.test('All queries should return a result array', (done) => {
-  const client = new helper.pg.Client()
+  const client = new helper.Client()
   client.connect()
   const promises = []
-  promises.push(client.query('CREATE TEMP TABLE foo(bar TEXT)'))
-  promises.push(client.query('INSERT INTO foo(bar) VALUES($1)', ['qux']))
-  promises.push(client.query('SELECT * FROM foo WHERE bar = $1', ['foo']))
+  promises.push(client.query('CREATE TEMP TABLE foo(bar varchar)'))
+  promises.push(client.query('INSERT INTO foo(bar) VALUES(?)', ['qux']))
+  promises.push(client.query('SELECT * FROM foo WHERE bar = ?', ['foo']))
   Promise.all(promises).then((results) => {
     results.forEach((res) => {
       assert(Array.isArray(res.fields))
