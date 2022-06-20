@@ -1,0 +1,11 @@
+*~
+build/
+.lock-wscript
+*.log
+node_modules/
+package-lock.json
+*.swp
+dist
+.DS_Store
+.vscode/
+manually-test-on-heroku.js
