@@ -1,0 +1,38 @@
+{
+  "name": "vertica-nodejs",
+  "description": "vertica node.js monorepo",
+  "main": "index.js",
+  "private": true,
+  "repository": "git@github.com:vertica/vertica-nodejs.git",
+  "author": "Vertica",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "yarn lerna exec yarn test",
+    "build": "tsc --build",
+    "build:watch": "tsc --build --watch",
+    "pretest": "yarn build",
+    "prepublish": "yarn build",
+    "lint": "eslint '*/**/*.{js,ts,tsx}'"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.4.0",
+    "@typescript-eslint/parser": "^4.4.0",
+    "eslint": "^7.11.0",
+    "eslint-config-prettier": "^6.12.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "lerna": "^3.19.0",
+    "prettier": "2.1.2",
+    "typescript": "^4.0.3"
+  },
+  "prettier": {
+    "semi": false,
+    "printWidth": 120,
+    "arrowParens": "always",
+    "trailingComma": "es5",
+    "singleQuote": true
+  }
+}

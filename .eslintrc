@@ -1,0 +1,15 @@
+{
+  "plugins": ["prettier"],
+  "parser": "@typescript-eslint/parser",
+  "extends": ["plugin:prettier/recommended", "prettier/@typescript-eslint"],
+  "ignorePatterns": ["node_modules", "coverage", "packages/v-protocol/dist/**/*"],
+  "parserOptions": {
+    "ecmaVersion": 2017,
+    "sourceType": "module"
+  },
+  "env": {
+    "node": true,
+    "es6": true,
+    "mocha": true
+  }
+}

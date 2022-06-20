@@ -1,0 +1,56 @@
+{
+  "name": "vertica-nodejs",
+  "version": "8.7.3",
+  "description": "Vertica client - pure javascript & libpq with the same API",
+  "keywords": [
+    "database",
+    "libpq",
+    "pg",
+    "postgre",
+    "postgres",
+    "postgresql",
+    "rdbms"
+  ],
+  "homepage": "https://github.com/vertica/vertica-nodejs",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/vertica/vertica-nodejs.git",
+    "directory": "packages/vertica-nodejs"
+  },
+  "author": "Vertica",
+  "main": "./lib",
+  "dependencies": {
+    "buffer-writer": "2.0.0",
+    "packet-reader": "1.0.0",
+    "v-connection-string": "^2.5.0",
+    "v-pool": "^3.5.1",
+    "v-protocol": "^1.5.0",
+    "pg-types": "^2.1.0",
+    "pgpass": "1.x"
+  },
+  "devDependencies": {
+    "async": "0.9.0",
+    "bluebird": "3.5.2",
+    "co": "4.6.0",
+    "pg-copy-streams": "0.3.0"
+  },
+  "peerDependencies": {
+    "pg-native": ">=2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "pg-native": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "test": "make -k test-all"
+  },
+  "files": [
+    "lib",
+    "SPONSORS.md"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 8.0.0"
+  }
+}
