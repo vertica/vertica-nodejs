@@ -1,11 +1,11 @@
 {
   "name": "vertica-nodejs",
-  "description": "vertica node.js monorepo",
+  "description": "Official vertica node.js client",
   "main": "index.js",
   "private": true,
   "repository": "git@github.com:vertica/vertica-nodejs.git",
   "author": "Vertica",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "workspaces": [
     "packages/*"
   ],
