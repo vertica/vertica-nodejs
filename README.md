@@ -74,4 +74,4 @@ The causes and solutions to common errors can be found among the [Frequently Ask
 
 ## License
 
-Apache 2.0 License, please see [LICENSE](#LICENSE) for details.
+Apache 2.0 License, please see [LICENSE](LICENSE) for details.
