@@ -256,11 +256,14 @@ export class Parser {
   private parseRowDescriptionMessage(offset: number, length: number, bytes: Buffer) {
     this.reader.setBuffer(offset, bytes)
     const fieldCount = this.reader.int16()
+    const message = new RowDescriptionMessage(length, fieldCount)
+    if (fieldCount === 0) {
+      return message
+    }
     const nonNativeTypeCount = this.reader.int32()
     if (nonNativeTypeCount > 0) {
       throw new Error("Non native types are not yet supported")
     }
-    const message = new RowDescriptionMessage(length, fieldCount)
     for (let i = 0; i < fieldCount; i++) {
       message.fields[i] = this.parseField()
     }
