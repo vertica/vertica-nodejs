@@ -4,7 +4,7 @@
   "description": "The Vertica client/server binary protocol, implemented in TypeScript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "devDependencies": {
     "@types/chai": "^4.2.7",
     "@types/mocha": "^5.2.7",

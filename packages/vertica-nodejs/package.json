@@ -49,7 +49,7 @@
     "lib",
     "SPONSORS.md"
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "engines": {
     "node": ">= 8.0.0"
   }

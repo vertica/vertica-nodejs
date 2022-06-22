@@ -21,7 +21,7 @@
     "database"
   ],
   "author": "Vertica",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/vertica/vertica-nodejs/issues"
   },
