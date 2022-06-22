@@ -5,13 +5,12 @@ const helper = require('../test-helper')
 
 const suite = new helper.Suite()
 
-suite.test('bad ssl credentials do not cause crash', (done) => {
+suite.test('bad tls credentials do not cause crash', (done) => {
   const config = {
-    ssl: {
-      ca: 'invalid_value',
-      key: 'invalid_value',
-      cert: 'invalid_value',
-    },
+    //tls_client_cert: 'invalid_value',
+    //tls_client_key: 'invalid_value',
+    tls_mode: 'require',
+    tls_trusted_certs: 'invalid_value',
   }
 
   const client = new vertica.Client(config)

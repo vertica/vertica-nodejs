@@ -5,6 +5,7 @@ var expect = chai.expect
 chai.should()
 
 var parse = require('../').parse
+var assert = require('assert')
 
 describe('parse', function () {
   it('using connection string in client constructor', function () {
@@ -194,29 +195,25 @@ describe('parse', function () {
     subject.options.should.equal('-c geqo=off')
   })
 
-  it('configuration parameter ssl=true', function () {
-    var connectionString = 'pg:///?ssl=true'
+  it('configuration parameter tls_mode=require', function () {
+    var connectionString = 'pg:///?tls_mode=require'
     var subject = parse(connectionString)
-    subject.ssl.should.equal(true)
+    subject.tls_mode.should.equal('require')
   })
 
-  it('configuration parameter ssl=1', function () {
-    var connectionString = 'pg:///?ssl=1'
+  it('configuration parameter tls_mode=disable', function () {
+    var connectionString = 'pg:///tls_mode=disable' 
     var subject = parse(connectionString)
-    subject.ssl.should.equal(true)
+    subject.tls_mode.should.equal('disable')
   })
 
-  it('configuration parameter ssl=0', function () {
-    var connectionString = 'pg:///?ssl=0'
-    var subject = parse(connectionString)
-    subject.ssl.should.equal(false)
+  it('set tls_mode', function () {
+    var subject = parse('pg://myhost/db?tls_mode=require')
+    subject.tls_mode.should.equal('require')
   })
 
-  it('set ssl', function () {
-    var subject = parse('pg://myhost/db?ssl=1')
-    subject.ssl.should.equal(true)
-  })
-
+  // MUTUAL MODE TESTS - ENABLE WITH mTLS
+  /*
   it('configuration parameter sslcert=/path/to/cert', function () {
     var connectionString = 'pg:///?sslcert=' + __dirname + '/example.cert'
     var subject = parse(connectionString)
@@ -232,59 +229,30 @@ describe('parse', function () {
       key: 'example key\n',
     })
   })
+  */ 
 
-  it('configuration parameter sslrootcert=/path/to/ca', function () {
-    var connectionString = 'pg:///?sslrootcert=' + __dirname + '/example.ca'
+  it('configuration parameter tls_trusted_certs=/path/to/ca', function () {
+    var connectionString = 'pg:///?tls_trusted_certs=' + __dirname + '/example.ca'
     var subject = parse(connectionString)
-    subject.ssl.should.eql({
-      ca: 'example ca\n',
-    })
+    subject.tls_trusted_certs.should.eql(__dirname + '/example.ca')
   })
 
-  it('configuration parameter sslmode=no-verify', function () {
-    var connectionString = 'pg:///?sslmode=no-verify'
+  it('configuration parameter tls_mode=no-verify', function () {
+    var connectionString = 'pg:///?tls_mode=no-verify' // not a supported tls_mode, should instead default to disable
     var subject = parse(connectionString)
-    subject.ssl.should.eql({
-      rejectUnauthorized: false,
-    })
+    subject.tls_mode.should.eql('disable')
   })
 
-  it('configuration parameter sslmode=disable', function () {
-    var connectionString = 'pg:///?sslmode=disable'
+  it('configuration parameter tls_mode=verify-ca', function () {
+    var connectionString = 'pg:///?tls_mode=verify-ca'
     var subject = parse(connectionString)
-    subject.ssl.should.eql(false)
+    subject.tls_mode.should.eql('verify-ca')
   })
 
-  it('configuration parameter sslmode=prefer', function () {
-    var connectionString = 'pg:///?sslmode=prefer'
+  it('configuration parameter tls_mode=verify-full', function () {
+    var connectionString = 'pg:///?tls_mode=verify-full'
     var subject = parse(connectionString)
-    subject.ssl.should.eql({})
-  })
-
-  it('configuration parameter sslmode=require', function () {
-    var connectionString = 'pg:///?sslmode=require'
-    var subject = parse(connectionString)
-    subject.ssl.should.eql({})
-  })
-
-  it('configuration parameter sslmode=verify-ca', function () {
-    var connectionString = 'pg:///?sslmode=verify-ca'
-    var subject = parse(connectionString)
-    subject.ssl.should.eql({})
-  })
-
-  it('configuration parameter sslmode=verify-full', function () {
-    var connectionString = 'pg:///?sslmode=verify-full'
-    var subject = parse(connectionString)
-    subject.ssl.should.eql({})
-  })
-
-  it('configuration parameter ssl=true and sslmode=require still work with sslrootcert=/path/to/ca', function () {
-    var connectionString = 'pg:///?ssl=true&sslrootcert=' + __dirname + '/example.ca&sslmode=require'
-    var subject = parse(connectionString)
-    subject.ssl.should.eql({
-      ca: 'example ca\n',
-    })
+    subject.tls_mode.should.eql('verify-full')
   })
 
   it('allow other params like max, ...', function () {

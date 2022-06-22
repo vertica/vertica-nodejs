@@ -12,7 +12,7 @@ test('client settings', function () {
     assert.equal(client.user, pguser)
     assert.equal(client.database, pgdatabase)
     assert.equal(client.port, pgport)
-    assert.equal(client.ssl, false)
+    assert.equal(client.tls_mode, 'disable')
   })
 
   test('custom', function () {
@@ -24,36 +24,14 @@ test('client settings', function () {
       database: database,
       port: 321,
       password: password,
-      ssl: true,
+      tls_mode: 'enable',
     })
 
     assert.equal(client.user, user)
     assert.equal(client.database, database)
     assert.equal(client.port, 321)
     assert.equal(client.password, password)
-    assert.equal(client.ssl, true)
-  })
-
-  test('custom ssl default on', function () {
-    var old = process.env.PGSSLMODE
-    process.env.PGSSLMODE = 'prefer'
-
-    var client = new Client()
-    process.env.PGSSLMODE = old
-
-    assert.equal(client.ssl, true)
-  })
-
-  test('custom ssl force off', function () {
-    var old = process.env.PGSSLMODE
-    process.env.PGSSLMODE = 'prefer'
-
-    var client = new Client({
-      ssl: false,
-    })
-    process.env.PGSSLMODE = old
-
-    assert.equal(client.ssl, false)
+    assert.equal(client.tls_mode, 'enable')
   })
 })
 

@@ -28,8 +28,9 @@ class Connection extends EventEmitter {
 
     // encryption
     this.tls_mode = config.tls_mode || 'disable'
-    this.tls_key_file = config.tls_key_file
-    this.tls_cert_file = config.tls_cert_file
+    //this.tls_client_key = config.tls_client_key
+    //this.tls_client_cert = config.tls_client_cert
+    this.tls_trusted_certs = config.tls_trusted_certs
 
     var self = this
     this.on('newListener', function (eventName) {
@@ -97,9 +98,15 @@ class Connection extends EventEmitter {
       if (self.tls_mode === 'require') { // basic TLS connection, does not verify CA certificate
         tls_options.rejectUnauthorized = false
         tls_options.checkServerIdentity = (host , cert) => undefined
-        if (self.tls_key_file) {// the client won't know whether or not this is required, depends on server mode
-          tls_options.pfx = self.tls_key_file
+        if (self.tls_trusted_certs) {
+          tls_options.ca = fs.readFileSync(self.tls_trusted_certs).toString()
         }
+        /*if (self.tls_client_cert) {// the client won't know whether or not this is required, depends on server mode
+          tls_options.cert = fs.readFileSync(self.tls_client_cert).toString()
+        }
+        if (self.tls_client_key) {
+          tls_options.key = fs.readFileSync(self.tls_client_key).toString()
+        }*/
         try {
           self.stream = tls.connect(tls_options);
         } catch (err) {
@@ -110,14 +117,17 @@ class Connection extends EventEmitter {
         try {
           tls_options.rejectUnauthorized = true
           tls_options.checkServerIdentity = (host, cer) => undefined
-          if (self.tls_cert_file) {
-            tls_options.ca = fs.readFileSync(self.tls_cert_file).toString()
+          if (self.tls_trusted_certs) {
+            tls_options.ca = fs.readFileSync(self.tls_trusted_certs).toString()
           } else {
-            throw new Error('verify-ca mode requires setting tls_cert_file property')
+            throw new Error('verify-ca mode requires setting tls_trusted_certs property')
           }
-          if (self.tls_key_file) {// the client won't know whether or not this is required, depends on server mode
-            tls_options.pfx = self.tls_key_file
+          /*if (self.tls_client_cert) {// the client won't know whether or not this is required, depends on server mode
+            tls_options.cert = fs.readFileSync(self.tls_client_cert).toString()
           }
+          if (self.tls_client_key) {
+            tls_options.key = fs.readFileSync(self.tls_client_key).toString()
+          }*/
           self.stream = tls.connect(tls_options)
         } catch (err) {
           return self.emit('error', err)
@@ -126,14 +136,17 @@ class Connection extends EventEmitter {
       else if (self.tls_mode === 'verify-full') { //verify that the name on the CA-signed server certificate matches it's hostname
         try {
           tls_options.rejectUnauthorized = true
-          if (self.tls_cert_file) {
-            tls_options.ca = fs.readFileSync(self.tls_cert_file).toString()
+          if (self.tls_trusted_certs) {
+            tls_options.ca = fs.readFileSync(self.tls_trusted_certs).toString()
           } else {
-            throw new Error('verify-ca mode requires setting tls_cert_file property')
+            throw new Error('verify-ca mode requires setting tls_trusted_certs property')
           }
-          if (self.tls_key_file) {
-            tls_options.pfx = self.tls_key_file
+          /*if (self.tls_client_cert) {// the client won't know whether or not this is required, depends on server mode
+            tls_options.cert = fs.readFileSync(self.tls_client_cert).toString()
           }
+          if (self.tls_client_key) {
+            tls_options.key = fs.readFileSync(self.tls_client_key).toString()
+          }*/
           self.stream = tls.connect(tls_options)
         } catch (err){
           return self.emit('error', err)
