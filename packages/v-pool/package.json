@@ -1,6 +1,6 @@
 {
   "name": "v-pool",
-  "version": "3.5.1",
+  "version": "0.9.0-pre.1",
   "description": "Connection pool for Vertica",
   "main": "index.js",
   "directories": {
