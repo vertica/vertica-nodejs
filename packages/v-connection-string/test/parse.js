@@ -5,7 +5,6 @@ var expect = chai.expect
 chai.should()
 
 var parse = require('../').parse
-var assert = require('assert')
 
 describe('parse', function () {
   it('using connection string in client constructor', function () {
