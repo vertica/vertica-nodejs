@@ -293,11 +293,14 @@ export class Parser {
   private parseParameterDescriptionMessage(offset: number, length: number, bytes: Buffer) {
     this.reader.setBuffer(offset, bytes)
     const parameterCount = this.reader.int16()
+    const message = new ParameterDescriptionMessage(length, parameterCount)
+    if (parameterCount === 0) {
+      return message
+    }
     const nonNativeTypeCount = this.reader.int32() 
     if (nonNativeTypeCount > 0 ) {
       throw new Error("Non native types are not yet supported")
     }
-    const message = new ParameterDescriptionMessage(length, parameterCount)
     for (let i = 0; i < parameterCount; i++) {
       message.parameters[i] = this.parseParameter()
     }
