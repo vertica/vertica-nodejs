@@ -1,6 +1,6 @@
 {
   "name": "vertica-nodejs",
-  "version": "8.7.3",
+  "version": "0.9.0-pre.1",
   "description": "Vertica client - pure javascript & libpq with the same API",
   "keywords": [
     "database",
