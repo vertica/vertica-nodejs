@@ -22,9 +22,9 @@
   "dependencies": {
     "buffer-writer": "2.0.0",
     "packet-reader": "1.0.0",
-    "v-connection-string": "^2.5.0",
-    "v-pool": "^3.5.1",
-    "v-protocol": "^1.5.0",
+    "v-connection-string": "^0.9.0-pre.1",
+    "v-pool": "^0.9.0-pre.1",
+    "v-protocol": "^0.9.0-pre.1",
     "pg-types": "^2.1.0",
     "pgpass": "1.x"
   },
