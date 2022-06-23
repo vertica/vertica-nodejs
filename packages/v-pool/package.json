@@ -35,6 +35,6 @@
     "pg-cursor": "^1.3.0"
   },
   "peerDependencies": {
-    "vertica-nodejs": ">=8.0"
+    "vertica-nodejs": "0.9.0-pre.1"
   }
 }
