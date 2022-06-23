@@ -37,6 +37,11 @@ function parse(str) {
     }
   }
 
+  // if the tls mode specified in the connection string is an invalid option, use the default - disable.
+  if (!['require', 'verify-ca', 'verify-full'].includes(config.tls_mode)) {
+    config.tls_mode = 'disable'
+  }
+  
   var auth = (result.auth || ':').split(':')
   config.user = auth[0]
   config.password = auth.splice(1).join(':')
@@ -66,11 +71,6 @@ function parse(str) {
     pathname = pathname.slice(1) || null
   }
   config.database = pathname && decodeURI(pathname)
-
-  // if the tls mode specified in the connection string is an invalid option, use the default - disable.
-  if (!['require', 'verify-ca', 'verify-full'].includes(config.tls_mode)) {
-    config.tls_mode = 'disable'
-  }
 
   return config
 }

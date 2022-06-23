@@ -4,7 +4,11 @@ var vertica = helper.vertica
 
 var suite = new helper.Suite()
 var tls = require('tls')
-const { tls_cert_file } = require('../../../lib/defaults')
+const trusted_certs_path  =  __dirname + '/../../tls/ca_cert.pem'
+const client_cert_path    =  __dirname + '/../../tls/client_cert.pem'
+const client_key_path     =  __dirname + '/../../tls/client_key.pem'
+
+// TODO - UPDATE THESE STEPS IF NEEDED OR ADD MORE DETAILS ONCE mTLS ISSUES ARE RESOLVED
 
 /*
 * Summary of istructions for configuring your test server to support connections under desired TLS mode.
@@ -48,7 +52,6 @@ suite.test('vertica tls - disable mode - all', function () {
         console.log(err)
         assert(false)
       }
-      console.log(res.rows[0].mode)
       assert(['ENABLE', 'DISABLE', 'TRY_VERIFY', 'VERIFY_CA', 'VERIFY_FULL'].includes(res.rows[0].mode)) // this assert shouldn't be able to fail
       client.end()
     })
@@ -65,7 +68,6 @@ suite.test('vertica tls - require mode - no client certificate', function () {
   assert.equal(client.tls_mode, 'require')
   client.connect(err => {
     if (err) {
-      //console.log(err)
       assert(err.message.includes("SSL alert number 40") // VERIFY_CA mode, this is ok
           || err.message.includes("The server does not support TLS connections")) // DISABLE mode, this is ok
       return
@@ -92,8 +94,8 @@ suite.test('vertica tls - verify-ca - no tls_cert_file specified', function () {
   assert.equal(client.tls_mode, 'verify-ca')
   client.connect(err => {
     if (err) {
-      //console.log(err)
-      assert(err.message.includes("verify-ca mode requires setting tls_cert_file property") // we didn't set the property, this is ok
+      //console.log("\n\n" + err)
+      assert(err.message.includes("verify-ca mode requires setting tls_trusted_certs property") // we didn't set the property, this is ok
           || err.message.includes("SSL alert number 40") // VERIFY_CA mode, this is ok
           || err.message.includes("The server does not support TLS connections")) // DISABLE mode, this is ok
     }
@@ -109,11 +111,11 @@ suite.test('vertica tls - verify-ca - no tls_cert_file specified', function () {
 // by a CA that we trust, verify any failures are due to one of these reasons
 suite.test('vertica tls - verify-ca - valid server certificate', function () {
   var client = new vertica.Client({tls_mode: 'verify-ca',
-                                   tls_cert_file: '../../tls/ca_cert.pem'}) 
+                                   tls_trusted_certs: '../../tls/ca_cert.pem'}) 
   assert.equal(client.tls_mode, 'verify-ca')
   client.connect(err => {
     if (err) {
-      //console.log(err)
+      console.log("\n\n" + err)
       assert(err.message.includes("SSL alert number 40") // VERIFY_CA mode, this is ok
           || err.message.includes("The server does not support TLS connections")) // DISABLE mode, this is ok
       return
@@ -139,8 +141,7 @@ suite.test('vertica tls - verify-full - no tls_cert_file specified', function ()
   assert.equal(client.tls_mode, 'verify-full')
   client.connect(err => {
     if (err) {
-      //console.log(err)
-      assert(err.message.includes("verify-ca mode requires setting tls_cert_file property") // we didn't set the property, this is ok
+      assert(err.message.includes("verify-ca mode requires setting tls_trusted_certs property") // we didn't set the property, this is ok
           || err.message.includes("SSL alert number 40") // VERIFY_CA mode, this is ok
           || err.message.includes("The server does not support TLS connections")) // DISABLE mode, this is ok
     }
@@ -155,11 +156,10 @@ suite.test('vertica tls - verify-full - no tls_cert_file specified', function ()
 // each server mode, the only difference is logic in the client handling checking the certificate
 suite.test('vertica tls - verify-full - valid server certificate', function () {
   var client = new vertica.Client({tls_mode: 'verify-full',
-                                   tls_cert_file: '../../tls/ca_cert.pem'}) 
+                                   tls_trusted_certs: '../../tls/ca_cert.pem'}) 
   assert.equal(client.tls_mode, 'verify-full')
   client.connect(err => {
     if (err) {
-      console.log(err)
       assert(err.message.includes("SSL alert number 40") // VERIFY_CA mode, this is ok
           || err.message.includes("The server does not support TLS connections")) // DISABLE mode, this is ok
       return
@@ -176,3 +176,32 @@ suite.test('vertica tls - verify-full - valid server certificate', function () {
     })
   })
 })
+
+// MUTUAL MODE TESTS
+
+/*suite.test('vertica tls - verify-full - valid server certificate', function () {
+  var client = new vertica.Client({tls_mode: 'require',
+                                   tls_trusted_certs: trusted_certs_path,
+                                   tls_client_cert: client_cert_path,
+                                   tls_client_key: client_key_path}) 
+  assert.equal(client.tls_mode, 'require')
+  client.connect(err => {
+    if (err) {
+      console.log("Error: " + err)
+      assert(err.message.includes("SSL alert number 40") // VERIFY_CA mode, this is ok
+          || err.message.includes("The server does not support TLS connections")) // DISABLE mode, this is ok
+      return
+    }
+    assert.equal(client.connection.stream.constructor.name.toString(), "TLSSocket")
+    client.query("SELECT mode FROM tls_configurations where name = 'server' LIMIT 1", (err, res) => {
+      if (err) {
+        console.log(error)
+        assert(false)
+      }
+      // server should be in one of these modes for us to have gotten this far without sending client certificate
+      assert(['ENABLE', 'TRY_VERIFY'].includes(res.rows[0].mode))
+      //console.log("SELECT ")
+      client.end()
+    })
+  })
+})*/
