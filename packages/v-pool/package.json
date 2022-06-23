@@ -15,8 +15,7 @@
     "directory": "packages/v-pool"
   },
   "keywords": [
-    "pg",
-    "postgres",
+    "vertica",
     "pool",
     "database"
   ],

@@ -15,7 +15,7 @@
     "directory": "packages/v-connection-string"
   },
   "keywords": [
-    "pg",
+    "vertica",
     "connection",
     "string",
     "parse"
