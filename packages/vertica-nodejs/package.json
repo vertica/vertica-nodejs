@@ -4,12 +4,8 @@
   "description": "Vertica client - pure javascript & libpq with the same API",
   "keywords": [
     "database",
-    "libpq",
-    "pg",
-    "postgre",
-    "postgres",
-    "postgresql",
-    "rdbms"
+    "rdbms",
+    "vertica"
   ],
   "homepage": "https://github.com/vertica/vertica-nodejs",
   "repository": {
