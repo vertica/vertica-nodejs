@@ -5,6 +5,7 @@
   "keywords": [
     "database",
     "rdbms",
+    "analytics",
     "vertica"
   ],
   "homepage": "https://github.com/vertica/vertica-nodejs",
