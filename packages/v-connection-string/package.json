@@ -18,7 +18,9 @@
     "vertica",
     "connection",
     "string",
-    "parse"
+    "parse",
+    "pg",
+    "postgres"
   ],
   "author": "Vertica",
   "license": "Apache-2.0",
