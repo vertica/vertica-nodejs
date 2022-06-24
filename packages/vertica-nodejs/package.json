@@ -6,7 +6,16 @@
     "database",
     "rdbms",
     "analytics",
-    "vertica"
+    "vertica",
+    "machine_learning",
+    "data_warehouse",
+    "columnar_dbms",
+    "sql",
+    "libpq",
+    "pg",
+    "postgre",
+    "postgres",
+    "postgresql"
   ],
   "homepage": "https://github.com/vertica/vertica-nodejs",
   "repository": {

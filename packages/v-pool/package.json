@@ -17,7 +17,9 @@
   "keywords": [
     "vertica",
     "pool",
-    "database"
+    "database",
+    "pg",
+    "postgres"
   ],
   "author": "Vertica",
   "license": "Apache-2.0",
