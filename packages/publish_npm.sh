@@ -36,8 +36,14 @@ then
 fi
 
 read -p "Enter [yes] to publish [no] " shouldContinue
-# Note: ${Variable,,} converts the expression to lower case
-if [[ ${shouldContinue,,} == "yes" ]]; then
+# Note: ${Variable,,} converts the expression to lower case, however this does not work on macos
+# As an alternative, this uses shopt to turn on no case match.  But that only works with the "]]" syntax:
+#  if [[ xyz ]] 
+# and not 
+#  if [ xyz ] 
+# Therefore, any changes to this logic should be tested on linux and macos.
+shopt -s nocasematch
+if [[ ${shouldContinue} == "yes" ]]; then
     echo "Publishing to Node Package Manager.."
     npm publish ./v-connection-string --tag MVP $dry_run_arg
     npm publish ./v-pool --tag MVP  $dry_run_arg
