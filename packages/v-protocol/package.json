@@ -27,6 +27,12 @@
     "url": "git://github.com/vertica/vertica-nodejs.git",
     "directory": "packages/v-protocol"
   },
+  "keywords": [
+    "vertica",
+    "database",
+    "pg",
+    "postgres"
+  ],
   "files": [
     "/dist/*{js,ts,map}",
     "/src"
