@@ -25,8 +25,6 @@ var ConnectionParameters = require('./connection-parameters')
 var Query = require('./query')
 var defaults = require('./defaults')
 var Connection = require('./connection')
-const { parseCommandLine } = require('typescript')
-const { reject } = require('bluebird')
 
 class Client extends EventEmitter {
   constructor(config) {
