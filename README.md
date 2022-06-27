@@ -53,12 +53,15 @@ When you open an issue please provide:
 - version of Vertica
 - smallest possible snippet of code to reproduce the problem
 
+## Examples
+
+See the [examples directory](https://github.com/vertica/vertica-nodejs/tree/master/examples) for sample applications showing how to use the vertica-nodejs client driver.
+
 <!-- 
 ## Contributing
 
 Outside contributions to this project are greatly appreciated. Following standard Vertica open source practices, please see [CONTRIBUTING.md](CONTRIBUTING.md)
 -->
-
 
 ### Setting up for local development
 
