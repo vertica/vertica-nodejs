@@ -1,4 +1,4 @@
-# vertica-nodejs
+# vertica-node-js
 
 <!-- NPM package when published -->
 <!-- NPM downloads when published -->
@@ -7,16 +7,16 @@
 Non-blocking Vertica client for Node.js. Pure JavaScript and optional native libpq bindings.
 
 ## DISCLAIMER: 
-vertica-nodejs is still pre-release and actively being improved. As of 5/5/22 this is not intended for use in production environments. 
+vertica-node-js is still pre-release and actively being improved. As of 5/5/22 this is not intended for use in production environments. 
 
 ## Monorepo
 
-This repo is a monorepo which contains the core [vertica-nodejs](https://github.com/vertica/vertica-nodejs/tree/master/packages/vertica-nodejs) module as well as a handful of related modules.
+This repo is a monorepo which contains the core [vertica-node-js](https://github.com/vertica/vertica-node-js/tree/master/packages/vertica-node-js) module as well as a handful of related modules.
 
-- [vertica-nodejs](https://github.com/vertica/vertica-nodejs/tree/master/packages/vertica-nodejs)
-- [v-pool](https://github.com/vertica/vertica-nodejs/tree/master/packages/v-pool)
-- [v-connection-string](https://github.com/vertica/vertica-nodejs/tree/master/packages/v-connection-string)
-- [v-protocol](https://github.com/vertica/vertica-nodejs/tree/master/packages/v-protocol)
+- [vertica-node-js](https://github.com/vertica/vertica-node-js/tree/master/packages/vertica-node-js)
+- [v-pool](https://github.com/vertica/vertica-node-js/tree/master/packages/v-pool)
+- [v-connection-string](https://github.com/vertica/vertica-node-js/tree/master/packages/v-connection-string)
+- [v-protocol](https://github.com/vertica/vertica-node-js/tree/master/packages/v-protocol)
 
 <!--
 ## Documentation
@@ -24,15 +24,15 @@ This repo is a monorepo which contains the core [vertica-nodejs](https://github.
 Each package in this repo should have its own readme more focused on how to develop/contribute. For more information on how to contribute, check out our [contributing guidelines](#contributing-guidelines).-->
 
 <!-- ## Installation
-    To install vertica-nodejs with npm: ``` TO DO ```
+    To install vertica-node-js with npm: ``` TO DO ```
 
-    To use vertica-nodejs linked locally from source (not recommended in production): ``` TO DO - Take notes from http://confluence.verticacorp.com/display/DEV/Node.js+Development+Resources```
+    To use vertica-node-js linked locally from source (not recommended in production): ``` TO DO - Take notes from http://confluence.verticacorp.com/display/DEV/Node.js+Development+Resources```
 
 -->
 
 ## Vertica Data Types
 
-See [DATATYPES.md](https://github.com/vertica/vertica-nodejs/blob/master/DATATYPES.md) to view the mappings from type IDs to Vertica data types.
+See [DATATYPES.md](https://github.com/vertica/vertica-node-js/blob/master/DATATYPES.md) to view the mappings from type IDs to Vertica data types.
 
 ### Features
 
@@ -45,7 +45,7 @@ See [DATATYPES.md](https://github.com/vertica/vertica-nodejs/blob/master/DATATYP
 
 ## Support
 
-vertica-nodejs is free software. If you encounter a bug with the library please open an issue on the [GitHub repo](https://github.com/vertica/vertica-nodejs). If you have questions unanswered by the documentation please open an issue pointing out how the documentation was unclear and we will address it as needed. 
+vertica-node-js is free software. If you encounter a bug with the library please open an issue on the [GitHub repo](https://github.com/vertica/vertica-node-js). If you have questions unanswered by the documentation please open an issue pointing out how the documentation was unclear and we will address it as needed. 
 
 When you open an issue please provide:
 
@@ -70,7 +70,7 @@ Outside contributions to this project are greatly appreciated. Following standar
 
 ## Troubleshooting and FAQ
 
-The causes and solutions to common errors can be found among the [Frequently Asked Questions (FAQ)](https://github.com/vertica/vertica-nodejs/wiki/FAQ)
+The causes and solutions to common errors can be found among the [Frequently Asked Questions (FAQ)](https://github.com/vertica/vertica-node-js/wiki/FAQ)
 
 ## License
 

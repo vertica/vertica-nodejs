@@ -1,6 +1,6 @@
 {
   "name": "v-protocol",
-  "version": "0.9.0-pre.2",
+  "version": "0.9.0-pre.3",
   "description": "The Vertica client/server binary protocol, implemented in TypeScript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -24,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/vertica/vertica-nodejs.git",
+    "url": "git://github.com/vertica/vertica-node-js.git",
     "directory": "packages/v-protocol"
   },
   "keywords": [

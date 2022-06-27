@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const { Client } = require('vertica-nodejs')
+const { Client } = require('vertica-node-js')
 
 const client = new Client()
 

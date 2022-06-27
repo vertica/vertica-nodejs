@@ -1,6 +1,6 @@
 {
-  "name": "vertica-nodejs",
-  "version": "0.9.0-pre.2",
+  "name": "vertica-node-js",
+  "version": "0.9.0-pre.3",
   "description": "Vertica client - pure javascript & libpq with the same API",
   "keywords": [
     "database",
@@ -17,20 +17,20 @@
     "postgres",
     "postgresql"
   ],
-  "homepage": "https://github.com/vertica/vertica-nodejs",
+  "homepage": "https://github.com/vertica/vertica-node-js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/vertica/vertica-nodejs.git",
-    "directory": "packages/vertica-nodejs"
+    "url": "git://github.com/vertica/vertica-node-js.git",
+    "directory": "packages/vertica-node-js"
   },
   "author": "Vertica",
   "main": "./lib",
   "dependencies": {
     "buffer-writer": "2.0.0",
     "packet-reader": "1.0.0",
-    "v-connection-string": "0.9.0-pre.2",
-    "v-pool": "0.9.0-pre.2",
-    "v-protocol": "0.9.0-pre.2",
+    "v-connection-string": "0.9.0-pre.3",
+    "v-pool": "0.9.0-pre.3",
+    "v-protocol": "0.9.0-pre.3",
     "pg-types": "^2.1.0",
     "pgpass": "1.x"
   },

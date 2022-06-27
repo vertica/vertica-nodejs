@@ -24,7 +24,7 @@ check_prerequisites ()
 }
 
 
-echo "This script will publish vertica-nodejs to Node Package Manager (NPM)."
+echo "This script will publish vertica-node-js to Node Package Manager (NPM)."
 echo "This includes the Vertica specific packages v-connection-string, v-pool and v-protocol."
 dry_run_arg=""
 
@@ -48,7 +48,7 @@ if [[ ${shouldContinue} == "yes" ]]; then
     npm publish ./v-connection-string --tag MVP $dry_run_arg
     npm publish ./v-pool --tag MVP  $dry_run_arg
     npm publish ./v-protocol --tag MVP  $dry_run_arg
-    npm publish ./vertica-nodejs --tag MVP  $dry_run_arg
+    npm publish ./vertica-node-js --tag MVP  $dry_run_arg
 else
     echo "Publishing canceled"
 fi

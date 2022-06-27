@@ -1,6 +1,6 @@
 {
   "name": "v-connection-string",
-  "version": "0.9.0-pre.2",
+  "version": "0.9.0-pre.3",
   "description": "Functions for dealing with a Vertica connection string",
   "main": "./index.js",
   "types": "./index.d.ts",
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/vertica/vertica-nodejs.git",
+    "url": "git://github.com/vertica/vertica-node-js.git",
     "directory": "packages/v-connection-string"
   },
   "keywords": [
@@ -25,9 +25,9 @@
   "author": "Vertica",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/vertica/vertica-nodejs/issues"
+    "url": "https://github.com/vertica/vertica-node-js/issues"
   },
-  "homepage": "https://github.com/vertica/vertica-nodejs/tree/master/packages/v-connection-string",
+  "homepage": "https://github.com/vertica/vertica-node-js/tree/master/packages/v-connection-string",
   "devDependencies": {
     "chai": "^4.1.1",
     "coveralls": "^3.0.4",

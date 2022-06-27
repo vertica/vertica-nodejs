@@ -1,5 +1,5 @@
 'use strict'
-var types = require('vertica-nodejs').types
+var types = require('vertica-node-js').types
 const { VerticaType } = require('v-protocol')
 var helper = require('./test-helper')
 var Query = helper.vertica.Query

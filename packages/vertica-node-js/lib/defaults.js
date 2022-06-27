@@ -85,7 +85,7 @@ module.exports = {
 
   keepalives_idle: 0,
 
-  // A string to identify the vertica-nodejs connection's session on the server
+  // A string to identify the vertica-node-js connection's session on the server
   client_label: '',
 
   // A comma separated string listing all backup nodes to connect to. Each node is a host-port pair separated by a colon.
