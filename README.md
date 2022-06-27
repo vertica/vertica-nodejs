@@ -63,7 +63,7 @@ See the [examples directory](https://github.com/vertica/vertica-nodejs/tree/mast
 Outside contributions to this project are greatly appreciated. Following standard Vertica open source practices, please see [CONTRIBUTING.md](CONTRIBUTING.md)
 -->
 
-### Setting up for local development
+## Setting up for local development
 
 1. Clone the repo
 2. From your workspace root run `yarn` and then `yarn lerna bootstrap`
