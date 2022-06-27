@@ -58,8 +58,11 @@ When you open an issue please provide:
 Outside contributions to this project are greatly appreciated. Following standard Vertica open source practices, please see [CONTRIBUTING.md](CONTRIBUTING.md)
 -->
 
+## Examples
 
-### Setting up for local development
+See the [examples directory](https://github.com/vertica/vertica-nodejs/tree/master/examples) for sample applications showing how to use the vertica-nodejs client driver.
+
+## Setting up for local development
 
 1. Clone the repo
 2. From your workspace root run `yarn` and then `yarn lerna bootstrap`
