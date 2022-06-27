@@ -44,11 +44,13 @@ read -p "Enter [yes] to publish [no] " shouldContinue
 # Therefore, any changes to this logic should be tested on linux and macos.
 shopt -s nocasematch
 if [[ ${shouldContinue} == "yes" ]]; then
+    echo "Building vertica-nodejs.."
+    yarn
     echo "Publishing to Node Package Manager.."
-    npm publish ./v-connection-string --tag MVP $dry_run_arg
-    npm publish ./v-pool --tag MVP  $dry_run_arg
-    npm publish ./v-protocol --tag MVP  $dry_run_arg
-    npm publish ./vertica-nodejs --tag MVP  $dry_run_arg
+    npm publish ./v-connection-string $dry_run_arg
+    npm publish ./v-pool $dry_run_arg
+    npm publish ./v-protocol $dry_run_arg
+    npm publish ./vertica-nodejs $dry_run_arg
 else
     echo "Publishing canceled"
 fi
