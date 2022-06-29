@@ -154,9 +154,15 @@ export class Field {
   constructor(
     public readonly name: string,
     public readonly tableID: bigint,
+    public readonly schemaName: string,
+    public readonly tableName: string,
     public readonly columnID: number,
+    //public readonly parentTypeID: number, //breadcrumb for complex types
+    //public readonly isNonNative: number,  //breadcrumb for non native types
     public readonly dataTypeID: number,
     public readonly dataTypeSize: number,
+    public readonly allowsNull: number,
+    public readonly isIdentity: number,
     public readonly dataTypeModifier: number,
     public readonly format: Mode
   ) {}
@@ -164,7 +170,7 @@ export class Field {
 
 export class RowDescriptionMessage {
   public readonly name: MessageName = 'rowDescription'
-  //public readonly nonNativeTypes: number; // leaving as breadcrumb for where to begin implementation of non native types
+  //public readonly nonNativeTypes: number; //breadcrumb for non native types
   public readonly fields: Field[]
   constructor(public readonly length: number, public readonly fieldCount: number) {
     this.fields = new Array(this.fieldCount)
@@ -182,7 +188,7 @@ export class Parameter {
 
 export class ParameterDescriptionMessage {
   public readonly name: MessageName = 'parameterDescription'
-  //public readonly nonNativeTyeps: number // leaving as breadcrumb for where to begin implementation of non native types
+  //public readonly nonNativeTyeps: number //breadcrumb for non native types
   public readonly parameters: Parameter[]
   constructor(public readonly length: number, public readonly parameterCount: number) {
     this.parameters = new Array(this.parameterCount)
