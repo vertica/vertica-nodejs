@@ -1,32 +1,47 @@
 name: CI
 
-on: [push, pull_request]
+on: 
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:11
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: ci_db_test
-        ports:
-          - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     strategy:
       matrix:
-        node: ['8', '10', '12', '14', '16', '17']
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        #node: ['8', '10', '12', '14', '16', '17']
+        #os: [ubuntu-latest, windows-latest, macos-latest]
+        # let's make it a little bit simple for now
+        node: ['16', '17']
+        os: [ubuntu-latest]
     name: Node.js ${{ matrix.node }} (${{ matrix.os }})
     steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+
+      - name: Setup Vertica
+        env:
+          VERTICA_CE_URL: "https://vertica-community-edition-for-testing.s3.amazonaws.com/XCz9cp7m/vertica-11.1.1-0.x86_64.RHEL6.rpm"
+        run: |
+          git clone https://github.com/jbfavre/docker-vertica.git
+          curl $VERTICA_CE_URL --create-dirs -o docker-vertica/packages/vertica-ce.latest.rpm
+          docker build -f docker-vertica/Dockerfile.centos.7_9.x --build-arg VERTICA_PACKAGE=vertica-ce.latest.rpm -t jbfavre/vertica docker-vertica
+          docker images
+          docker run -d -p 5433:5433 jbfavre/vertica
+          sleep 60
+
+
       - name: Setup node
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
           cache: yarn
-      - run: yarn install
-      # TODO(bmc): get ssl tests working in ci
-      - run: PGTESTNOSSL=true PGUSER=postgres PGPASSWORD=postgres PGDATABASE=ci_db_test yarn test
+
+      - run: yarn
+      - run: V_HOST=localhost, V_PORT=5433, V_USER=dbadmin, V_PASSWORD=foo123, V_DATABASE=docker yarn test
