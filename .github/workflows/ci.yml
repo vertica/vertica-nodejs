@@ -43,5 +43,7 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: yarn
 
-      - run: yarn
+      - run: 
+          yarn
+          yarn lerna bootstrap 
       - run: V_HOST=localhost, V_PORT=5433, V_USER=dbadmin, V_PASSWORD=foo123, V_DATABASE=docker yarn test
