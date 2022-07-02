@@ -273,4 +273,3 @@ export class NoticeMessage implements BackendMessage, NoticeOrError {
   public line: string | undefined
   public routine: string | undefined
 }
- 
