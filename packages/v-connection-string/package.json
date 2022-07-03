@@ -1,6 +1,6 @@
 {
   "name": "v-connection-string",
-  "version": "0.9.0-pre.5",
+  "version": "0.9.0-pre.6",
   "description": "Functions for dealing with a Vertica connection string",
   "main": "./index.js",
   "types": "./index.d.ts",

@@ -1,6 +1,6 @@
 {
   "name": "v-pool",
-  "version": "0.9.0-pre.5",
+  "version": "0.9.0-pre.6",
   "description": "Connection pool for Vertica",
   "main": "index.js",
   "directories": {
@@ -36,6 +36,6 @@
     "pg-cursor": "^1.3.0"
   },
   "peerDependencies": {
-    "vertica-nodejs": "0.9.0-pre.5"
+    "vertica-nodejs": "0.9.0-pre.6"
   }
 }
