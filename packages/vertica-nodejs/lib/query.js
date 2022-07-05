@@ -138,6 +138,7 @@ class Query extends EventEmitter {
 
   handleError(err, connection) {
     // need to sync after error during a prepared statement
+    connection.sync()
     if (this._canceledDueToError) {
       err = this._canceledDueToError
       this._canceledDueToError = false
