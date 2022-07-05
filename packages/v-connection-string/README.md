@@ -76,7 +76,8 @@ The causes and solutions to common errors can be found among the [Frequently Ask
 
 ## License
 
-<!-- Copyright (c) 2010-2020 Brian Carlson (brian.m.carlson@gmail.com) are we allowed to change this and if so do we have an open source email to use -->
+<!-- Original work Copyright (c) 2010-2020 Brian Carlson (brian.m.carlson@gmail.com) -->
+<!-- Modified work Copyright (c) 2022 Micro Focus or one of its affiliates.  -->
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
