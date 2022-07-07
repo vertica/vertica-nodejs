@@ -17,7 +17,6 @@ function tempSetup(client) {
   client.query("INSERT INTO person VALUES ('Liang')")
 }
 
-// before running this test make sure you run the script create-test-tables
 test('simple query interface', function () {
   var client = helper.client()
   tempSetup(client)
