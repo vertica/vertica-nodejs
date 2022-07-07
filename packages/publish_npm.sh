@@ -45,7 +45,8 @@ read -p "Enter [yes] to publish [no] " shouldContinue
 shopt -s nocasematch
 if [[ ${shouldContinue} == "yes" ]]; then
     echo "Building vertica-nodejs.."
-    yarn
+    rm -rf ../node_modules
+    (cd .. && yarn)
     echo "Publishing to Node Package Manager.."
     npm publish ./v-connection-string $dry_run_arg
     npm publish ./v-pool $dry_run_arg
