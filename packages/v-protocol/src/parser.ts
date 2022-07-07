@@ -294,7 +294,7 @@ export class Parser {
     const schemaName = this.reader.cstring()
     const tableName = this.reader.cstring()
     const columnID = this.reader.int16()
-    const parentTypeID = this.reader.int16()
+    //const parentTypeID = this.reader.int16() // breadcrumb for complex types
     const isNonNative = this.reader.bytes(1)
     if (isNonNative[0] == 1) {
       throw new Error("Non native types are not yet supported")
@@ -305,7 +305,7 @@ export class Parser {
     const isIdentity = this.reader.int16()
     const dataTypeModifier = this.reader.int32()
     const mode = this.reader.int16() === 0 ? 'text' : 'binary'
-    return new Field(name, tableID, columnID, dataTypeID, dataTypeSize, dataTypeModifier, mode)
+    return new Field(name, tableID, schemaName, tableName, columnID, dataTypeID, dataTypeSize, allowsNull, isIdentity, dataTypeModifier, mode)
   }
 
   private parseParameterDescriptionMessage(offset: number, length: number, bytes: Buffer) {
