@@ -8,9 +8,19 @@ types.setTypeParser(VerticaType.Integer, function(val) {
   return parseInt(val, 10)
 })
 
+function tempSetup(client) {
+  client.query("CREATE LOCAL TEMP TABLE person(name varchar(20))")
+  client.query("INSERT INTO person VALUES ('Zanzabar')")
+  client.query("INSERT INTO person VALUES ('Aaron')")
+  client.query("INSERT INTO person VALUES ('Priya')")
+  client.query("INSERT INTO person VALUES ('Clarice')")
+  client.query("INSERT INTO person VALUES ('Liang')")
+}
+
 // before running this test make sure you run the script create-test-tables
 test('simple query interface', function () {
   var client = helper.client()
+  tempSetup(client)
 
   var query = client.query(new Query('select name from person order by name'))
 
@@ -39,17 +49,18 @@ test('simple query interface', function () {
 
   assert.emits(query, 'end', function () {
     test('returned right number of rows', function () {
-      assert.lengthIs(rows, 26)
+      assert.lengthIs(rows, 5)
     })
     test('row ordering', function () {
       assert.equal(rows[0], 'Aaron')
-      assert.equal(rows[25], 'Zanzabar')
+      assert.equal(rows[4], 'Zanzabar')
     })
   })
 })
 
 test('prepared statements do not mutate params', function () {
   var client = helper.client()
+  tempSetup(client)
 
   var params = [1]
 
@@ -66,15 +77,15 @@ test('prepared statements do not mutate params', function () {
   })
 
   query.on('end', function (result) {
-    assert.lengthIs(rows, 26, 'result returned wrong number of rows')
+    assert.lengthIs(rows, 5, 'result returned wrong number of rows')
     assert.equal(rows[0].name, 'Aaron')
-    assert.equal(rows[25].name, 'Zanzabar')
+    assert.equal(rows[4].name, 'Zanzabar')
   })
 })
 
 test('multiple simple queries', function () {
   var client = helper.client()
-  client.query({ text: "create table if not exists bang(id identity, name varchar(5)); insert into bang(name) VALUES('boom');" })
+  client.query({ text: "create local temp table if not exists bang(name varchar(5)); insert into bang(name) VALUES('boom');" })
   client.query("insert into bang(name) VALUES ('yes');")
   var query = client.query(new Query('select name from bang'))
   assert.emits(query, 'row', function (row) {
@@ -83,8 +94,6 @@ test('multiple simple queries', function () {
       assert.equal(row['name'], 'yes')
     })
   })
-  // Need to drop the bang table since we can't use a temp table with identity/auto-increment types
-  client.query("drop table if exists bang")
   client.on('drain', client.end.bind(client))
 })
 
