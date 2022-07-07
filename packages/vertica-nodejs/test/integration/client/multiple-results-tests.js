@@ -71,11 +71,6 @@ suite.test(
   `
 
     const results = yield client.query(text)
-    console.log(JSON.stringify(results[2], (key, value) =>
-      typeof value === 'bigint'
-        ? value.toString()
-        : value // return everything else unchanged
-    ))
     assert(Array.isArray(results))
     assert(results.length === 3)
     assert.equal(results[0].command, 'CREATE')

@@ -8,6 +8,7 @@ function testTypeParser(client, expectedResult, done) {
   client.query(
     'SELECT * FROM parserOverrideTest',
     assert.success(function (result) {
+      console.log(result)
       assert.equal(result.rows[0].id, expectedResult)
       done()
     })
@@ -19,7 +20,7 @@ pool.connect(
   assert.success(function (client1, done1) {
     pool.connect(
       assert.success(function (client2, done2) {
-        var boolTypeOID = 16
+        var boolTypeOID = 5
         client1.setTypeParser(boolTypeOID, function () {
           return 'first client'
         })

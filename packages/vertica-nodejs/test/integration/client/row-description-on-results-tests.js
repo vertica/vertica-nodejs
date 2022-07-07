@@ -6,11 +6,6 @@ var Client = helper.Client
 var conInfo = helper.config
 
 var checkResult = function (result) {
-  console.log(JSON.stringify(result, (key, value) =>
-  typeof value === 'bigint'
-      ? value.toString()
-      : value // return everything else unchanged
-  ))
   assert(result.fields)
   assert.equal(result.fields.length, 3)
   var fields = result.fields

@@ -18,11 +18,6 @@ pool.connect(
     client.query(
       'SELECT * FROM bignumz',
       assert.success(function (result) {
-        console.log("TEST: " + JSON.stringify(result, (key, value) =>
-        typeof value === 'bigint'
-            ? value.toString()
-            : value // return everything else unchanged
-        ))
         assert.equal(result.rows[0].id, 'yes')
         done()
         pool.end()
