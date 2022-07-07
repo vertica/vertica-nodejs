@@ -6,13 +6,19 @@ var suite = new helper.Suite()
 
 const pool = new vertica.Pool()
 
+
+/*
+ -- Disabled tests as we do not support complex types yet
+*/
+
+/*
 pool.connect(
   assert.calls(function (err, client, release) {
     assert(!err)
 
     suite.test('nulls', function (done) {
       client.query(
-        'SELECT $1::text[] as array',
+        'SELECT ?::ARRAY[varchar] as array',
         [[null]],
         assert.success(function (result) {
           var array = result.rows[0].array
@@ -229,3 +235,4 @@ pool.connect(
     )
   })
 )
+*/

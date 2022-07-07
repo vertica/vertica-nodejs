@@ -9,7 +9,7 @@ client.connect(
     client.query('begin')
 
     var getZed = {
-      text: 'SELECT * FROM person WHERE name = $1',
+      text: 'SELECT * FROM person WHERE name = ?',
       values: ['Zed'],
     }
 
@@ -18,6 +18,7 @@ client.connect(
         getZed,
         assert.calls(function (err, result) {
           assert(!err)
+          console.log(result.rows)
           assert.empty(result.rows)
           done()
         })
@@ -26,10 +27,11 @@ client.connect(
 
     suite.test('can insert name', (done) => {
       client.query(
-        'INSERT INTO person(name, age) VALUES($1, $2)',
+        'INSERT INTO person(name, age) VALUES(?, ?)',
         ['Zed', 270],
         assert.calls(function (err, result) {
           assert(!err)
+          client.query('COMMIT;')
           done()
         })
       )
@@ -71,7 +73,7 @@ suite.test('gh#36', function (cb) {
       client.query(
         {
           name: 'X',
-          text: 'SELECT $1::INTEGER',
+          text: 'SELECT ?::INTEGER',
           values: [0],
         },
         assert.calls(function (err, result) {
@@ -82,7 +84,7 @@ suite.test('gh#36', function (cb) {
       client.query(
         {
           name: 'X',
-          text: 'SELECT $1::INTEGER',
+          text: 'SELECT ?::INTEGER',
           values: [0],
         },
         assert.calls(function (err, result) {

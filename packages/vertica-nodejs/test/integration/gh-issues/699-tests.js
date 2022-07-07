@@ -9,7 +9,7 @@ const pool = new helper.vertica.Pool()
 pool.connect(function (err, client, done) {
   if (err) throw err
 
-  var c = 'CREATE TEMP TABLE employee (id integer, fname varchar(400), lname varchar(400))'
+  var c = 'CREATE LOCAL TEMP TABLE employee (id integer, fname varchar(400), lname varchar(400))'
 
   client.query(c, function (err) {
     if (err) throw err

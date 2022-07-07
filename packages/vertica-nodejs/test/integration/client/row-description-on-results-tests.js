@@ -6,6 +6,11 @@ var Client = helper.Client
 var conInfo = helper.config
 
 var checkResult = function (result) {
+  console.log(JSON.stringify(result, (key, value) =>
+  typeof value === 'bigint'
+      ? value.toString()
+      : value // return everything else unchanged
+  ))
   assert(result.fields)
   assert.equal(result.fields.length, 3)
   var fields = result.fields
@@ -21,8 +26,9 @@ test('row descriptions on result object', function () {
   var client = new Client(conInfo)
   client.connect(
     assert.success(function () {
+      console.log("111")
       client.query(
-        'SELECT NOW() as now, 1::int as num, $1::text as texty',
+        'SELECT NOW() as now, 1::int as num, ?::varchar as texty',
         ['hello'],
         assert.success(function (result) {
           checkResult(result)
@@ -37,8 +43,9 @@ test('row description on no rows', function () {
   var client = new Client(conInfo)
   client.connect(
     assert.success(function () {
+      console.log("222")
       client.query(
-        'SELECT NOW() as now, 1::int as num, $1::text as texty LIMIT 0',
+        'SELECT NOW() as now, 1::int as num, ?::varchar as texty LIMIT 0',
         ['hello'],
         assert.success(function (result) {
           checkResult(result)

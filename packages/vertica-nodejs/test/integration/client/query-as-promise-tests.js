@@ -14,7 +14,7 @@ suite.test('promise API', (cb) => {
   const pool = new vertica.Pool()
   pool.connect().then((client) => {
     client
-      .query('SELECT $1::text as name', ['foo'])
+      .query('SELECT ?::varchar as name', ['foo'])
       .then(function (result) {
         assert.equal(result.rows[0].name, 'foo')
         return client

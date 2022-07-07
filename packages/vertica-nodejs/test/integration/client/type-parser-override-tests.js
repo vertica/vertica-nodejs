@@ -3,8 +3,8 @@ var helper = require('./test-helper')
 
 function testTypeParser(client, expectedResult, done) {
   var boolValue = true
-  client.query('CREATE TEMP TABLE parserOverrideTest(id bool)')
-  client.query('INSERT INTO parserOverrideTest(id) VALUES ($1)', [boolValue])
+  client.query('CREATE LOCAL TEMP TABLE parserOverrideTest(id bool)')
+  client.query('INSERT INTO parserOverrideTest(id) VALUES (?)', [boolValue])
   client.query(
     'SELECT * FROM parserOverrideTest',
     assert.success(function (result) {

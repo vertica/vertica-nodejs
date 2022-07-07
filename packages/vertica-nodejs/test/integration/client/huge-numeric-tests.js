@@ -13,11 +13,16 @@ pool.connect(
       return 'yes'
     })
     var bignum = '294733346389144765940638005275322203805'
-    client.query('CREATE TEMP TABLE bignumz(id numeric)')
-    client.query('INSERT INTO bignumz(id) VALUES ($1)', [bignum])
+    client.query('CREATE LOCAL TEMP TABLE bignumz(id numeric(64,0))')
+    client.query('INSERT INTO bignumz(id) VALUES (?)', [bignum])
     client.query(
       'SELECT * FROM bignumz',
       assert.success(function (result) {
+        console.log("TEST: " + JSON.stringify(result, (key, value) =>
+        typeof value === 'bigint'
+            ? value.toString()
+            : value // return everything else unchanged
+        ))
         assert.equal(result.rows[0].id, 'yes')
         done()
         pool.end()
