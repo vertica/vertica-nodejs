@@ -698,7 +698,7 @@ class Client extends EventEmitter {
     this._ending = true
 
     // if we have never connected, then end is a noop, callback immediately
-    if (!this.connection._connecting) {
+    if (!this._connecting) {
       if (cb) {
         cb()
       } else {
