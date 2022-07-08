@@ -44,8 +44,11 @@ read -p "Enter [yes] to publish [no] " shouldContinue
 # Therefore, any changes to this logic should be tested on linux and macos.
 shopt -s nocasematch
 if [[ ${shouldContinue} == "yes" ]]; then
-    echo "Building vertica-nodejs.."
+    echo "Cleaning up generated files.."
+    # Removing node_modules ensures that we don't use old compiled javascript files
     rm -rf ../node_modules
+    echo "Building vertica-nodejs.."
+    # This builds the project, which compiles the typescript into javascript files
     (cd .. && yarn)
     echo "Publishing to Node Package Manager.."
     npm publish ./v-connection-string $dry_run_arg
