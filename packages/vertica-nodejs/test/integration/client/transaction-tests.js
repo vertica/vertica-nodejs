@@ -18,7 +18,6 @@ client.connect(
         getZed,
         assert.calls(function (err, result) {
           assert(!err)
-          console.log(result.rows)
           assert.empty(result.rows)
           done()
         })

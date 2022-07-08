@@ -3,6 +3,7 @@ const helper = require('../test-helper')
 const suite = new helper.Suite()
 const { Client } = helper.vertica
 
+// We do not yet support the transaction isolation level connection param
 /*
 suite.test('it sends options', async () => {
   const client = new Client({

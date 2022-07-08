@@ -25,8 +25,6 @@ test('constraint error fields', function () {
         client.query('CREATE LOCAL TEMP TABLE constraint_err_test(a int PRIMARY KEY)')
         client.query('INSERT INTO constraint_err_test(a) VALUES (1)')
         client.query('INSERT INTO constraint_err_test(a) VALUES (1)', function (err) {
-          console.log("ERR: " + err)
-          console.log(JSON.stringify(err))
           if (!helper.config.native) {
             assert(err instanceof DatabaseError)
           }

@@ -21,7 +21,6 @@ test('row descriptions on result object', function () {
   var client = new Client(conInfo)
   client.connect(
     assert.success(function () {
-      console.log("111")
       client.query(
         'SELECT NOW() as now, 1::int as num, ?::varchar as texty',
         ['hello'],
@@ -38,7 +37,6 @@ test('row description on no rows', function () {
   var client = new Client(conInfo)
   client.connect(
     assert.success(function () {
-      console.log("222")
       client.query(
         'SELECT NOW() as now, 1::int as num, ?::varchar as texty LIMIT 0',
         ['hello'],

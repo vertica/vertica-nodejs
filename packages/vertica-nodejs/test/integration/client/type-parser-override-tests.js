@@ -1,4 +1,5 @@
 'use strict'
+const { VerticaType } = require('v-protocol')
 var helper = require('./test-helper')
 
 function testTypeParser(client, expectedResult, done) {
@@ -20,7 +21,7 @@ pool.connect(
   assert.success(function (client1, done1) {
     pool.connect(
       assert.success(function (client2, done2) {
-        var boolTypeOID = 5
+        var boolTypeOID = VerticaType.boolTypeOID
         client1.setTypeParser(boolTypeOID, function () {
           return 'first client'
         })
