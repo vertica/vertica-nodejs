@@ -9,7 +9,7 @@ suite.test('null and undefined are both inserted as NULL', function (done) {
   pool.connect(
     assert.calls(function (err, client, release) {
       assert(!err)
-      client.query('DROP TABLE IF EXISTS my_nulls; CREATE TEMP TABLE my_nulls(a varchar(1), b varchar(1), c integer, d integer, e date, f date)')
+      client.query('CREATE LOCAL TEMP TABLE my_nulls(a varchar(1), b varchar(1), c integer, d integer, e date, f date)')
       client.query('INSERT INTO my_nulls(a,b,c,d,e,f) VALUES (?,?,?,?,?,?)', [
         null,
         undefined,
