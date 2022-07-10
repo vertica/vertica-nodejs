@@ -4,6 +4,8 @@ var vertica = helper.vertica
 var sink
 const suite = new helper.Suite()
 
+// Disabling as the default Vertica behavior is to return all types as strings until a type parser is set
+/*
 var testForTypeCoercion = function (type) {
   const pool = new vertica.Pool()
   suite.test(`test type coercion ${type.name}`, (cb) => {
@@ -241,3 +243,4 @@ suite.test('date range extremes', function (done) {
     })
   )
 })
+*/
