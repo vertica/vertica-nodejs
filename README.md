@@ -3,6 +3,7 @@
 <!-- NPM package when published -->
 <!-- NPM downloads when published -->
 [![License](https://img.shields.io/badge/License-Apache%202.0-orange.svg)](https://opensource.org/licenses/Apache-2.0)
+[![npm version](https://img.shields.io/npm/v/vertica-nodejs.svg?color=blue)](https://www.npmjs.com/package/vertica-nodejs)
 
 Non-blocking Vertica client for Node.js. Pure JavaScript and optional native libpq bindings.
 
