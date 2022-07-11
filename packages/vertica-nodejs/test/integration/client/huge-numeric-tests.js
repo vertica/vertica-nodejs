@@ -14,7 +14,7 @@ pool.connect(
     })
     var bignum = '294733346389144765940638005275322203805'
     client.query('CREATE LOCAL TEMP TABLE bignumz(id numeric(40,0))')
-    client.query('INSERT INTO bignumz(id) VALUES (?::numeric)', [bignum])
+    client.query('INSERT INTO bignumz(id) VALUES (?)', [bignum])
     client.query(
       'SELECT * FROM bignumz',
       assert.success(function (result) {

@@ -18,7 +18,7 @@ suite.test('Parameter serialization errors should not cause query to hang', (don
           throw expectedErr
         },
       }
-      return client.query('SELECT $1::text', [obj]).then(() => {
+      return client.query('SELECT ?::varchar', [obj]).then(() => {
         throw new Error('Expected a serialization error to be thrown but no error was thrown')
       })
     })
