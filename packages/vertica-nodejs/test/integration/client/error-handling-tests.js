@@ -24,15 +24,17 @@ suite.test('sending non-array argument as values causes an error callback', (don
     if (err) {
       return done(err)
     }
-    client.query('select $1::text as name', 'foo', (err) => {
-      assert(err instanceof Error)
-      client.query('SELECT $1::text as name', ['foo'], (err, res) => {
+    client.query('select ?::varchar as name', 'foo', (err) => {
+      assert(err.message.includes("Query values must be an array"))
+      client.query('SELECT ?::varchar as name', ['foo'], (err, res) => {
+        assert(!err)
         assert.equal(res.rows[0].name, 'foo')
         client.end(done)
       })
     })
   })
 })
+
 
 suite.test('re-using connections results in error callback', (done) => {
   const client = new Client()
@@ -113,12 +115,13 @@ var ensureFuture = function (testClient, done) {
 suite.test('when query is parsing', (done) => {
   var client = createErorrClient()
 
-  var q = client.query({ text: 'CREATE TEMP TABLE boom(age integer); INSERT INTO boom (age) VALUES (28);' })
+  client.query("CREATE LOCAL TEMP TABLE boom(age integer);")
+  client.query("INSERT INTO boom (age) VALUES (28);")
 
   // this query wont parse since there isn't a table named bang
   var query = client.query(
     new vertica.Query({
-      text: 'select * from bang where name = $1',
+      text: 'select * from bang where name = ?',
       values: ['0'],
     })
   )
@@ -131,11 +134,11 @@ suite.test('when query is parsing', (done) => {
 suite.test('when a query is binding', function (done) {
   var client = createErorrClient()
 
-  var q = client.query({ text: 'CREATE TEMP TABLE boom(age integer); INSERT INTO boom (age) VALUES (28);' })
+  var q = client.query({ text: 'CREATE LOCAL TEMP TABLE boom(age integer); INSERT INTO boom (age) VALUES (28);' })
 
   var query = client.query(
     new vertica.Query({
-      text: 'select * from boom where age = $1',
+      text: 'select * from boom where age = ?',
       values: ['asldkfjasdf'],
     })
   )
@@ -241,7 +244,7 @@ suite.test('connected, idle client error', (done) => {
   })
 })
 
-suite.test('cannot pass non-string values to query as text', (done) => {
+suite.testAsync('cannot pass non-string values to query as text', done => {
   const client = new Client()
   client.connect((err) => {
     if (err) {
