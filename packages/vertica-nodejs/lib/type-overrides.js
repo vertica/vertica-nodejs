@@ -34,7 +34,7 @@ function TypeOverrides(userTypes) {
     // Types that currently are being parsed as the wrong type, force these to be parsed as strings
     this._types.setTypeParser(16, 'text', this._types.getTypeParser(9, 'text'))  //numerics use varchar (no parser)
     this._types.setTypeParser(17, 'text', this._types.getTypeParser(9, 'text'))  //varbinary use varchar(no parser)
-    this._types.setTypeParser(20, 'text', this._types.getTypeParser(9, 'text'))  //varbinary use varchar(no parser)
+    this._types.setTypeParser(20, 'text', this._types.getTypeParser(9, 'text'))  //uuid use varchar(no parser)
   }
 }
 
