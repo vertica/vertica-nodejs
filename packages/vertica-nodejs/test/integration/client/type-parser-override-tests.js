@@ -9,7 +9,6 @@ function testTypeParser(client, expectedResult, done) {
   client.query(
     'SELECT * FROM parserOverrideTest',
     assert.success(function (result) {
-      console.log(result)
       assert.equal(result.rows[0].id, expectedResult)
       done()
     })

@@ -28,11 +28,6 @@ suite.test('default values are used in new clients', function () {
     parseInputDatesAsUTC: false,
   })
 
-  var client = new vertica.Client()
-  assert.same(client, {
-    password: null,
-    port: 5433,
-  })
 })
 
 // Commenting out test for now as it doesn't work with env vars set
