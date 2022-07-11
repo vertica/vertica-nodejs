@@ -12,9 +12,9 @@ var checkResult = function (result) {
   assert.equal(fields[0].name, 'now')
   assert.equal(fields[1].name, 'num')
   assert.equal(fields[2].name, 'texty')
-  assert.equal(fields[0].dataTypeID, 1184)
-  assert.equal(fields[1].dataTypeID, 23)
-  assert.equal(fields[2].dataTypeID, 25)
+  assert.equal(fields[0].dataTypeID, 13)
+  assert.equal(fields[1].dataTypeID, 6)
+  assert.equal(fields[2].dataTypeID, 9)
 }
 
 test('row descriptions on result object', function () {

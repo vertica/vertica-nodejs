@@ -13,7 +13,7 @@ suite.test('noData message handling', function () {
 
   var q = client.query({
     name: 'boom',
-    text: 'create table if not exists boom(id identity, size integer)',
+    text: 'create table if not exists boom(size integer)',
   })
 
   client.query(
