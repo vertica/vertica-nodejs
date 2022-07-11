@@ -5,16 +5,16 @@ const pool = new helper.vertica.Pool()
 pool.connect(
   assert.success(function (client, done) {
     var types = require('pg-types')
-    // 1231 = numericOID
-    types.setTypeParser(1700, function () {
+    // 16 = numericOID
+    types.setTypeParser(16, function () {
       return 'yes'
     })
-    types.setTypeParser(1700, 'binary', function () {
+    types.setTypeParser(16, 'binary', function () { // irrelevant until we support binary transfer
       return 'yes'
     })
     var bignum = '294733346389144765940638005275322203805'
-    client.query('CREATE TEMP TABLE bignumz(id numeric)')
-    client.query('INSERT INTO bignumz(id) VALUES ($1)', [bignum])
+    client.query('CREATE LOCAL TEMP TABLE bignumz(id numeric(40,0))')
+    client.query('INSERT INTO bignumz(id) VALUES (?::numeric)', [bignum])
     client.query(
       'SELECT * FROM bignumz',
       assert.success(function (result) {
