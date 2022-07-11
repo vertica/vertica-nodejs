@@ -1,10 +1,11 @@
 'use strict'
+const { VerticaType } = require('v-protocol')
 var helper = require('./test-helper')
 
 function testTypeParser(client, expectedResult, done) {
   var boolValue = true
-  client.query('CREATE TEMP TABLE parserOverrideTest(id bool)')
-  client.query('INSERT INTO parserOverrideTest(id) VALUES ($1)', [boolValue])
+  client.query('CREATE LOCAL TEMP TABLE parserOverrideTest(id bool)')
+  client.query('INSERT INTO parserOverrideTest(id) VALUES (?)', [boolValue])
   client.query(
     'SELECT * FROM parserOverrideTest',
     assert.success(function (result) {
@@ -19,7 +20,7 @@ pool.connect(
   assert.success(function (client1, done1) {
     pool.connect(
       assert.success(function (client2, done2) {
-        var boolTypeOID = 16
+        var boolTypeOID = VerticaType.boolTypeOID
         client1.setTypeParser(boolTypeOID, function () {
           return 'first client'
         })

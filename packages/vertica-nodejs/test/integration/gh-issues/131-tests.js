@@ -4,12 +4,14 @@ var vertica = helper.vertica
 
 var suite = new helper.Suite()
 
+// Disabled due to no complex type support
+/*
 suite.test('parsing array decimal results', function (done) {
   const pool = new vertica.Pool()
   pool.connect(
     assert.calls(function (err, client, release) {
       assert(!err)
-      client.query('CREATE TEMP TABLE why(names text[], numbors integer[], decimals double precision[])')
+      client.query('CREATE LOCAL TEMP TABLE why(names text[], numbors integer[], decimals double precision[])')
       client
         .query(
           new vertica.Query(
@@ -31,3 +33,4 @@ suite.test('parsing array decimal results', function (done) {
     })
   )
 })
+*/

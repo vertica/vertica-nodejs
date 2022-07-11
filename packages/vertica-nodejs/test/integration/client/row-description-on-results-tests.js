@@ -22,7 +22,7 @@ test('row descriptions on result object', function () {
   client.connect(
     assert.success(function () {
       client.query(
-        'SELECT NOW() as now, 1::int as num, $1::text as texty',
+        'SELECT NOW() as now, 1::int as num, ?::varchar as texty',
         ['hello'],
         assert.success(function (result) {
           checkResult(result)
@@ -38,7 +38,7 @@ test('row description on no rows', function () {
   client.connect(
     assert.success(function () {
       client.query(
-        'SELECT NOW() as now, 1::int as num, $1::text as texty LIMIT 0',
+        'SELECT NOW() as now, 1::int as num, ?::varchar as texty LIMIT 0',
         ['hello'],
         assert.success(function (result) {
           checkResult(result)
