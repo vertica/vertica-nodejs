@@ -13,7 +13,7 @@ suite.test('noData message handling', function () {
 
   var q = client.query({
     name: 'boom',
-    text: 'create table if not exists boom(size integer)',
+    text: 'create local temp table boom(size integer)',
   })
 
   client.query(
@@ -47,8 +47,6 @@ suite.test('noData message handling', function () {
       assert.strictEqual(row.size, 100)
     }
   )
-
-  client.query('drop table if exists boom')
 
   client.on('drain', client.end.bind(client))
 })
