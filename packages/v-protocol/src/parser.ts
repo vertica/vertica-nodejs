@@ -291,8 +291,12 @@ export class Parser {
   private parseField(): Field {
     const name = this.reader.cstring()
     const tableID = this.reader.uint64()
-    const schemaName = this.reader.cstring()
-    const tableName = this.reader.cstring()
+    var schemaName = ""
+    var tableName = ""
+    if (tableID) {
+        schemaName = this.reader.cstring()
+        tableName = this.reader.cstring()
+    }
     const columnID = this.reader.int16()
     //const parentTypeID = this.reader.int16() // breadcrumb for complex types
     const isNonNative = this.reader.bytes(1)

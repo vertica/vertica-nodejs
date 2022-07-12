@@ -12,7 +12,7 @@ test('returns results as array', function () {
     assert(util.isArray(row), 'row should be an array')
     assert.equal(row.length, 4)
     assert.equal(new Date(row[0]).getFullYear(), new Date().getFullYear())
-    assert.strictEqual(row[1], '1')
+    assert.strictEqual(row[1], 1)
     assert.strictEqual(row[2], 'hai')
     assert.strictEqual(row[3], null)
   }

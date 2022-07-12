@@ -14,7 +14,7 @@ suite.test('can access results when no rows are returned', function (done) {
     ))
     assert.equal(result.fields.length, 1)
     assert.equal(result.fields[0].name, 'val')
-    assert.equal(result.fields[0].dataTypeID, 25)
+    assert.equal(result.fields[0].dataTypeID, 9)
   }
 
   pool.connect(

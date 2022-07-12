@@ -2,6 +2,8 @@
 var helper = require('../test-helper')
 var client = helper.client()
 
+client.end()
+
 // Disabled due to no complex type support
 /*
 client.query('CREATE TEMP TABLE arrtest (n integer, s varchar)')
