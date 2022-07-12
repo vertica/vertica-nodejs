@@ -48,7 +48,5 @@ suite.test('noData message handling', function () {
     }
   )
 
-  client.query('drop table if exists boom')
-
   client.on('drain', client.end.bind(client))
 })
