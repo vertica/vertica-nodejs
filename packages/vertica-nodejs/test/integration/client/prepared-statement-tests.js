@@ -110,7 +110,7 @@ var suite = new helper.Suite()
       if (err) {
         assert(false)
       }
-      assert.equal(JSON.stringify(res.rows.flat()), JSON.stringify(['t', '5', 'z', 'foo', '12345.67890']))
+      assert.equal(JSON.stringify(res.rows.flat()), JSON.stringify(['t', 5, 'z', 'foo', '12345.67890']))
       done()
     })
   })

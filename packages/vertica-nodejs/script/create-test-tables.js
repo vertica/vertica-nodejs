@@ -68,7 +68,7 @@ con.connect((err) => {
       console.log('Created table person')
       console.log('Filling it with people')
 
-      let q = people.map((person) => `INSERT INTO person (name, age) VALUES ('${person.name}', ${person.age})`).join(';')
+      let q = people.map((person) => `INSERT INTO person (name, age) VALUES ('${person.name}', ${person.age})`).join(';') + ";COMMIT;"
       console.log('Query: ' + q)
 
       con.query(

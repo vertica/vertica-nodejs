@@ -9,8 +9,8 @@ suite.test('null and undefined are both inserted as NULL', function (done) {
   pool.connect(
     assert.calls(function (err, client, release) {
       assert(!err)
-      client.query('CREATE TEMP TABLE my_nulls(a varchar(1), b varchar(1), c integer, d integer, e date, f date)')
-      client.query('INSERT INTO my_nulls(a,b,c,d,e,f) VALUES ($1,$2,$3,$4,$5,$6)', [
+      client.query('CREATE LOCAL TEMP TABLE my_nulls(a varchar(1), b varchar(1), c integer, d integer, e date, f date)')
+      client.query('INSERT INTO my_nulls(a,b,c,d,e,f) VALUES (?,?,?,?,?,?)', [
         null,
         undefined,
         null,
@@ -18,10 +18,15 @@ suite.test('null and undefined are both inserted as NULL', function (done) {
         null,
         undefined,
       ])
+      client.query("COMMIT;")
       client.query(
         'SELECT * FROM my_nulls',
         assert.calls(function (err, result) {
           console.log(err)
+          typeof value === 'bigint'
+              ? value.toString()
+              : value // return everything else unchanged
+          ))
           assert.ifError(err)
           assert.equal(result.rows.length, 1)
           assert.isNull(result.rows[0].a)

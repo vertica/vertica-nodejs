@@ -138,7 +138,6 @@ class Query extends EventEmitter {
 
   handleError(err, connection) {
     // need to sync after error during a prepared statement
-    connection.sync()
     if (this._canceledDueToError) {
       err = this._canceledDueToError
       this._canceledDueToError = false
@@ -148,6 +147,7 @@ class Query extends EventEmitter {
     if (this.callback) {
       return this.callback(err)
     }
+    connection.sync()
     this.emit('error', err)
   }
 
@@ -188,7 +188,6 @@ class Query extends EventEmitter {
     //do nothing, vertica doesn't support result-row count limit
   }
 
-  // http://developer.postgresql.org/pgdocs/postgres/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY
   prepare(connection) {
     // prepared statements need sync to be called after each command
     // complete or when an error is encountered

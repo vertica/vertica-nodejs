@@ -11,7 +11,7 @@ test('returns results as array', function () {
   var checkRow = function (row) {
     assert(util.isArray(row), 'row should be an array')
     assert.equal(row.length, 4)
-    assert.equal(row[0].getFullYear(), new Date().getFullYear())
+    assert.equal(new Date(row[0]).getFullYear(), new Date().getFullYear())
     assert.strictEqual(row[1], 1)
     assert.strictEqual(row[2], 'hai')
     assert.strictEqual(row[3], null)
@@ -19,7 +19,7 @@ test('returns results as array', function () {
   client.connect(
     assert.success(function () {
       var config = {
-        text: 'SELECT NOW(), 1::int, $1::text, null',
+        text: 'SELECT NOW(), 1::int, ?::varchar, null',
         values: ['hai'],
         rowMode: 'array',
       }

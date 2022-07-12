@@ -88,9 +88,10 @@ test('multiple simple queries', function () {
   client.query("insert into bang(name) VALUES ('yes');")
   var query = client.query(new Query('select name from bang'))
   assert.emits(query, 'row', function (row) {
-    assert.equal(row['name'], 'boom')
+    var values = ["boom", "yes"]
+    assert(values.includes(row['name']))
     assert.emits(query, 'row', function (row) {
-      assert.equal(row['name'], 'yes')
+      assert(values.includes(row['name']))
     })
   })
   client.on('drain', client.end.bind(client))

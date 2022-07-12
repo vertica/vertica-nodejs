@@ -6,18 +6,18 @@ const suite = new helper.Suite()
 var db = helper.client()
 
 function createTableFoo(callback) {
-  db.query('create temp table foo(column1 int, column2 int)', callback)
+  db.query('create local temp table foo(column1 int, column2 int)', callback)
 }
 
 function createTableBar(callback) {
-  db.query('create temp table bar(column1 text, column2 text)', callback)
+  db.query('create local temp table bar(column1 varchar, column2 varchar)', callback)
 }
 
 function insertDataFoo(callback) {
   db.query(
     {
       name: 'insertFoo',
-      text: 'insert into foo values($1,$2)',
+      text: 'insert into foo values(?,?)',
       values: ['one', 'two'],
     },
     callback
@@ -28,7 +28,7 @@ function insertDataBar(callback) {
   db.query(
     {
       name: 'insertBar',
-      text: 'insert into bar values($1,$2)',
+      text: 'insert into bar values(?,?)',
       values: ['one', 'two'],
     },
     callback
@@ -69,7 +69,7 @@ suite.test('test if query fails', function (done) {
 suite.test('test if prepare works but bind fails', function (done) {
   var client = helper.client()
   var q = {
-    text: 'SELECT $1::int as name',
+    text: 'SELECT ?::int as name',
     values: ['brian'],
     name: 'test',
   }

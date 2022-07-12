@@ -12,9 +12,9 @@ var checkResult = function (result) {
   assert.equal(fields[0].name, 'now')
   assert.equal(fields[1].name, 'num')
   assert.equal(fields[2].name, 'texty')
-  assert.equal(fields[0].dataTypeID, 1184)
-  assert.equal(fields[1].dataTypeID, 23)
-  assert.equal(fields[2].dataTypeID, 25)
+  assert.equal(fields[0].dataTypeID, 13)
+  assert.equal(fields[1].dataTypeID, 6)
+  assert.equal(fields[2].dataTypeID, 9)
 }
 
 test('row descriptions on result object', function () {
@@ -22,7 +22,7 @@ test('row descriptions on result object', function () {
   client.connect(
     assert.success(function () {
       client.query(
-        'SELECT NOW() as now, 1::int as num, $1::text as texty',
+        'SELECT NOW() as now, 1::int as num, ?::varchar as texty',
         ['hello'],
         assert.success(function (result) {
           checkResult(result)
@@ -38,7 +38,7 @@ test('row description on no rows', function () {
   client.connect(
     assert.success(function () {
       client.query(
-        'SELECT NOW() as now, 1::int as num, $1::text as texty LIMIT 0',
+        'SELECT NOW() as now, 1::int as num, ?::varchar as texty LIMIT 0',
         ['hello'],
         assert.success(function (result) {
           checkResult(result)
