@@ -49,5 +49,17 @@ jobs:
       - name: boostrap
         run: yarn lerna bootstrap 
 
-      - name: test
-        run: V_HOST=localhost, V_PORT=5433, V_USER=dbadmin, V_PASSWORD=foo123, V_DATABASE=docker yarn test
+      - name: test-v-connection-string
+        run: |
+          cd packages/v-connection-string
+          V_HOST=localhost, V_PORT=5433, V_USER=dbadmin, V_PASSWORD=foo123, V_DATABASE=docker yarn test
+          
+      - name: test-v-pool
+        run: |
+          cd packages/v-pool
+          V_HOST=localhost, V_PORT=5433, V_USER=dbadmin, V_PASSWORD=foo123, V_DATABASE=docker yarn test
+          
+      - name: test-v-protocol
+        run: |
+          cd packages/v-protocol
+          V_HOST=localhost, V_PORT=5433, V_USER=dbadmin, V_PASSWORD=foo123, V_DATABASE=docker yarn test
