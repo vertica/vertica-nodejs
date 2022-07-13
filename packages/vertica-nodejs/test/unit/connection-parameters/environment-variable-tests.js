@@ -69,58 +69,32 @@ suite.test('connection string parsing', function () {
   assert.equal(subject.database, 'lala', 'string database')
 })
 
-suite.test('connection string parsing - ssl', function () {
+suite.test('connection string parsing - tls_mode', function () {
   // clear process.env
   clearEnv()
 
-  var string = 'postgres://brian:pw@boom:381/lala?ssl=true'
+  var string = 'postgres://brian:pw@boom:381/lala?tls_mode=require'
   var subject = new ConnectionParameters(string)
-  assert.equal(subject.ssl, true, 'ssl')
+  assert.equal(subject.tls_mode, 'require')
 
-  string = 'postgres://brian:pw@boom:381/lala?ssl=1'
+  string = 'postgres://brian:pw@boom:381/lala?tls_mode=disable'
   subject = new ConnectionParameters(string)
-  assert.equal(subject.ssl, true, 'ssl')
-
-  string = 'postgres://brian:pw@boom:381/lala?other&ssl=true'
-  subject = new ConnectionParameters(string)
-  assert.equal(subject.ssl, true, 'ssl')
-
-  string = 'postgres://brian:pw@boom:381/lala?ssl=0'
-  subject = new ConnectionParameters(string)
-  assert.equal(!!subject.ssl, false, 'ssl')
+  assert.equal(subject.tls_mode, 'disable')
 
   string = 'postgres://brian:pw@boom:381/lala'
   subject = new ConnectionParameters(string)
-  assert.equal(!!subject.ssl, false, 'ssl')
+  assert.equal(subject.tls_mode, 'disable')
 
-  string = 'postgres://brian:pw@boom:381/lala?ssl=no-verify'
+  string = 'postgres://brian:pw@boom:381/lala?tls_mode=verify-ca'
   subject = new ConnectionParameters(string)
-  assert.deepStrictEqual(subject.ssl, { rejectUnauthorized: false }, 'ssl')
+  assert.equal(subject.tls_mode, 'verify-ca')
 })
 
-suite.test('ssl is false by default', function () {
+suite.test('tls mode is disable by default', function () {
   clearEnv()
   var subject = new ConnectionParameters()
-  assert.equal(subject.ssl, false)
+  assert.equal(subject.tls_mode, 'disable')
 })
-
-var testVal = function (mode, expected) {
-  suite.test('ssl is ' + expected + ' when $PGSSLMODE=' + mode, function () {
-    clearEnv()
-    process.env.PGSSLMODE = mode
-    var subject = new ConnectionParameters()
-    assert.deepStrictEqual(subject.ssl, expected)
-  })
-}
-
-testVal('', false)
-testVal('disable', false)
-testVal('allow', false)
-testVal('prefer', true)
-testVal('require', true)
-testVal('verify-ca', true)
-testVal('verify-full', true)
-testVal('no-verify', { rejectUnauthorized: false })
 
 // restore process.env
 for (var key in realEnv) {
