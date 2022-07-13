@@ -2,6 +2,8 @@
 var helper = require('../test-helper')
 var vertica = helper.vertica
 
+// Disabled test due to lack of complex type support
+/*
 new helper.Suite().test('parsing array results', function (cb) {
   const pool = new vertica.Pool()
   pool.connect(
@@ -17,3 +19,4 @@ new helper.Suite().test('parsing array results', function (cb) {
     })
   )
 })
+*/
