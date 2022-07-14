@@ -24,19 +24,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-
-      - name: Setup Vertica
-        env:
-          VERTICA_CE_URL: "https://vertica-community-edition-for-testing.s3.amazonaws.com/XCz9cp7m/vertica-11.1.1-0.x86_64.RHEL6.rpm"
-        run: |
-          git clone https://github.com/jbfavre/docker-vertica.git
-          curl $VERTICA_CE_URL --create-dirs -o docker-vertica/packages/vertica-ce.latest.rpm
-          docker build -f docker-vertica/Dockerfile.centos.7_9.x --build-arg VERTICA_PACKAGE=vertica-ce.latest.rpm -t jbfavre/vertica docker-vertica
-          docker images
-          docker run -d -p 5433:5433 jbfavre/vertica
-          sleep 60
-
-
+      
       - name: Setup node
         uses: actions/setup-node@v2
         with:
@@ -47,19 +35,28 @@ jobs:
         run: yarn 
 
       - name: boostrap
-        run: yarn lerna bootstrap 
+        run: yarn lerna bootstrap
+        
+      - name: Setup Vertica
+        run: |          
+          docker pull vertica/vertica-ce:12.0.0-0
+          docker run -p 5433:5433 -p 5444:5444 \
+           --mount type=volume,source=vertica-data,target=/data \
+           --name vertica_ce \
+           vertica/vertica-ce
+           sleep 60
 
       - name: test-v-connection-string
         run: |
           cd packages/v-connection-string
-          V_HOST=localhost, V_PORT=5433, V_USER=dbadmin, V_PASSWORD=foo123, V_DATABASE=docker yarn test
+          V_HOST=localhost, V_PORT=5433, V_USER=dbadmin, V_DATABASE=VMart yarn test
           
       - name: test-v-pool
         run: |
           cd packages/v-pool
-          V_HOST=localhost, V_PORT=5433, V_USER=dbadmin, V_PASSWORD=foo123, V_DATABASE=docker yarn test
+          V_HOST=localhost, V_PORT=5433, V_USER=dbadmin, V_DATABASE=VMart yarn test
           
       - name: test-v-protocol
         run: |
           cd packages/v-protocol
-          V_HOST=localhost, V_PORT=5433, V_USER=dbadmin, V_PASSWORD=foo123, V_DATABASE=docker yarn test
+          V_HOST=localhost, V_PORT=5433, V_USER=dbadmin, V_DATABASE=VMart yarn test
