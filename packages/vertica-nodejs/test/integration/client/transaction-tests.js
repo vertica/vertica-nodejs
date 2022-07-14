@@ -17,8 +17,6 @@ client.connect(
       client.query(
         getZed,
         assert.calls(function (err, result) {
-          console.log("inside assert")
-          console.log(err)
           assert(!err)
           assert.empty(result.rows)
           done()
@@ -57,7 +55,6 @@ client.connect(
         getZed,
         assert.calls(function (err, result) {
           assert(!err)
-          console.log(result.rows)
           assert.empty(result.rows)
           client.end(done)
         })
