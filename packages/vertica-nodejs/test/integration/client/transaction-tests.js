@@ -47,7 +47,7 @@ client.connect(
     })
 
     suite.test('rollback', (done) => {
-      client.query('rollback; COMMIT;', done)
+      client.query('rollback', done)
     })
 
     suite.test('name should not exist in the database', function (done) {
