@@ -18,7 +18,7 @@ jobs:
         #node: ['8', '10', '12', '14', '16', '17']
         #os: [ubuntu-latest, windows-latest, macos-latest]
         # let's make it a little bit simple for now
-        node: ['14', '17']
+        node: ['17']
         os: [ubuntu-latest]
     name: Node.js ${{ matrix.node }} (${{ matrix.os }})
     steps:
@@ -46,16 +46,19 @@ jobs:
            vertica/vertica-ce
 
       - name: test-v-connection-string
+        if: always()
         run: |
           cd packages/v-connection-string
           V_HOST=localhost, V_PORT=5433, V_USER=dbadmin, V_DATABASE=VMart yarn test
           
       - name: test-v-pool
+        if: always()
         run: |
           cd packages/v-pool
           V_HOST=localhost, V_PORT=5433, V_USER=dbadmin, V_DATABASE=VMart yarn test
           
       - name: test-v-protocol
+        if: always()
         run: |
           cd packages/v-protocol
           V_HOST=localhost, V_PORT=5433, V_USER=dbadmin, V_DATABASE=VMart yarn test
