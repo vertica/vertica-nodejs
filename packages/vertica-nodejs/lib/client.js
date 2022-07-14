@@ -591,7 +591,6 @@ class Client extends EventEmitter {
         if (queryError) {
           process.nextTick(() => {
             this.activeQuery.handleError(queryError, this.connection)
-            this.readyForQuery = true
             this._pulseQueryQueue()
           })
         }
