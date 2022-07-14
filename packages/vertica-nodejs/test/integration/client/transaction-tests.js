@@ -17,6 +17,8 @@ client.connect(
       client.query(
         getZed,
         assert.calls(function (err, result) {
+          console.log("inside assert")
+          console.log(err)
           assert(!err)
           assert.empty(result.rows)
           done()
@@ -30,7 +32,6 @@ client.connect(
         ['Zed', 270],
         assert.calls(function (err, result) {
           assert(!err)
-          client.query('COMMIT;')
           done()
         })
       )
@@ -48,7 +49,7 @@ client.connect(
     })
 
     suite.test('rollback', (done) => {
-      client.query('rollback', done)
+      client.query('rollback; COMMIT;', done)
     })
 
     suite.test('name should not exist in the database', function (done) {
@@ -56,6 +57,7 @@ client.connect(
         getZed,
         assert.calls(function (err, result) {
           assert(!err)
+          console.log(result.rows)
           assert.empty(result.rows)
           client.end(done)
         })
