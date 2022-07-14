@@ -215,7 +215,7 @@ describe('parse', function () {
   })
 
   it('configuration parameter tls_mode=disable', function () {
-    var connectionString = 'pg:///tls_mode=disable' 
+    var connectionString = 'pg:///?tls_mode=disable' 
     var subject = parse(connectionString)
     subject.tls_mode.should.equal('disable')
   })
