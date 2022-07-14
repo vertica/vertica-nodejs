@@ -42,7 +42,7 @@ function parse(str) {
   }
 
   // if the tls mode specified in the connection string is an invalid option, use the default - disable.
-  if (!['require', 'verify-ca', 'verify-full'].includes(config.tls_mode)) {
+  if (config.tls_mode && !['require', 'verify-ca', 'verify-full'].includes(config.tls_mode)) {
     config.tls_mode = 'disable'
   }
   

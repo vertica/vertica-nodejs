@@ -91,21 +91,21 @@ suite.test('ConnectionParameters initializing from config and config.connectionS
     connectionString: 'postgres://test@host/db',
   })
   var subject2 = new ConnectionParameters({
-    connectionString: 'postgres://test@host/db?ssl=1',
+    connectionString: 'postgres://test@host/db?tls_mode=require',
   })
   var subject3 = new ConnectionParameters({
     connectionString: 'postgres://test@host/db',
-    ssl: true,
+    tls_mode: 'require',
   })
   var subject4 = new ConnectionParameters({
-    connectionString: 'postgres://test@host/db?ssl=1',
-    ssl: false,
+    connectionString: 'postgres://test@host/db?tls_mode=require', // connection string has preference
+    tls_mode: 'disable',
   })
 
-  assert.equal(subject1.ssl, false)
-  assert.equal(subject2.ssl, true)
-  assert.equal(subject3.ssl, true)
-  assert.equal(subject4.ssl, true)
+  assert.equal(subject1.tls_mode, 'disable')
+  assert.equal(subject2.tls_mode, 'require')
+  assert.equal(subject3.tls_mode, 'require')
+  assert.equal(subject4.tls_mode, 'require')
 })
 
 suite.test('escape spaces if present', function () {
@@ -295,13 +295,13 @@ suite.test('password contains  < and/or >  characters', function () {
 
 suite.test('username or password contains weird characters', function () {
   var defaults = require('../../../lib/defaults')
-  defaults.ssl = true
+  defaults.tls_mode = 'require'
   var strang = 'pg://my f%irst name:is&%awesome!@localhost:9000'
   var subject = new ConnectionParameters(strang)
   assert.equal(subject.user, 'my f%irst name')
   assert.equal(subject.password, 'is&%awesome!')
   assert.equal(subject.host, 'localhost')
-  assert.equal(subject.ssl, true)
+  assert.equal(subject.tls_mode, 'require')
 })
 
 suite.test('url is properly encoded', function () {
@@ -316,43 +316,8 @@ suite.test('url is properly encoded', function () {
 suite.test('ssl is set on client', function () {
   var Client = require('../../../lib/client')
   var defaults = require('../../../lib/defaults')
-  defaults.ssl = true
+  defaults.tls_mode = 'require'
   var c = new Client('postgres://user@password:host/database')
-  assert(c.ssl, 'Client should have ssl enabled via defaults')
+  assert(c.tls_mode == 'require', 'Client should have ssl enabled via defaults')
 })
 
-suite.test('coercing string "true" to boolean', function () {
-  const subject = new ConnectionParameters({ ssl: 'true' })
-  assert.strictEqual(subject.ssl, true)
-})
-
-suite.test('ssl is set on client', function () {
-  var sourceConfig = {
-    user: 'brian',
-    password: 'hello<ther>e',
-    port: 5432,
-    host: 'localhost',
-    database: 'postgres',
-    ssl: {
-      sslmode: 'verify-ca',
-      sslca: '/path/ca.pem',
-      sslkey: '/path/cert.key',
-      sslcert: '/path/cert.crt',
-      sslrootcert: '/path/root.crt',
-    },
-  }
-  var Client = require('../../../lib/client')
-  var defaults = require('../../../lib/defaults')
-  defaults.ssl = true
-  var c = new ConnectionParameters(sourceConfig)
-  c.getLibpqConnectionString(
-    assert.calls(function (err, pgCString) {
-      assert(!err)
-      assert.equal(
-        pgCString.indexOf("sslrootcert='/path/root.crt'") !== -1,
-        true,
-        'libpqConnectionString should contain sslrootcert'
-      )
-    })
-  )
-})

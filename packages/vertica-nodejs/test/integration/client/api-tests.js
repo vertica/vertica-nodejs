@@ -9,7 +9,7 @@ suite.test('null and undefined are both inserted as NULL', function (done) {
   pool.connect(
     assert.calls(function (err, client, release) {
       assert(!err)
-      client.query('CREATE LOCAL TEMP TABLE my_nulls(a varchar(1), b varchar(1), c integer, d integer, e date, f date)')
+      client.query('DROP TABLE IF EXISTS my_nulls; CREATE TABLE my_nulls(a varchar(1), b varchar(1), c integer, d integer, e date, f date)')
       client.query('INSERT INTO my_nulls(a,b,c,d,e,f) VALUES (?,?,?,?,?,?)', [
         null,
         undefined,
@@ -18,27 +18,28 @@ suite.test('null and undefined are both inserted as NULL', function (done) {
         null,
         undefined,
       ])
-      client.query("COMMIT;")
-      client.query(
-        'SELECT * FROM my_nulls',
-        assert.calls(function (err, result) {
-          console.log(err)
-          typeof value === 'bigint'
+      client.query("COMMIT;").then(() => {
+        client.query(
+          'SELECT * FROM my_nulls',
+          assert.calls(function (err, result) {
+            /*
+            typeof value === 'bigint'
               ? value.toString()
               : value // return everything else unchanged
-          ))
-          assert.ifError(err)
-          assert.equal(result.rows.length, 1)
-          assert.isNull(result.rows[0].a)
-          assert.isNull(result.rows[0].b)
-          assert.isNull(result.rows[0].c)
-          assert.isNull(result.rows[0].d)
-          assert.isNull(result.rows[0].e)
-          assert.isNull(result.rows[0].f)
-          pool.end(done)
-          release()
-        })
-      )
+              */
+            assert.ifError(err)
+            assert.equal(result.rows.length, 1)
+            assert.isNull(result.rows[0].a)
+            assert.isNull(result.rows[0].b)
+            assert.isNull(result.rows[0].c)
+            assert.isNull(result.rows[0].d)
+            assert.isNull(result.rows[0].e)
+            assert.isNull(result.rows[0].f)
+            pool.end(done)
+            release()
+          })
+        )
+      })
     })
   )
 })
@@ -109,16 +110,16 @@ suite.test('query no timeout', (cb) => {
 
 suite.test('callback API', (done) => {
   const client = new helper.Client()
-  client.query('CREATE TEMP TABLE peep(name text)')
-  client.query('INSERT INTO peep(name) VALUES ($1)', ['brianc'])
+  client.query('CREATE LOCAL TEMP TABLE peep(name varchar)')
+  client.query('INSERT INTO peep(name) VALUES (?)', ['brianc'])
   const config = {
-    text: 'INSERT INTO peep(name) VALUES ($1)',
+    text: 'INSERT INTO peep(name) VALUES (?)',
     values: ['brian'],
   }
   client.query(config)
-  client.query('INSERT INTO peep(name) VALUES ($1)', ['aaron'])
+  client.query('INSERT INTO peep(name) VALUES (?)', ['aaron'])
 
-  client.query('SELECT * FROM peep ORDER BY name COLLATE "C"', (err, res) => {
+  client.query('SELECT * FROM peep ORDER BY name', (err, res) => {
     assert(!err)
     assert.deepEqual(res.rows, [
       {
@@ -145,11 +146,11 @@ suite.test('executing nested queries', function (done) {
     assert.calls(function (err, client, release) {
       assert(!err)
       client.query(
-        'select now as now from NOW()',
+        'select NOW() as now',
         assert.calls(function (err, result) {
-          assert.equal(new Date().getYear(), result.rows[0].now.getYear())
+          assert.equal(new Date().getYear(), new Date(result.rows[0].now).getYear())
           client.query(
-            'select now as now_again FROM NOW()',
+            'select NOW() as now',
             assert.calls(function () {
               client.query(
                 'select * FROM NOW()',
@@ -200,7 +201,7 @@ suite.test('callback is fired once and only once', function (done) {
   pool.connect(
     assert.calls(function (err, client, release) {
       assert(!err)
-      client.query('CREATE TEMP TABLE boom(name varchar(10))')
+      client.query('CREATE LOCAL TEMP TABLE boom(name varchar(10))')
       var callCount = 0
       client.query(
         [
@@ -230,7 +231,7 @@ suite.test('can provide callback and config object', function (done) {
         },
         assert.calls(function (err, result) {
           assert(!err)
-          assert.equal(result.rows[0].now.getYear(), new Date().getYear())
+          assert.equal(new Date(result.rows[0].NOW).getYear(), new Date().getYear())
           release()
           pool.end(done)
         })
@@ -245,7 +246,7 @@ suite.test('can provide callback and config and parameters', function (done) {
     assert.calls(function (err, client, release) {
       assert(!err)
       var config = {
-        text: 'select $1::text as val',
+        text: 'select ?::varchar as val',
       }
       client.query(
         config,

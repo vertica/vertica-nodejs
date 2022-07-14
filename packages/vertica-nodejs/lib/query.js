@@ -44,6 +44,7 @@ class Query extends EventEmitter {
     this._results = this._result
     this.isPreparedStatement = false
     this._canceledDueToError = false
+    this._activeError = false
     this._promise = null
   }
 
@@ -144,10 +145,11 @@ class Query extends EventEmitter {
     }
     // if callback supplied do not emit error event as uncaught error
     // events will bubble up to node process
+    this._activeError = true
+    connection.sync()
     if (this.callback) {
       return this.callback(err)
     }
-    connection.sync()
     this.emit('error', err)
   }
 
@@ -155,9 +157,10 @@ class Query extends EventEmitter {
     if (this._canceledDueToError) {
       return this.handleError(this._canceledDueToError, con)
     }
-    if (this.callback) {
+    if (this.callback && !this._activeError) {
       this.callback(null, this._results)
     }
+    this._activeError = false;
     this.emit('end', this._results)
   }
 
