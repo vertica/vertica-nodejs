@@ -101,76 +101,20 @@ class Client extends EventEmitter {
     this.queryQueue.length = 0
   }
 
-  _shuffleAddresses(addresses) {
-    // Use Durstenfeld shuffle because it is not biased
-    for (var i = addresses.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1))
-      var temp = addresses[i]
-      addresses[i] = addresses[j]
-      addresses[j] = temp
-    }
-  }
-
-  _resolveHost(node) {
-    return new this._Promise((resolve, reject) => {
-      dns.lookup(node.host, { all: true }, (err, addresses) => {
-        if (err) {
-          reject(err)
-          return
-        }
-
-        var resolvedAddresses = addresses
-          .filter((addr) => addr.family === 4 || addr.family === 6)
-          .map((addr) => addr.address)
-
-        this._shuffleAddresses(addresses)
-        resolve(resolvedAddresses.map((addr) => { return { host: addr, port: node.port } }))
-      })
-    })
-  }
-
-  // Round robin connections iterate through each node in host + backup_server_nodes
-  // For each node, resolve the host to a list of addresses, shuffle the addresses, then try each address
-  async _roundRobinConnect(nodes, addresses, error) {
-    if (addresses.length > 0) {
-      // There are resolved addresses we haven't tried yet, so try the next address
-      await this._connectToNextAddress(nodes, addresses)
-    } else if (nodes.length > 0) {
-      // There are no more resolved addresses for the current node, so resolve the host for the next node
-      var node = nodes.shift()
-      await this._resolveHost(node)
-        .then((async (shuffled_addresses) => {
-          if (shuffled_addresses.length > 0) {
-            await this._connectToNextAddress(nodes, shuffled_addresses)
-          } else {
-            var err = new Error("Could not resolve host " + node.host)
-            await this._roundRobinConnect(nodes, addresses, err)
-          }
-        }).bind(this))
-        .catch((async (err) => {
-          await this._roundRobinConnect(nodes, addresses, err)
-        }).bind(this))
-    } else {
-      if (!error) {
-        error = new Error("Fatal error: Node list was empty")
-      }
-
-      // No more nodes to try, so handle connection error
-      if (this._connecting && !this._connectionError) {
-        if (this._connectionCallback) {
-          this._connectionCallback(error)
-        } else {
-          this._handleErrorEvent(error)
-        }
-      } else if (!this._connectionError) {
-        this._handleErrorEvent(error)
-      }
-    }
-  }
-
-  async _connectToNextAddress(nodes, addresses) {
+  _connect(callback) {
     var self = this
     var con = this.connection
+    this._connectionCallback = callback
+
+    if (this._connecting || this._connected) {
+      const err = new Error('Client has already been connected. You cannot reuse a client.')
+      process.nextTick(() => {
+        callback(err)
+      })
+      return
+    }
+    this._connecting = true
+
     this.connectionTimeoutHandle
     if (this._connectionTimeoutMillis > 0) {
       this.connectionTimeoutHandle = setTimeout(() => {
@@ -179,18 +123,15 @@ class Client extends EventEmitter {
       }, this._connectionTimeoutMillis)
     }
 
-    // Dequeue first address from resolved addresses and try connecting to it
-    var address = addresses.shift()
-    if (address.host && address.host.indexOf('/') === 0) {
-      con.connect(address.host + '/.s.PGSQL.' + address.port)
+    if (this.host && this.host.indexOf('/') === 0) {
+      con.connect(this.host + '/.s.PGSQL.' + this.port)
     } else {
-      con.connect(address.port, address.host)
+      con.connect(this.port, this.host)
     }
 
     // once connection is established send startup message
     con.on('connect', function () {
-      // SSLRequest Message
-      if (self.tls_mode !== 'disable') {
+      if (self.ssl) {
         con.requestSsl()
       } else {
         con.startup(self.getStartupConf())
@@ -203,7 +144,7 @@ class Client extends EventEmitter {
 
     this._attachListeners(con)
 
-    con.once('end', async () => {
+    con.once('end', () => {
       const error = this._ending ? new Error('Connection terminated') : new Error('Connection terminated unexpectedly')
 
       clearTimeout(this.connectionTimeoutHandle)
@@ -214,7 +155,15 @@ class Client extends EventEmitter {
         // on this client then we have an unexpected disconnection
         // treat this as an error unless we've already emitted an error
         // during connection.
-        await this._roundRobinConnect(nodes, addresses, error)
+        if (this._connecting && !this._connectionError) {
+          if (this._connectionCallback) {
+            this._connectionCallback(error)
+          } else {
+            this._handleErrorEvent(error)
+          }
+        } else if (!this._connectionError) {
+          this._handleErrorEvent(error)
+        }
       }
 
       process.nextTick(() => {
@@ -223,27 +172,12 @@ class Client extends EventEmitter {
     })
   }
 
-  async _connect(callback) {
-    this._connectionCallback = callback
-
-    if (this._connecting || this._connected) {
-      const err = new Error('Client has already been connected. You cannot reuse a client.')
-      process.nextTick(() => {
-        callback(err)
-      })
+  connect(callback) {
+    if (callback) {
+      this._connect(callback)
       return
     }
-    this._connecting = true
-    var nodes = this.backup_server_node
-    // Add host and port to start of queue of nodes to try connecting to
-    nodes.unshift({ host: this.host, port: this.port })
-    await this._roundRobinConnect(nodes, [], undefined)
-  }
 
-  async connect(callback) {
-    if (callback) {
-      return this._connect(callback)
-    }
     return new this._Promise((resolve, reject) => {
       this._connect((error) => {
         if (error) {
@@ -254,6 +188,7 @@ class Client extends EventEmitter {
       })
     })
   }
+
 
   _attachListeners(con) {
     // password request handling
