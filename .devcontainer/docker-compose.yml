@@ -12,36 +12,24 @@ services:
     # you may need to update USER_UID and USER_GID in .devcontainer/Dockerfile to match your
     # user if not 1000. See https://aka.ms/vscode-remote/containers/non-root for details.
     # user: node
-
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
-    
     volumes:
       - ..:/workspace:cached
-
     environment:
-      PGPASSWORD: pass
-      PGUSER: user
-      PGDATABASE: data
-      PGHOST: db
-      # set this to true in the development environment until I can get SSL setup on the 
-      # docker postgres instance
-      PGTESTNOSSL: true
-      
+      - V_HOST=db
+      - V_PORT=5433
+      - V_DATABASE=VMart
+      - V_USER=dbadmin
+      - V_PASSWORD=
     # Overrides default command so things don't shut down after the process ends.
     command: sleep infinity
-
     links:
       - db
 
   db:
-    image: postgres
+    image: vertica/vertica-ce:latest
     restart: unless-stopped
-    ports: 
-      - 5432:5432
-    environment:
-      POSTGRES_PASSWORD: pass
-      POSTGRES_USER: user
-      POSTGRES_DB: data
- 
+    ports:
+      - "5433:5433"

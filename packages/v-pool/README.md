@@ -57,8 +57,10 @@ See the [examples directory](https://github.com/vertica/vertica-nodejs/tree/mast
 1. Clone the repo
 2. From your workspace root run `yarn` and then `yarn lerna bootstrap`
 3. Ensure you have a Vertica instance running with 
-4. Ensure you have the proper environment variables configured for connecting to the instance (V_HOST, V_PORT, V_USER, V_PASSWORD, V_DATABASE, V_BACKUP_SERVER_NODE)
-5. Run `yarn test` to run all the tests, or run `yarn test` from within an individual package to only run that package's tests. 
+4. Ensure you have the proper environment variables configured for connecting to the instance (`V_HOST`, `V_PORT`, `V_USER`, `V_PASSWORD`, `V_DATABASE`, `V_BACKUP_SERVER_NODE`)
+5. Run `yarn test` to run all the tests, or run `yarn test` from within an individual package to only run that package's tests
+
+If using VS Code, you can install the `Remote - Containers` extension and it will use the configuration under the `.devcontainer` folder to automatically create dev containers, including Vertica.  See [here](https://code.visualstudio.com/docs/remote/containers) for more information on developing in containers using VS Code.  This process will complete steps 2 to 4 above.
 
 ## Troubleshooting and FAQ
 
