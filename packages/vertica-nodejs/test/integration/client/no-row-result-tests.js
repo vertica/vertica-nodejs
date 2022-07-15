@@ -7,11 +7,11 @@ const pool = new vertica.Pool()
 suite.test('can access results when no rows are returned', function (done) {
   var checkResult = function (result) {
     assert(result.fields, 'should have fields definition')
-    console.log(JSON.stringify(result.fields, (key, value) =>
+    JSON.stringify(result.fields, (key, value) =>
       typeof value === 'bigint'
           ? value.toString()
           : value // return everything else unchanged
-    ))
+    )
     assert.equal(result.fields.length, 1)
     assert.equal(result.fields[0].name, 'val')
     assert.equal(result.fields[0].dataTypeID, 9)

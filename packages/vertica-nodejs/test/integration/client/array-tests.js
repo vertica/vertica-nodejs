@@ -53,7 +53,7 @@ pool.connect(
     pool.connect(
       assert.calls(function (err, client, release) {
         assert(!err)
-        client.query('CREATE TEMP TABLE why(names text[], numbors integer[])')
+        client.query('CREATE LOCAL TEMP TABLE why(names text[], numbors integer[])')
         client
           .query(new vertica.Query('INSERT INTO why(names, numbors) VALUES(\'{"aaron", "brian","a b c" }\', \'{1, 2, 3}\')'))
           .on('error', console.log)

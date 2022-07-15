@@ -42,7 +42,6 @@ suite.test('vertica protocol_version connection parameter', function () {
   client.connect()
   client.query("SELECT effective_protocol from sessions where client_label = 'pvTest'", (err, res) => {
       if (err) assert(false)
-      console.log(res)
       var pv = res.rows[0]['effective_protocol'] // string of form "Major.minor"
       var int32pv = (parseInt(pv.split(".")[0]) << 16 | parseInt(pv.split(".")[1])) // int32 from (M << 16 | m)
       assert(int32pv <= client.protocol_version) // server isn't trying to talk in a protocol newer than we know

@@ -3,7 +3,6 @@ dist: bionic
 
 before_script: |
   yarn build
-  node packages/vertica-nodejs/script/create-test-tables.js postgresql:///
 
 env:
   - CC=clang CXX=clang++ npm_config_clang=1 PGUSER=postgres PGDATABASE=postgres
