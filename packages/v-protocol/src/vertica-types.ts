@@ -45,7 +45,6 @@ export enum VerticaType {
   TimeTz = 15,
   Timestamp = 12,
   TimestampTz = 13,
-  Uuid = 20,
   Row = 300,
   Array = 301,
   Map = 302

@@ -32,7 +32,6 @@ The result set metadata currently just displays the Type ID for each column as a
 |                15 | TimeTz                           | TimeTz                                  |
 |                12 | Timestamp                        | Timestamp                               |
 |                13 | TimestampTz                      | TimestampTz                             |
-|                20 | Uuid                             | Uuid                                    |
 |               300 | Row                              | Row                                     |
 |               301 | Array                            | Array                                   |
 |               302 | Map                              | Map                                     |
