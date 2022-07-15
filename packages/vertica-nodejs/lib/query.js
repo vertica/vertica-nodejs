@@ -137,7 +137,7 @@ class Query extends EventEmitter {
     }
   }
 
-  handleError(err, connection) {
+  handleError(err, connection, internalError = false) {
     // need to sync after error during a prepared statement
     if (this._canceledDueToError) {
       err = this._canceledDueToError
@@ -146,7 +146,9 @@ class Query extends EventEmitter {
     // if callback supplied do not emit error event as uncaught error
     // events will bubble up to node process
     this._activeError = true
-    connection.sync()
+    if (this.requiresPreparation() && !internalError) {
+      connection.sync()
+    }
     if (this.callback) {
       return this.callback(err)
     }
