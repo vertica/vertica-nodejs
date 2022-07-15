@@ -76,7 +76,7 @@ class ConnectionParameters {
     this.database = val('database', config)
 
     if (this.database === undefined) {
-      this.database = this.user
+      this.database = ''this.user''
     }
 
     this.port = parseInt(val('port', config), 10)
