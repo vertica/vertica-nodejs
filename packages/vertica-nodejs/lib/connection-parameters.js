@@ -20,6 +20,8 @@ var defaults = require('./defaults')
 
 var parse = require('v-connection-string').parse // parses a connection string
 
+var backupServerNodesParser = require('./parser-combinators').backupServerNodes // parses backup server nodes
+
 var val = function (key, config, envVar) {
   if (envVar === undefined) {
     envVar = process.env['V_' + key.toUpperCase()]
@@ -49,13 +51,10 @@ var parseBackupServerNodes = function (nodes) {
   // constructor will try to assign config = config, which will
   // cause an error if we try to parse an already parsed value.
   if (typeof nodes == 'string') {
-    return nodes.split(',')
-      .filter(entry => entry.length > 0)
-      .map(entry => entry.split(':'))
-      .filter(pair => pair[0].length > 0)
-      .map(pair => pair[1] ?
-        { host: pair[0], port: parseInt(pair[1]) } :
-        { host: pair[0], port: defaults.port })
+    var parsedNodes = backupServerNodesParser(nodes)[1]
+    return parsedNodes.map(pair => pair[1] !== null ?
+      { host: pair[0], port: parseInt(pair[1]) } :
+      { host: pair[0], port: defaults.port })
   } else {
     return nodes
   }
