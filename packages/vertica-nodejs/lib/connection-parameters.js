@@ -20,7 +20,7 @@ var defaults = require('./defaults')
 
 var parse = require('v-connection-string').parse // parses a connection string
 
-var backupServerNodesParser = require('./parser-combinators').backupServerNodes // parses backup server nodes
+var backupServerNodesParser = require('./backup-nodes-parsers').backupServerNodes // parses backup server nodes
 
 var val = function (key, config, envVar) {
   if (envVar === undefined) {
