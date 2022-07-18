@@ -154,16 +154,10 @@ function entry(input) {
 
 // Parses a full list of backup server nodes
 function backupServerNodes(input) {
-  console.log(input)
   return input.split(',').filter(s => s.length > 0).map(i => entry(i)[1])
 }
 
 module.exports = {
-  pair,
-  map,
-  right,
-  zeroOrOne,
-  either,
   ipv4Address,
   ipv6Address,
   host,
