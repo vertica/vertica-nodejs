@@ -379,6 +379,7 @@ class Client extends EventEmitter {
         // remove callback for proper error handling
         // after the connect event
         this._connectionCallback = null
+        
       }
       this.emit('connect')
     }
@@ -590,7 +591,8 @@ class Client extends EventEmitter {
         const queryError = this.activeQuery.submit(this.connection)
         if (queryError) {
           process.nextTick(() => {
-            this.activeQuery.handleError(queryError, this.connection)
+            this.activeQuery.handleError(queryError, this.connection, true)
+            this.readyForQuery = true
             this._pulseQueryQueue()
           })
         }
