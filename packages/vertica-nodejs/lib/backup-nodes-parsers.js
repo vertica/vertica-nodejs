@@ -79,7 +79,7 @@ function ipv4Address(input) {
   }
     
   if (result.includes('.')) {
-    [input.substring(result.length), result]
+    return [input.substring(result.length), result]
   } else {
     throw new Error("Unable to parse " + input + " as an IPv4 address")
   }
@@ -154,6 +154,7 @@ function entry(input) {
 
 // Parses a full list of backup server nodes
 function backupServerNodes(input) {
+  console.log(input)
   return input.split(',').filter(s => s.length > 0).map(i => entry(i)[1])
 }
 
