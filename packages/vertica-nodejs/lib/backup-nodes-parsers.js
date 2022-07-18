@@ -25,17 +25,12 @@ function pair(parser1, parser2) {
   }
 }
 
-// helper function for left and right functions
+// helper function for right function
 function map(parser, fn) {
   return input => {
     var [nextInput, res] = parser(input)
     return [nextInput, fn(res)]
   }
-}
-
-// take result of left parser
-function left(parser1, parser2) {
-  return map(pair(parser1, parser2), t => t[0])
 }
 
 // take result of right parser
@@ -51,30 +46,6 @@ function zeroOrOne(parser) {
     } catch(err) {
       return [input, null]
     }
-  }
-}
-
-// parses input 0 or more times and returns successfully parsed results in a list
-function zeroOrMore(parser) {
-  return input => {
-    var result = []
-      
-    var keepParsing = true
-    var nextInput = input
-    while (keepParsing) {
-      try {
-        var [nextInp, res] = parser(nextInput)
-        if (nextInp.length === 0) {
-          keepParsing = false
-        }
-        nextInput = nextInp
-        result.push(res)
-      } catch(err) {
-        keepParsing = false
-      }
-    }
-      
-    return [nextInput, result]
   }
 }
 
@@ -101,14 +72,13 @@ function ipv4Address(input) {
   var result = ""  
     
   for (let c of input) {
-    if (c === ',' || c === ':') {
+    if (c === ':') {
       break
     }
-    result.unshift(c)
+    result += c
   }
     
-  if (result.contains('.')) {
-    console.log("ipv4 address detected")
+  if (result.includes('.')) {
     [input.substring(result.length), result]
   } else {
     throw new Error("Unable to parse " + input + " as an IPv4 address")
@@ -132,10 +102,6 @@ function ipv6Address(input) {
   
   var colonCounter = 0
   for (let c of input) {
-    if (c === ',') {
-      break
-    }
-
     if (c === ':') {
       colonCounter++
     }
@@ -155,7 +121,7 @@ function host(input) {
   var hostname = ""
     
   for (let c of input) {
-    if (c === ',' || c === ':') {
+    if (c === ':') {
       break
     }
     hostname += c
@@ -166,16 +132,7 @@ function host(input) {
 
 // Parses a port number
 function port(input) {
-  var portEndIdx = input.indexOf(',')
-  if (portEndIdx === -1) {
-    return ["", input]
-  }
-  var portNum = input.substring(0, portEndIdx)
-  if (portNum.length === 0) {
-    portNum = null
-  }
-    
-  return [input.substring(portEndIdx), portNum]
+  return [input.substring(input.length), input]
 }
 
 // Parser builder that returns a parser that matches a given string literal
@@ -197,9 +154,20 @@ function entry(input) {
 
 // Parses a full list of backup server nodes
 function backupServerNodes(input) {
-  return zeroOrMore(left(entry, zeroOrOne(matchLiteral(","))))(input)
+  return input.split(',').filter(s => s.length > 0).map(i => entry(i)[1])
 }
 
 module.exports = {
+  pair,
+  map,
+  right,
+  zeroOrOne,
+  either,
+  ipv4Address,
+  ipv6Address,
+  host,
+  port,
+  matchLiteral,
+  entry,
   backupServerNodes
 }

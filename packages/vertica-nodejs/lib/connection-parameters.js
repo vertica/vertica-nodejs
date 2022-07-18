@@ -51,7 +51,7 @@ var parseBackupServerNodes = function (nodes) {
   // constructor will try to assign config = config, which will
   // cause an error if we try to parse an already parsed value.
   if (typeof nodes == 'string') {
-    var parsedNodes = backupServerNodesParser(nodes)[1]
+    var parsedNodes = backupServerNodesParser(nodes)
     return parsedNodes.map(pair => pair[1] !== null ?
       { host: pair[0], port: parseInt(pair[1]) } :
       { host: pair[0], port: defaults.port })
