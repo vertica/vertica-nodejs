@@ -60,10 +60,6 @@ module.exports = {
 
   tls_cert_file: undefined,
 
-  application_name: undefined,
-
-  fallback_application_name: undefined,
-
   options: undefined,
 
   parseInputDatesAsUTC: false,

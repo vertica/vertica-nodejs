@@ -104,8 +104,6 @@ class ConnectionParameters {
     // a domain socket begins with '/'
     this.isDomainSocket = !(this.host || '').indexOf('/')
 
-    this.application_name = val('application_name', config, 'PGAPPNAME')
-    this.fallback_application_name = val('fallback_application_name', config, false)
     this.statement_timeout = val('statement_timeout', config, false)
     this.idle_in_transaction_session_timeout = val('idle_in_transaction_session_timeout', config, false)
     this.query_timeout = val('query_timeout', config, false)
@@ -137,8 +135,6 @@ class ConnectionParameters {
     add(params, this, 'user')
     add(params, this, 'password')
     add(params, this, 'port')
-    add(params, this, 'application_name')
-    add(params, this, 'fallback_application_name')
     add(params, this, 'connect_timeout')
     add(params, this, 'options')
     add(params, this, 'backup_server_node')

@@ -190,18 +190,6 @@ describe('parse', function () {
     subject.database.should.equal('%2Funix%2Fsocket/dbname')
   })
 
-  it('configuration parameter application_name', function () {
-    var connectionString = 'pg:///?application_name=TheApp'
-    var subject = parse(connectionString)
-    subject.application_name.should.equal('TheApp')
-  })
-
-  it('configuration parameter fallback_application_name', function () {
-    var connectionString = 'pg:///?fallback_application_name=TheAppFallback'
-    var subject = parse(connectionString)
-    subject.fallback_application_name.should.equal('TheAppFallback')
-  })
-
   it('configuration parameter options', function () {
     var connectionString = 'pg:///?options=-c geqo=off'
     var subject = parse(connectionString)

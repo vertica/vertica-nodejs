@@ -499,10 +499,6 @@ class Client extends EventEmitter {
       protocol_version: params.protocol_version.toString(),
     }
 
-    var appName = params.application_name || params.fallback_application_name
-    if (appName) {
-      data.application_name = appName
-    }
     if (params.replication) {
       data.replication = '' + params.replication
     }
