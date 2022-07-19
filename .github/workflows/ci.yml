@@ -10,6 +10,12 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+env:
+  V_HOST: localhost
+  V_PORT: 5433
+  V_USER: dbadmin
+  V_DATABASE: VMart
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -51,22 +57,22 @@ jobs:
         if: always()
         run: |
           cd packages/v-connection-string
-          V_HOST=localhost, V_PORT=5433, V_USER=dbadmin, V_DATABASE=VMart yarn test
+          yarn test
           
       - name: test-v-pool
         if: always()
         run: |
           cd packages/v-pool
-          V_HOST=localhost, V_PORT=5433, V_USER=dbadmin, V_DATABASE=VMart yarn test
+          yarn test
           
       - name: test-v-protocol
         if: always()
         run: |
           cd packages/v-protocol
-          V_HOST=localhost, V_PORT=5433, V_USER=dbadmin, V_DATABASE=VMart yarn test
+          yarn test
           
       - name: test-vertica-nodejs
         if: always()
         run: |
           cd packages/vertica-nodejs
-          V_HOST=localhost, V_PORT=5433, V_USER=dbadmin, V_DATABASE=VMart yarn test
+          yarn test
