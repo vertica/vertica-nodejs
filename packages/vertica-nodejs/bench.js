@@ -53,8 +53,8 @@ const run = async () => {
   const client = new vertica.Client()
   await client.connect()
   console.log('start')
-  await client.query('CREATE TEMP TABLE foobar(name TEXT, age NUMERIC)')
-  await client.query('CREATE TEMP TABLE buf(name TEXT, data BYTEA)')
+  await client.query('CREATE LOCAL TEMP TABLE foobar(name TEXT, age NUMERIC)')
+  await client.query('CREATE LOCAL TEMP TABLE buf(name TEXT, data BYTEA)')
   await bench(client, params, 1000)
   console.log('warmup done')
   const seconds = 5

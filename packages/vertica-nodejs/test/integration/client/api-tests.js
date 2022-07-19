@@ -9,7 +9,7 @@ suite.test('null and undefined are both inserted as NULL', function (done) {
   pool.connect(
     assert.calls(function (err, client, release) {
       assert(!err)
-      client.query('DROP TABLE IF EXISTS my_nulls; CREATE TABLE my_nulls(a varchar(1), b varchar(1), c integer, d integer, e date, f date)')
+      client.query('CREATE LOCAL TEMP TABLE IF NOT EXISTS my_nulls(a varchar(1), b varchar(1), c integer, d integer, e date, f date)')
       client.query('INSERT INTO my_nulls(a,b,c,d,e,f) VALUES (?,?,?,?,?,?)', [
         null,
         undefined,
@@ -18,28 +18,21 @@ suite.test('null and undefined are both inserted as NULL', function (done) {
         null,
         undefined,
       ])
-      client.query("COMMIT;").then(() => {
-        client.query(
-          'SELECT * FROM my_nulls',
-          assert.calls(function (err, result) {
-            /*
-            typeof value === 'bigint'
-              ? value.toString()
-              : value // return everything else unchanged
-              */
-            assert.ifError(err)
-            assert.equal(result.rows.length, 1)
-            assert.isNull(result.rows[0].a)
-            assert.isNull(result.rows[0].b)
-            assert.isNull(result.rows[0].c)
-            assert.isNull(result.rows[0].d)
-            assert.isNull(result.rows[0].e)
-            assert.isNull(result.rows[0].f)
-            pool.end(done)
-            release()
-          })
-        )
-      })
+      client.query(
+        'SELECT * FROM my_nulls',
+        assert.calls(function (err, result) {
+          assert.ifError(err)
+          assert.equal(result.rows.length, 1)
+          assert.isNull(result.rows[0].a)
+          assert.isNull(result.rows[0].b)
+          assert.isNull(result.rows[0].c)
+          assert.isNull(result.rows[0].d)
+          assert.isNull(result.rows[0].e)
+          assert.isNull(result.rows[0].f)
+          pool.end(done)
+          release()
+        })
+      )
     })
   )
 })

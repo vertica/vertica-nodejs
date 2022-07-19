@@ -31,7 +31,6 @@ test-unit:
 
 test-connection:
 	@echo "***Testing connection***"
-	@node script/create-test-tables.js $(params)
 
 test-missing-native:
 	@echo "***Testing optional native install***"

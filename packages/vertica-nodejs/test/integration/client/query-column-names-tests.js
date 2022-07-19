@@ -31,7 +31,6 @@ suite.test('column names are returned correctly', function() {
         'SELECT * FROM d',
         assert.success(function (res) {
           done()
-          console.log(res)
           assert.strictEqual(res.fields[0].name, 'foobar')
           assert.strictEqual(res.fields[1].name, 'abcd')
           pool.end()

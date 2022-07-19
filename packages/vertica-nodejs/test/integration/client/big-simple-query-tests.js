@@ -16,9 +16,15 @@ var big_query_rows_1 = []
 var big_query_rows_2 = []
 var big_query_rows_3 = []
 
+var setupPersonTable = function (client) {
+  client.query("CREATE LOCAL TEMP TABLE person(name varchar, age int);")
+  client.query("INSERT INTO person (name, age) VALUES ('Aaron', 10);INSERT INTO person (name, age) VALUES ('Brian', 20);INSERT INTO person (name, age) VALUES ('Chris', 30);INSERT INTO person (name, age) VALUES ('David', 40);INSERT INTO person (name, age) VALUES ('Elvis', 50);")
+}
+
 // Works
 suite.test('big simple query 1', function (done) {
   var client = helper.client()
+  setupPersonTable(client)
   client
     .query(
       new Query(
@@ -41,6 +47,7 @@ suite.test('big simple query 1', function (done) {
 // Works
 suite.test('big simple query 2', function (done) {
   var client = helper.client()
+  setupPersonTable(client)
   client
     .query(
       new Query(
@@ -65,6 +72,7 @@ suite.test('big simple query 2', function (done) {
 // If test 1 and 2 are commented out it works
 suite.test('big simple query 3', function (done) {
   var client = helper.client()
+  setupPersonTable(client)
   client
     .query(
       new Query(
@@ -86,9 +94,9 @@ suite.test('big simple query 3', function (done) {
 })
 
 process.on('exit', function () {
-  assert.equal(big_query_rows_1.length, 26, 'big simple query 1 should return 26 rows')
-  assert.equal(big_query_rows_2.length, 26, 'big simple query 2 should return 26 rows')
-  assert.equal(big_query_rows_3.length, 26, 'big simple query 3 should return 26 rows')
+  assert.equal(big_query_rows_1.length, 5, 'big simple query 1 should return 5 rows')
+  assert.equal(big_query_rows_2.length, 5, 'big simple query 2 should return 5 rows')
+  assert.equal(big_query_rows_3.length, 5, 'big simple query 3 should return 5 rows')
 })
 
 var runBigQuery = function (client) {
@@ -101,13 +109,14 @@ var runBigQuery = function (client) {
         console.log(err)
         throw Err
       }
-      assert.lengthIs(result.rows, 26)
+      assert.lengthIs(result.rows, 5)
     }
   )
 }
 
 suite.test('many times', function (done) {
   var client = helper.client()
+  setupPersonTable(client)
   for (var i = 0; i < 20; i++) {
     runBigQuery(client)
   }

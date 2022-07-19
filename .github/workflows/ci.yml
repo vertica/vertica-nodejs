@@ -1,32 +1,84 @@
 name: CI
 
-on: [push, pull_request]
+on: 
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  V_HOST: localhost
+  V_PORT: 5433
+  V_USER: dbadmin
+  V_DATABASE: VMart
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:11
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: ci_db_test
-        ports:
-          - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     strategy:
       matrix:
-        node: ['8', '10', '12', '14', '16', '17']
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        #node: ['8', '10', '12', '14', '16', '17']
+        #os: [ubuntu-latest, windows-latest, macos-latest]
+        # let's make it a little bit simple for now
+        # current target version will be 14.
+        # TODO: investigate the multipe version matrix with single Vertica instance
+        node: ['14']
+        os: [ubuntu-latest]
     name: Node.js ${{ matrix.node }} (${{ matrix.os }})
     steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+      
       - name: Setup node
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
           cache: yarn
-      - run: yarn install
-      # TODO(bmc): get ssl tests working in ci
-      - run: PGTESTNOSSL=true PGUSER=postgres PGPASSWORD=postgres PGDATABASE=ci_db_test yarn test
+
+      - name: build
+        run: yarn 
+
+      - name: boostrap
+        run: yarn lerna bootstrap
+        
+      - name: Setup Vertica
+        run: |          
+          docker pull vertica/vertica-ce:12.0.0-0
+          docker run -d -p 5433:5433 -p 5444:5444 \
+            --mount type=volume,source=vertica-data,target=/data \
+            --name vertica_ce \
+            vertica/vertica-ce
+          echo "Vertica startup ..."
+          until docker exec vertica_ce /opt/vertica/bin/vsql -c "SELECT 1" > /dev/null 2>&1; do \
+            echo "..."; \
+            sleep 3; \
+          done;
+          echo "Vertica is up"
+
+      - name: test-v-connection-string
+        if: always()
+        run: |
+          cd packages/v-connection-string
+          yarn test
+          
+      - name: test-v-pool
+        if: always()
+        run: |
+          cd packages/v-pool
+          yarn test
+          
+      - name: test-v-protocol
+        if: always()
+        run: |
+          cd packages/v-protocol
+          yarn test
+          
+      - name: test-vertica-nodejs
+        if: always()
+        run: |
+          cd packages/vertica-nodejs
+          yarn test
