@@ -1,4 +1,5 @@
 'use strict'
+const { VerticaType } = require('v-protocol')
 var helper = require('./test-helper')
 const pool = new helper.vertica.Pool()
 
@@ -6,10 +7,10 @@ pool.connect(
   assert.success(function (client, done) {
     var types = require('pg-types')
     // 16 = numericOID
-    types.setTypeParser(16, function () {
+    types.setTypeParser(VerticaType.Numeric, function () {
       return 'yes'
     })
-    types.setTypeParser(16, 'binary', function () { // irrelevant until we support binary transfer
+    types.setTypeParser(VerticaType.Numeric, 'binary', function () { // irrelevant until we support binary transfer
       return 'yes'
     })
     var bignum = '294733346389144765940638005275322203805'
