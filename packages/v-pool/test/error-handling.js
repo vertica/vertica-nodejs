@@ -187,7 +187,6 @@ describe('pool error handling', function () {
   describe('passing a function to pool.query', () => {
     it('calls back with error', (done) => {
       const pool = new Pool()
-      console.log('passing fn to query')
       pool.query((err) => {
         expect(err).to.be.an(Error)
         pool.end(done)
