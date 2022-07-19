@@ -49,9 +49,15 @@ jobs:
         run: |          
           docker pull vertica/vertica-ce:12.0.0-0
           docker run -d -p 5433:5433 -p 5444:5444 \
-           --mount type=volume,source=vertica-data,target=/data \
-           --name vertica_ce \
-           vertica/vertica-ce
+            --mount type=volume,source=vertica-data,target=/data \
+            --name vertica_ce \
+            vertica/vertica-ce
+          echo "Vertica startup ..."
+          until docker exec vertica_ce /opt/vertica/bin/vsql -c "SELECT 1" > /dev/null 2>&1; do \
+            echo "..."; \
+            sleep 3; \
+          done;
+          echo "Vertica is up"
 
       - name: test-v-connection-string
         if: always()
