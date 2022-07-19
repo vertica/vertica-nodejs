@@ -29,6 +29,8 @@ suite.test('Parse an IPv4 address', function () {
 suite.test('Parse a host name', function () {
   assert.ok(host("localhost")[1] === "localhost", "host name")
   assert.ok(host("localhost:5234")[1] === "localhost", "host name with port")
+  assert.ok(host("vertica.com")[1] === "vertica.com", "host name with dot in it")
+  assert.ok(host("vertica.com:5234")[1] === "vertica.com", "host name with dot in it and port")
 })
 
 // Currently, we parse anything as a port. We could add validation to make sure it's numeric, but it's going to be checked by parseInt anyway
