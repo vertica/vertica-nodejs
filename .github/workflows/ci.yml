@@ -18,7 +18,9 @@ jobs:
         #node: ['8', '10', '12', '14', '16', '17']
         #os: [ubuntu-latest, windows-latest, macos-latest]
         # let's make it a little bit simple for now
-        node: ['17']
+        # current target version will be 14.
+        # TODO: investigate the multipe version matrix with single Vertica instance
+        node: ['14']
         os: [ubuntu-latest]
     name: Node.js ${{ matrix.node }} (${{ matrix.os }})
     steps:
@@ -61,4 +63,10 @@ jobs:
         if: always()
         run: |
           cd packages/v-protocol
+          V_HOST=localhost, V_PORT=5433, V_USER=dbadmin, V_DATABASE=VMart yarn test
+          
+      - name: test-vertica-nodejs
+        if: always()
+        run: |
+          cd packages/vertica-nodejs
           V_HOST=localhost, V_PORT=5433, V_USER=dbadmin, V_DATABASE=VMart yarn test
