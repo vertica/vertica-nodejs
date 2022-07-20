@@ -64,7 +64,7 @@ describe('pool size of 1', () => {
       var queryRequestsRowCount = result.rows[0].COUNT
 
       if(queryRequestsRowCount > 4000){
-        console.log(" -- Skipping test because query_requests table is too large")
+        console.log(" -- Skipping the following test because query_requests table is too large:")
         return yield pool.end()
       }
 
