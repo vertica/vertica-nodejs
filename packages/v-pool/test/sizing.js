@@ -60,6 +60,14 @@ describe('pool size of 1', () => {
 
       const pool = new Pool({ max: 1 })
 
+      var result = yield pool.query("SELECT COUNT(*) FROM query_requests")
+      var queryRequestsRowCount = result.rows[0].COUNT
+
+      if(queryRequestsRowCount > 4000){
+        console.log(" -- Skipping test because query_requests table is too large")
+        return yield pool.end()
+      }
+
       const queryText = "SELECT COUNT(*) as counts FROM query_requests WHERE is_executing='t' AND request LIKE ?"
       const queryTextMatch = "SELECT COUNT(*) as counts FROM query_requests WHERE is_executing='t' AND request %"
       const queries = _.times(20, () => pool.query(queryText, [queryTextMatch]))
