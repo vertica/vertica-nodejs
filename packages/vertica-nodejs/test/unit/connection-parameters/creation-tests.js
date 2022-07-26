@@ -19,7 +19,7 @@ suite.test('ConnectionParameters construction', function () {
 })
 
 var compare = function (actual, expected, type) {
-  const expectedDatabase = expected.database === undefined ? expected.user : expected.database
+  const expectedDatabase = expected.database === undefined ? '' : expected.database
 
   assert.equal(actual.user, expected.user, type + ' user')
   assert.equal(actual.database, expectedDatabase, type + ' database')
@@ -122,7 +122,7 @@ suite.test('initializing with unix domain socket', function () {
   var subject = new ConnectionParameters('/var/run/')
   assert.ok(subject.isDomainSocket)
   assert.equal(subject.host, '/var/run/')
-  assert.equal(subject.database, defaults.user)
+  assert.equal(subject.database, defaults.database)
 })
 
 suite.test('initializing with unix domain socket and a specific database, the simple way', function () {
