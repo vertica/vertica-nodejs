@@ -27,8 +27,6 @@ export interface ConnectionOptions {
   client_encoding?: string
   tls_mode?: string | null
 
-  application_name?: string
-  fallback_application_name?: string
   options?: string
   client_label?: string
 }
