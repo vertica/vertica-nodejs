@@ -22,7 +22,7 @@ module.exports = {
   user: process.platform === 'win32' ? process.env.USERNAME : process.env.USER,
 
   // name of database to connect
-  database: undefined,
+  database: '',
 
   // database user's password
   password: null,
