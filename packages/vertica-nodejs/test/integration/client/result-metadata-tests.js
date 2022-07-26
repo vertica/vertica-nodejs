@@ -3,7 +3,7 @@ var helper = require('./test-helper')
 var vertica = helper.vertica
 
 const pool = new vertica.Pool()
-new helper.Suite().test('should return insert metadata', function () {
+new helper.Suite().test('should return metadata', function () {
   pool.connect(
     assert.calls(function (err, client, done) {
       assert(!err)
@@ -18,13 +18,13 @@ new helper.Suite().test('should return insert metadata', function () {
             "INSERT INTO zugzug(name) VALUES('more work?')",
             assert.calls(function (err, result) {
               assert(!err)
-              assert.equal(result.command, 'INSERT')
+              assert.equal(result.command, 'undefined') // Vertica behavior, empty string returned in command description
 
               client.query(
                 'SELECT * FROM zugzug',
                 assert.calls(function (err, result) {
                   assert(!err)
-                  assert.equal(result.command, 'SELECT')
+                  assert.equal(result.command, 'undefined') // Vertica behavior, empty string returned in command description
                   done()
                   process.nextTick(pool.end.bind(pool))
                 })
