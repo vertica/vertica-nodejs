@@ -42,7 +42,7 @@ suite.test('vertica tls - disable mode - all', function () {
   client.connect(err => {
     if (err) {
       // shouldn't fail to connect
-      console.log(error)
+      console.log(err)
       assert(false)
     }
     // asserting it equals "Socket" should be just as good but this is probably safer
@@ -76,7 +76,7 @@ suite.test('vertica tls - require mode - no client certificate', function () {
     assert.equal(client.connection.stream.constructor.name.toString(), "TLSSocket")
     client.query("SELECT mode FROM tls_configurations where name = 'server' LIMIT 1", (err, res) => {
       if (err) {
-        console.log(error)
+        console.log(err)
         assert(false)
       }
       // server should be in one of these modes for us to have gotten this far without sending client certificate
@@ -94,7 +94,6 @@ suite.test('vertica tls - verify-ca - no tls_cert_file specified', function () {
   assert.equal(client.tls_mode, 'verify-ca')
   client.connect(err => {
     if (err) {
-      //console.log("\n\n" + err)
       assert(err.message.includes("verify-ca mode requires setting tls_trusted_certs property") // we didn't set the property, this is ok
           || err.message.includes("SSL alert number 40") // VERIFY_CA mode, this is ok
           || err.message.includes("The server does not support TLS connections")) // DISABLE mode, this is ok
@@ -115,7 +114,6 @@ suite.test('vertica tls - verify-ca - valid server certificate', function () {
   assert.equal(client.tls_mode, 'verify-ca')
   client.connect(err => {
     if (err) {
-      console.log("\n\n" + err)
       assert(err.message.includes("SSL alert number 40") // VERIFY_CA mode, this is ok
           || err.message.includes("The server does not support TLS connections")) // DISABLE mode, this is ok
       return
@@ -123,7 +121,7 @@ suite.test('vertica tls - verify-ca - valid server certificate', function () {
     assert.equal(client.connection.stream.constructor.name.toString(), "TLSSocket")
     client.query("SELECT mode FROM tls_configurations where name = 'server' LIMIT 1", (err, res) => {
       if (err) {
-        console.log(error)
+        console.log(err)
         assert(false)
       }
       // server should be in one of these modes for us to have gotten this far without sending client certificate
@@ -167,7 +165,7 @@ suite.test('vertica tls - verify-full - valid server certificate', function () {
     assert.equal(client.connection.stream.constructor.name.toString(), "TLSSocket")
     client.query("SELECT mode FROM tls_configurations where name = 'server' LIMIT 1", (err, res) => {
       if (err) {
-        console.log(error)
+        console.log(err)
         assert(false)
       }
       // server should be in one of these modes for us to have gotten this far without sending client certificate
