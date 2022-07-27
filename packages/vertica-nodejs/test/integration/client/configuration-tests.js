@@ -14,7 +14,7 @@ for (var key in process.env) {
 suite.test('default values are used in new clients', function () {
   assert.same(vertica.defaults, {
     user: process.env.USER,
-    database: undefined,
+    database: '',
     password: null,
     port: 5433,
     rows: 0,
@@ -23,8 +23,6 @@ suite.test('default values are used in new clients', function () {
     idleTimeoutMillis: 30000,
     client_encoding: '',
     tls_mode: 'disable',
-    application_name: undefined,
-    fallback_application_name: undefined,
     parseInputDatesAsUTC: false,
   })
 

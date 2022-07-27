@@ -74,8 +74,8 @@ suite.test(
     assert(Array.isArray(results))
     assert(results.length === 3)
     assert.equal(results[0].command, 'CREATE')
-    assert.equal(results[1].command, 'INSERT')
-    assert.equal(results[2].command, 'SELECT')
+    assert.equal(results[1].command, 'undefined') // Vertica behavior, empty string returned in command complete
+    assert.equal(results[2].command, 'undefined') // Vertica behavior, empty string returned in command complete
 
     return client.end()
   })

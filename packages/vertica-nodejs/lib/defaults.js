@@ -22,7 +22,7 @@ module.exports = {
   user: process.platform === 'win32' ? process.env.USERNAME : process.env.USER,
 
   // name of database to connect
-  database: undefined,
+  database: '',
 
   // database user's password
   password: null,
@@ -60,10 +60,6 @@ module.exports = {
 
   tls_cert_file: undefined,
 
-  application_name: undefined,
-
-  fallback_application_name: undefined,
-
   options: undefined,
 
   parseInputDatesAsUTC: false,
@@ -91,14 +87,3 @@ module.exports = {
   // A comma separated string listing all backup nodes to connect to. Each node is a host-port pair separated by a colon.
   backup_server_node: '',
 }
-
-var pgTypes = require('pg-types')
-// save default parsers
-var parseBigInteger = pgTypes.getTypeParser(20, 'text')
-var parseBigIntegerArray = pgTypes.getTypeParser(1016, 'text')
-
-// parse int8 so you can get your count values as actual numbers
-module.exports.__defineSetter__('parseInt8', function (val) {
-  pgTypes.setTypeParser(20, 'text', val ? pgTypes.getTypeParser(23, 'text') : parseBigInteger)
-  pgTypes.setTypeParser(1016, 'text', val ? pgTypes.getTypeParser(1007, 'text') : parseBigIntegerArray)
-})

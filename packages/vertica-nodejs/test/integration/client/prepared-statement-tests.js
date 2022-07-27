@@ -13,7 +13,7 @@ var suite = new helper.Suite()
 
   suite.test('first named prepared statement', function (done) {
 
-    client.query('CREATE TABLE IF NOT EXISTS person(name varchar(100), age int);')
+    client.query('CREATE LOCAL TEMP TABLE IF NOT EXISTS person(name varchar(100), age int);')
     client.query("INSERT INTO person (name, age) VALUES ('Goofy', 90)")
     client.query("INSERT INTO person (name, age) VALUES ('Mickey', 94)")
     client.query("INSERT INTO person (name, age) VALUES ('Donald', 86)")
@@ -81,7 +81,6 @@ var suite = new helper.Suite()
         done()
       })
     )
-    client.query("DROP TABLE IF EXISTS person")
   })
 })()
 
@@ -90,7 +89,7 @@ var suite = new helper.Suite()
   client.on('drain', client.end.bind(client))
 
   suite.test('inserting data with prepared statement', function (done) {
-    client.query("CREATE TABLE IF NOT EXISTS insertTest(a boolean, b integer, c char, d varchar(100), e numeric(10, 5))")
+    client.query("CREATE LOCAL TEMP TABLE IF NOT EXISTS insertTest(a boolean, b integer, c char, d varchar(100), e numeric(10, 5))")
     const rowMode = 'array'
     const query1 = {
       name: 'testName',

@@ -20,6 +20,8 @@ var defaults = require('./defaults')
 
 var parse = require('v-connection-string').parse // parses a connection string
 
+var backupServerNodesParser = require('./backup-nodes-parsers').backupServerNodes // parses backup server nodes
+
 var val = function (key, config, envVar) {
   if (envVar === undefined) {
     envVar = process.env['V_' + key.toUpperCase()]
@@ -49,13 +51,10 @@ var parseBackupServerNodes = function (nodes) {
   // constructor will try to assign config = config, which will
   // cause an error if we try to parse an already parsed value.
   if (typeof nodes == 'string') {
-    return nodes.split(',')
-      .filter(entry => entry.length > 0)
-      .map(entry => entry.split(':'))
-      .filter(pair => pair[0].length > 0)
-      .map(pair => pair[1] ?
-        { host: pair[0], port: parseInt(pair[1]) } :
-        { host: pair[0], port: defaults.port })
+    var parsedNodes = backupServerNodesParser(nodes)
+    return parsedNodes.map(pair => pair[1] !== null ?
+      { host: pair[0], port: parseInt(pair[1]) } :
+      { host: pair[0], port: defaults.port })
   } else {
     return nodes
   }
@@ -76,7 +75,7 @@ class ConnectionParameters {
     this.database = val('database', config)
 
     if (this.database === undefined) {
-      this.database = this.user
+      this.database = ''
     }
 
     this.port = parseInt(val('port', config), 10)
@@ -104,8 +103,6 @@ class ConnectionParameters {
     // a domain socket begins with '/'
     this.isDomainSocket = !(this.host || '').indexOf('/')
 
-    this.application_name = val('application_name', config, 'PGAPPNAME')
-    this.fallback_application_name = val('fallback_application_name', config, false)
     this.statement_timeout = val('statement_timeout', config, false)
     this.idle_in_transaction_session_timeout = val('idle_in_transaction_session_timeout', config, false)
     this.query_timeout = val('query_timeout', config, false)
@@ -137,8 +134,6 @@ class ConnectionParameters {
     add(params, this, 'user')
     add(params, this, 'password')
     add(params, this, 'port')
-    add(params, this, 'application_name')
-    add(params, this, 'fallback_application_name')
     add(params, this, 'connect_timeout')
     add(params, this, 'options')
     add(params, this, 'backup_server_node')

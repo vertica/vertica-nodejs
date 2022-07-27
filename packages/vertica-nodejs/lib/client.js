@@ -46,6 +46,10 @@ class Client extends ClientConnection {
     })
   }
 
+  getStartupConf() {
+    return super.getStartupConf()
+  }
+
   cancel(client, query) {
     return super.cancel(client, query, this.host, this.port)
   }

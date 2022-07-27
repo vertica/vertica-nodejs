@@ -12,7 +12,7 @@ var testForTypeCoercion = function (type) {
     pool.connect(function (err, client, done) {
       assert(!err)
       client.query(
-        'create temp table test_type(col ' + type.name + ')',
+        'create local temp table test_type(col ' + type.name + ')',
         assert.calls(function (err, result) {
           assert(!err)
 
@@ -51,10 +51,8 @@ var testForTypeCoercion = function (type) {
             client.query('delete from test_type')
           })
 
-          client.query('drop table test_type', function () {
-            done()
-            pool.end(cb)
-          })
+          done()
+          pool.end(cb)
         })
       )
     })
@@ -147,7 +145,7 @@ types.forEach(function (type) {
 suite.test('timestampz round trip', function (cb) {
   var now = new Date()
   var client = helper.client()
-  client.query('create temp table date_tests(name varchar(10), tstz timestamptz(3))')
+  client.query('CREATE LOCAL TEMP TABLE date_tests(name varchar(10), tstz timestamptz(3))')
   client.query({
     text: 'insert into date_tests(name, tstz)VALUES($1, $2)',
     name: 'add date',
