@@ -15,6 +15,7 @@
 'use strict'
 
 var Client = require('./client')
+var DnsRoundRobinClient = require('./round-robin-client')
 var defaults = require('./defaults')
 var Connection = require('./connection')
 var Pool = require('v-pool')
@@ -28,9 +29,10 @@ const poolFactory = (Client) => {
   }
 }
 
-var PG = function (clientConstructor) {
+var PG = function (clientConstructor, rrClientConstructor) {
   this.defaults = defaults
   this.Client = clientConstructor
+  this.DnsRoundRobinClient = rrClientConstructor
   this.Query = this.Client.Query
   this.Pool = poolFactory(this.Client)
   this._pools = []
@@ -42,7 +44,7 @@ var PG = function (clientConstructor) {
 if (typeof process.env.NODE_PG_FORCE_NATIVE !== 'undefined') {
   module.exports = new PG(require('./native'))
 } else {
-  module.exports = new PG(Client)
+  module.exports = new PG(Client, DnsRoundRobinClient)
 
   // lazy require native module...the native module may not have installed
   Object.defineProperty(module.exports, 'native', {
