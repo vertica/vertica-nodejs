@@ -49,17 +49,17 @@ suite.test('vertica protocol_version connection parameter', function () {
   })
 })
 
-const testBackupNode = function(addr) {
+const testBackupNode = async function(addr) {
   const badAddress = 'oops'
-  const client = new vertica.Client({host: badAddress, backup_server_node: addr})
-  client.connect()
+  const client = new vertica.DnsRoundRobinClient({host: badAddress, backup_server_node: addr})
+  await client.connect()
   client.query("SELECt NOW()", (err, res) => {
     assert(!err)
     client.end()
   })
 }
 
-suite.test('vertica backup_server_node connection parameter', function() {
+suite.test('vertica backup_server_node connection parameter', async function() {
   // assert current default behavior
   assert.equal(vertica.defaults.backup_server_node, '')
   const addresses = ['127.0.0.1', '127.0.0.1:5433', '0:0:0:0:0:0:0:1', '::1', '[0:0:0:0:0:0:0:1]:5433', '[0:0:0:0:0:0:0:1]', 'localhost', 'localhost:5433']

@@ -244,7 +244,7 @@ suite.test('connected, idle client error', (done) => {
   })
 })
 
-suite.testAsync('cannot pass non-string values to query as text', done => {
+suite.test('cannot pass non-string values to query as text', done => {
   const client = new Client()
   client.connect((err) => {
     if (err) {
