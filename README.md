@@ -6,22 +6,16 @@
 
 Non-blocking Vertica client for Node.js. Pure JavaScript and optional native libpq bindings.
 
-## DISCLAIMER: 
-vertica-nodejs is still pre-release and actively being improved. As of 5/5/22 this is not intended for use in production environments. 
+## Documentation
 
-## Monorepo
-
-This repo is a monorepo which contains the core [vertica-nodejs](https://github.com/vertica/vertica-nodejs/tree/master/packages/vertica-nodejs) module as well as a handful of related modules.
-
-- [vertica-nodejs](https://github.com/vertica/vertica-nodejs/tree/master/packages/vertica-nodejs)
+This repo is a monorepo which contains the core vertica-nodejs module as well as a handful of related modules. Each individual package should have its own readme more focused on how to develop and use all the capabilities of the driver. 
 - [v-pool](https://github.com/vertica/vertica-nodejs/tree/master/packages/v-pool)
 - [v-connection-string](https://github.com/vertica/vertica-nodejs/tree/master/packages/v-connection-string)
 - [v-protocol](https://github.com/vertica/vertica-nodejs/tree/master/packages/v-protocol)
 
-<!--
-## Documentation
+## Contributing
 
-Each package in this repo should have its own readme more focused on how to develop/contribute. For more information on how to contribute, check out our [contributing guidelines](#contributing-guidelines).-->
+Each individual package should have its own readme more focused on how to develop and use all the capabilities of the driver. For more information on how to contribute, check out our [contributing guidelines](#contributing-guidelines).-->
 
 <!-- ## Installation
     To install vertica-nodejs with npm: ``` TO DO ```
