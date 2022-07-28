@@ -467,7 +467,8 @@ class ClientConnection extends EventEmitter {
         const queryError = this.activeQuery.submit(this.connection)
         if (queryError) {
           process.nextTick(() => {
-            this.activeQuery.handleError(queryError, this.connection)
+            this.activeQuery.handleError(queryError, this.connection, true)
+            this.readyForQuery = true
             this._pulseQueryQueue()
           })
         }
