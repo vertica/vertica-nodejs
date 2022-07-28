@@ -126,7 +126,8 @@ class ClientConnection extends EventEmitter {
 
     // once connection is established send startup message
     con.on('connect', function () {
-      if (self.ssl) {
+      // SSLRequest Message
+      if (self.tls_mode !== 'disable') {
         con.requestSsl()
       } else {
         con.startup(self.getStartupConf())
