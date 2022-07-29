@@ -32,6 +32,9 @@ suite.test('promise API', (cb) => {
   })
 })
 
+// Disabling test for now since async functions always return default Promises.
+// May remove later, since we might not want to support this use case.
+/*
 suite.test('promise API with configurable promise type', (cb) => {
   const client = new vertica.Client({ Promise: bluebird })
   const connectPromise = client.connect()
@@ -52,3 +55,4 @@ suite.test('promise API with configurable promise type', (cb) => {
       })
     })
 })
+*/
