@@ -4,7 +4,7 @@ connectionString=postgres://
 
 params := $(connectionString)
 
-node-command := xargs -n 1 -I file sh -c "node file $(params) || true"
+node-command := xargs -n 1 -I file node file $(params)
 
 .PHONY : test test-connection test-integration bench publish update-npm
 
