@@ -40,14 +40,6 @@
     "co": "4.6.0",
     "pg-copy-streams": "0.3.0"
   },
-  "peerDependencies": {
-    "pg-native": ">=2.0.0"
-  },
-  "peerDependenciesMeta": {
-    "pg-native": {
-      "optional": true
-    }
-  },
   "scripts": {
     "test": "make -k test-all"
   },

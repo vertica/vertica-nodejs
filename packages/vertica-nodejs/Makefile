@@ -6,8 +6,7 @@ params := $(connectionString)
 
 node-command := xargs -n 1 -I file sh -c "node file $(params) || true"
 
-.PHONY : test test-connection test-integration bench test-native \
-	 publish update-npm
+.PHONY : test test-connection test-integration bench publish update-npm
 
 all:
 	npm install
@@ -17,7 +16,7 @@ help:
 
 test: test-unit
 
-test-all: test-unit test-integration test-native
+test-all: test-unit test-integration
 
 
 update-npm:
@@ -31,14 +30,6 @@ test-unit:
 
 test-connection:
 	@echo "***Testing connection***"
-
-node_modules/pg-native/index.js:
-	@npm i --no-save pg-native
-
-test-native: node_modules/pg-native/index.js test-connection
-	@echo "***Testing native bindings***"
-	@find test/native -name "*-tests.js" | $(node-command)
-	@find test/integration -name "*-tests.js" | $(node-command) native
 
 test-integration: test-connection
 	@echo "***Testing Pure Javascript***"

@@ -15,12 +15,6 @@
 'use strict'
 var helper = require('./../test-helper')
 
-if (helper.args.native) {
-  Client = require('./../../lib/native')
-  helper.Client = Client
-  helper.vertica = helper.vertica.native
-}
-
 // creates a client from cli parameters
 helper.client = function (cb) {
   var client = new Client()
