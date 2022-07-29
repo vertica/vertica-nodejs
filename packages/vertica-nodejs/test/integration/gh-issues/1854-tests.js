@@ -4,10 +4,6 @@ var helper = require('./../test-helper')
 const suite = new helper.Suite()
 
 suite.test('Parameter serialization errors should not cause query to hang', (done) => {
-  if (helper.config.native) {
-    // pg-native cannot handle non-string parameters so skip this entirely
-    return done()
-  }
   const client = new helper.vertica.Client()
   const expectedErr = new Error('Serialization error')
   client

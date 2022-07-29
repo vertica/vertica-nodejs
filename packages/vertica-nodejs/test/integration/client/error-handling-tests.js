@@ -144,9 +144,6 @@ suite.test('when a query is binding', function (done) {
   )
 
   assert.emits(query, 'error', function (err) {
-    if (!helper.config.native) {
-      assert(err instanceof DatabaseError)
-    }
     assert.equal(err.severity, 'ERROR')
     ensureFuture(client, done)
   })
@@ -220,9 +217,6 @@ suite.test('within a simple query', (done) => {
   var query = client.query(new vertica.Query("select eeeee from yodas_dsflsd where pixistix = 'zoiks!!!'"))
 
   assert.emits(query, 'error', function (error) {
-    if (!helper.config.native) {
-      assert(error instanceof DatabaseError)
-    }
     assert.equal(error.severity, 'ERROR')
     done()
   })
@@ -235,7 +229,7 @@ suite.test('connected, idle client error', (done) => {
       throw new Error('Should not receive error callback after connection')
     }
     setImmediate(() => {
-      ;(client.connection || client.native).emit('error', new Error('expected'))
+      ;(client.connection).emit('error', new Error('expected'))
     })
   })
   client.on('error', (err) => {
