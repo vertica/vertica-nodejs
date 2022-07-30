@@ -1,6 +1,6 @@
 SHELL := /bin/sh
 
-connectionString=postgres://
+connectionString=vertica://
 
 params := $(connectionString)
 
@@ -12,7 +12,7 @@ all:
 	npm install
 
 help:
-	@echo "make test-all [connectionString=postgres://<your connection string>]"
+	@echo "make test-all [connectionString=vertica://<your connection string>]"
 
 test: test-unit
 

@@ -41,6 +41,11 @@ p.addInt32 = function (val, first) {
   )
 }
 
+p.addByte = function (val, front) {
+  var buffer = Buffer.from([val])
+  return this.add(buffer, front)
+}
+
 p.addCString = function (val, front) {
   var len = Buffer.byteLength(val)
   var buffer = Buffer.alloc(len + 1)
