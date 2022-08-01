@@ -3,7 +3,7 @@ require('./test-helper')
 var assert = require('assert')
 
 var pguser = process.env['V_USER'] || process.env.USER
-var pgdatabase = process.env['V_DATABASE'] || process.env.USER
+var pgdatabase = process.env['V_DATABASE'] || ''
 var pgport = process.env['V_PORT'] || 5433
 
 test('client settings', function () {
@@ -71,7 +71,7 @@ test('initializing from a config string', function () {
     assert.equal(client.password, process.env['V_PASSWORD'] || null)
     assert.equal(client.host, 'host1')
     assert.equal(client.port, process.env['V_PORT'] || 5433)
-    assert.equal(client.database, process.env['V_DATABASE'] || process.env.USER)
+    assert.equal(client.database, process.env['V_DATABASE'] || '')
   })
 
   test('when not including all values, the environment variables are used', function () {
@@ -133,6 +133,8 @@ test('initializing from a config string', function () {
   })
 })
 
+/* 
+*  This test may belong in the connection directory with the other disabled connection tests
 test('calls connect correctly on connection', function () {
   var client = new Client('/tmp')
   var usedPort = ''
@@ -145,3 +147,4 @@ test('calls connect correctly on connection', function () {
   assert.equal(usedPort, '/tmp/.s.PGSQL.' + pgport)
   assert.strictEqual(usedHost, undefined)
 })
+*/

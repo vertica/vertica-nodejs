@@ -60,14 +60,27 @@ buffers.rowDescription = function (fields) {
   fields = fields || []
   var buf = new BufferList()
   buf.addInt16(fields.length)
+  if (!fields.length) {
+    return buf
+  }
+  buf.addInt32(0)
   fields.forEach(function (field) {
     buf
       .addCString(field.name)
+      .addInt32(0)
       .addInt32(field.tableID || 0)
-      .addInt16(field.attributeNumber || 0)
+      if (field.tableID) {
+        buf.addCString(field.schemaName || '')
+           .addCString(field.tableName || '')
+      }
+    buf
+      .addInt16(field.columnID || 0)
+      .addByte(field.isNonNative || 0x0)
       .addInt32(field.dataTypeID || 0)
       .addInt16(field.dataTypeSize || 0)
-      .addInt32(field.typeModifier || 0)
+      .addInt16(field.allowsNull || 0)
+      .addInt16(field.isIdentity || 0)
+      .addInt32(field.dataTypeModifier || 0)
       .addInt16(field.formatCode || 0)
   })
   return buf.join(true, 'T')

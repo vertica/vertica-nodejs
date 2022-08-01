@@ -16,38 +16,34 @@ var parseCompleteBuffer = buffers.parseComplete()
 var bindCompleteBuffer = buffers.bindComplete()
 var portalSuspendedBuffer = buffers.portalSuspended()
 
-var addRow = function (bufferList, name, offset) {
-  return bufferList
-    .addCString(name) // field name
-    .addInt32(offset++) // table id
-    .addInt16(offset++) // attribute of column number
-    .addInt32(offset++) // objectId of field's data type
-    .addInt16(offset++) // datatype size
-    .addInt32(offset++) // type modifier
-    .addInt16(0) // format code, 0 => text
-}
-
 var row1 = {
-  name: 'id',
+  name: 'bang',
   tableID: 1,
-  attributeNumber: 2,
+  schemaName: 'public',
+  tableName: 'testtable',
+  columnID: 2,
+  isNonNative: 0x0,
   dataTypeID: 3,
   dataTypeSize: 4,
-  typeModifier: 5,
+  allowsNull: 0,
+  dataTypeModifier: 5,
   formatCode: 0,
 }
 var oneRowDescBuff = new buffers.rowDescription([row1])
-row1.name = 'bang'
 
 var twoRowBuf = new buffers.rowDescription([
   row1,
   {
     name: 'whoah',
     tableID: 10,
-    attributeNumber: 11,
+    schemaName: 'public',
+    tableName: 'testtable',
+    columnID: 11,
+    isNonNative: 0x0,
     dataTypeID: 12,
     dataTypeSize: 13,
-    typeModifier: 14,
+    allowsNull: 0,
+    dataTypeModifier: 14,
     formatCode: 0,
   },
 ])
@@ -103,13 +99,13 @@ var expectedEmptyRowDescriptionMessage = {
 }
 var expectedOneRowMessage = {
   name: 'rowDescription',
-  length: 27,
+  length:59,
   fieldCount: 1,
 }
 
 var expectedTwoRowMessage = {
   name: 'rowDescription',
-  length: 53,
+  length: 109,
   fieldCount: 2,
 }
 
@@ -188,9 +184,12 @@ test('Connection', function () {
     })
     test('has correct field info', function () {
       assert.same(message.fields[0], {
-        name: 'id',
+        name: 'bang',
         tableID: 1,
+        schemaName: 'public',
+        tableName: 'testtable',
         columnID: 2,
+        //isNonNative: 0x0,
         dataTypeID: 3,
         dataTypeSize: 4,
         dataTypeModifier: 5,
@@ -208,7 +207,10 @@ test('Connection', function () {
       assert.same(message.fields[0], {
         name: 'bang',
         tableID: 1,
+        schemaName: 'public',
+        tableName: 'testtable',
         columnID: 2,
+        //isNonNative: 0x0,
         dataTypeID: 3,
         dataTypeSize: 4,
         dataTypeModifier: 5,
@@ -219,7 +221,10 @@ test('Connection', function () {
       assert.same(message.fields[1], {
         name: 'whoah',
         tableID: 10,
+        schemaName: 'public',
+        tableName: 'testtable',
         columnID: 11,
+        //isNonNative: 0x0,
         dataTypeID: 12,
         dataTypeSize: 13,
         dataTypeModifier: 14,
