@@ -6,11 +6,86 @@
 
 Non-blocking Vertica client for Node.js made with pure Javascript.
 
+## Features
+
+- Pure JavaScript client
+- Connection pooling
+- Extensible JS ↔ Vertica data-type coercion
+
+## Contributing
+
+We will gladly accept external pull requests if they are well documented and contain tests. 
+For more information on how to contribute, check out our [contributing guidelines](#contributing-guidelines)
+
+## Installation
+To install vertica-nodejs with npm: 
+  `npm install vertica-nodejs`
+
+## Post Installation Setup 
+
+The current version of the driver is routinely tested against Node v14. It is recommended to install this version of node in your application environment. 
+
+Ensure that you have an active Vertica server.
+
+Ensure that the applicable environment variables are configured for connecting to your Vertica server. These are the variables and the default values used if not set:
+
+ - V_HOST: 'localhost'
+ - V_PORT: 5433
+ - V_USER: process.env.USER/USERNAME
+ - V_PASSWORD: null
+ - V_DATABASE: ''
+ - V_BACKUP_SERVER_NODE: ''
+
+ Once these are done, you should be able to run the examples found in the examples directory noted in the next section. Simply download or copy the example javascript file(s) and execute them in a node environment.
+ 
+ For example, to execute the basic.js file all you need to do is run `node basic.js`
+
+ <!-- Once we have an example for testing your configured environment, make note of that here instead of using the basic.js example. -->
+
+## Vertica Data Types
+
+See [DATATYPES.md](https://github.com/vertica/vertica-nodejs/blob/master/DATATYPES.md) to view the mappings from type IDs to Vertica data types.
+
+## Setting up for local driver development
+
+The following instructions are for working with the driver source code. Follow this set up if you intend to contribute to the driver. These steps are similar to those for developing with the driver, but include steps for building and testing locally. 
+
+1. Clone the repo
+2. If yarn is not already installed, install yarn `npm install -g yarn`
+3. From your workspace root run `yarn` and then `yarn lerna bootstrap`
+4. Ensure you have a Vertica instance running with 
+5. Ensure you have the proper environment variables configured for connecting to the instance (`V_HOST`, `V_PORT`, `V_USER`, `V_PASSWORD`, `V_DATABASE`, `V_BACKUP_SERVER_NODE`)
+6. Run `yarn test` to run all the tests, or run `yarn test` from within an individual package to only run that package's tests
+
+If using VS Code, you can install the `Remote - Containers` extension and it will use the configuration under the `.devcontainer` folder to automatically create dev containers, including Vertica.  See [here](https://code.visualstudio.com/docs/remote/containers) for more information on developing in containers using VS Code.  This process will complete steps 3 to 5 above.
+
+## Support
+
+vertica-nodejs is free software. If you encounter a bug with the library please open an issue on the [GitHub repo](https://github.com/vertica/vertica-nodejs). If you have questions unanswered by the documentation please open an issue pointing out how the documentation was unclear and we will address it as needed. 
+
+When you open an issue please provide:
+
+- version of Node
+- version of Vertica
+- smallest possible snippet of code to reproduce the problem
+
+## Troubleshooting and FAQ
+
+The causes and solutions to common errors can be found among the [Frequently Asked Questions (FAQ)](https://github.com/vertica/vertica-nodejs/wiki/FAQ)
+
 # Usage examples
 
 ## Establishing Connections
 
+There are a number of different ways to establish a connection to your Vertica server. You can create and connect with a single client or a pool of clients, in an asynchronous or synchronous fashion, and using environment variables, default values, configuration objects, or connection strings. 
+
+Note that in the connection pool examples below we are demonstrating a convenience of the v-pool package which 
+is the ability to run single queries at a time on any available client from the connection pool without having to check it out and release it. For more information on using connection pools to their fullest extent check out the [v-pool](https://github.com/vertica/vertica-nodejs/tree/master/packages/v-pool) package documentation.
+
 ### Basic Connection
+
+The simplest way to establish a connection is by creating a single Client instance and calling connect(). This will attempt to create a connection based on your environment variables, if set, or the assigned default values. 
+
 ```javascript
     const client = new Client()
 
@@ -22,6 +97,9 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
 ```
 
 ### Basic Connection Pool
+
+This accomplishes the same thing, but querying with an available client in a connection pool.
+
 ```javascript 
     const pool = new Pool()
 
@@ -32,6 +110,9 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
 ```
 
 ### Asynchronous Connection
+
+You can use async/await
+
 ```javascript 
     const client = new Client()
 
@@ -42,6 +123,9 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
 ```
 
 ### Asynchronous Connection Pool
+
+You can use async/await with pooling
+
 ```javascript 
     const pool = new Pool()
 
@@ -51,6 +135,9 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
 ```
 
 ### Connection With Config Object
+
+You can override environment variables and defaults by providing your own configuration object. In this example we are providng a configuration object that uses the environment variables, so there would be no change in behavior, but you can provide any valid user, host, database, password, port, or a subset.
+
 ```javascript 
     const client = new Client({
         user: process.env['V_USER'],
@@ -68,6 +155,9 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
 ```
 
 ### Connection Pool with Config Object
+
+Configuration objects work the same way with connection pools
+
 ```javascript 
     const pool = new Pool({
         user: process.env['V_USER'],
@@ -84,6 +174,9 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
 ```
 
 ### Connection with Connection String
+
+You can further override defaults, environment variables, and configuration objects by providing your own connection string of the format "vertica://user:password@host:port/databaseName". Again, in this example we are constructing this connection string using the environment variables, so the behavior would remain unchanged.
+
 ```javascript 
     const connectionString = 'vertica://'
                            + process.env['V_USER'] + ':'
@@ -102,6 +195,9 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
 ```
 
 ### Connection Pool with Connection String
+
+Connection strings work the same way with connection pools
+
 ```javascript 
     const connectionString = 'vertica://'
                            + process.env['V_USER'] + ':'
@@ -120,7 +216,26 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
 
 ## Executing Queries and Accessing Results
 
+After establishing a connection in whatever way you choose, you can query your Vertica database. There are a number of ways to do this including simple queries, parameterized queries, and prepared statements. The results can be further modified by changing the rowMode, or using custom type parsers as you will see in the examples below. 
+
+The examples below use callbacks, but you can just as easily modify them to use promises (ex. ```client.query(...).then(...).catch(...)```) 
+or modify them to use async/await (```const result = await client.query(...)```)
+
+### First, a note about Results
+
+Results are constructed after a successful query to contain a number of properties, all of which are visible in the result object. The ones you will find most useful are the 'rows' and 'fields' properties. 
+
+The 'rows' property contains an array of data rows. Each data row is an object with key-value pairs that map the column name to the column value for that individual row. This can be changed by setting the 'rowMode' to 'array' in which case the rows property will contain a two dimensional array, where each inner array contains just the column values without the column names. 
+
+The 'fields' property contains an array of 'Field' objects. Each 'Field' object contains metadata about the columns returned by the query. 
+
+Currently, all calls to query() will return a result object, but only queries that return a DataRow from the server will have contents in the result's 'rows' and 'fields' properties. 
+
+
 ### Simple Query
+
+For simple query protocol in which your query contains only text and no parameters, you can provide just the query string as a parameter to the query() method. 
+
 ```javascript 
     const client = new Client()
 
@@ -138,6 +253,9 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
 ```
 
 ### Parameterized Query
+
+In a parameterized query, both the queryString and an ordered array of values need to be provided.
+
 ```javascript 
     const client = new Client()
 
@@ -154,6 +272,9 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
 ```
 
 ### Prepared Statement
+
+Prepared statements are slightly different. Here we will provide a query in the form of an object containing a query name (name), query string (text), and an ordered array of values (values). Once the query has been submitted, subsequent uses of the same prepared statement need only to use the name and value array, and not the query string in the query object. 
+
 ```javascript 
     const client = new Client()
 
@@ -167,7 +288,6 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
     client.query({name: queryName, text: queryString, values: valueArray}, (err, res) => {
         console.log(err || res.rows)
         valueArray = [1]
-        // now we have prepared a named query to use instead of needing the query string
         client.query({name: queryName, values: valueArray}, (err, res) => { 
             console.log(err || res.rows)
             client.end()
@@ -176,6 +296,9 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
 ```
 
 ### Modifying Result Rows with RowMode
+
+The Result.rows returned by a query are by default an array of objects with key-value pairs that map the column name to column value for each row. Often you will find you don't need that, especially for very large result sets. In this case you can provide a query object parameter containing the rowMode field set to 'array'. This will cause the driver to parse row data into arrays of values without creating an object and having key-value pairs. 
+
 ```javascript 
     const client = new Client()
 
@@ -190,6 +313,11 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
 ```
 
 ### Custom Type Parsing of Result Rows
+
+It is also possible to provide your own type parsers. See the Data Type Parsing below to find out about what parsing the driver currently supports. To provide your own parsers, the query object parameter needs a types property which contains a function for parsing the resulting row data. 
+
+For this example, note that the server is returning everything as a string. The driver by default knows how to parse integers, but we have provided a type parser that does not modify the values returned by the server. In this case our Result rows will contain the integer values returned from the server as strings. 
+
 ```javascript 
     const client = new Client()
 
@@ -198,9 +326,7 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
     client.query("INSERT INTO users VALUES (1, 'John')")
     client.query("INSERT INTO users VALUES (2, 'Jane')")
     const query = {
-        // integer and varchar columns returned
         text: "SELECT * FROM USERS",
-        // leave values untouched from server when parsing, result is all strings instead of integer and string
         types: {
             getTypeParser: () => val => val,
         },
@@ -210,13 +336,6 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
         client.end()
     })
 ```
-
-## Features
-
-- Pure JavaScript client
-- Connection pooling
-- Extensible JS ↔ Vertica data-type coercion
-- Customizable type parsing
 
 ## Data Type Parsing
 
