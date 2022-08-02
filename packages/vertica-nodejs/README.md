@@ -343,5 +343,5 @@ Currently the client only supports type parsing for booleans, integers, and floa
 
 ## License
 
-Apache 2.0 License, please see [LICENSE](LICENSE) for details.
+Apache 2.0 License, please see [LICENSE](https://github.com/vertica/vertica-nodejs/blob/master/LICENSE) for details.
 
