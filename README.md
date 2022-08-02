@@ -23,7 +23,7 @@ This monorepo contains the core vertica-nodejs module as well as a handful of re
 ## Contributing
 
 We will gladly accept external pull requests if they are well documented and contain tests. 
-For more information on how to contribute, check out our [contributing guidelines](#contributing-guidelines)
+For more information on how to contribute, check out our [contributing guidelines](https://github.com/vertica/vertica-nodejs/blob/master/CONTRIBUTING.md)
 
 ## Installation
 To install vertica-nodejs with npm: 
