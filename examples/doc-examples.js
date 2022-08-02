@@ -1,17 +1,24 @@
-# vertica-nodejs
+// Copyright (c) 2022 Micro Focus or one of its affiliates.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-orange.svg)](https://opensource.org/licenses/Apache-2.0)
-[![NPM version](https://img.shields.io/npm/v/vertica-nodejs?color=blue)](https://www.npmjs.com/package/vertica-nodejs)
-[![NPM downloads](https://img.shields.io/npm/dm/vertica-nodejs)](https://www.npmjs.com/package/vertica-nodejs)
+const {Pool, Client} = require('vertica-nodejs')
 
-Non-blocking Vertica client for Node.js made with pure Javascript.
+/** 
+ * Connection Examples 
+ **/
 
-# Usage examples
-
-## Establishing Connections
-
-### Basic Connection
-```javascript
+function connection() {
     const client = new Client()
 
     client.connect()
@@ -19,39 +26,35 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
         console.log(err || res.rows[0])
         client.end()
     })
-```
+}
 
-### Basic Connection Pool
-```javascript 
+function connectionPool() {
     const pool = new Pool()
 
     pool.query("SELECT 'success' as connectionPool", (err, res) => {
         console.log(err || res.rows[0])
         pool.end()
     })
-```
+}
 
-### Asynchronous Connection
-```javascript 
+async function asyncConnection() {
     const client = new Client()
 
     await client.connect()
     const res = await client.query("SELECT 'success' as asyncConnection")
     console.log(res.rows[0])
     await client.end()
-```
+}
 
-### Asynchronous Connection Pool
-```javascript 
+async function asyncConnectionPool() {
     const pool = new Pool()
 
     const res = await pool.query("SELECT 'success' as asyncConnectionPool")
     console.log(res.rows[0])
     await pool.end()
-```
+}
 
-### Connection With Config Object
-```javascript 
+function connectionWithConfig() {
     const client = new Client({
         user: process.env['V_USER'],
         host: process.env['V_HOST'],
@@ -65,10 +68,9 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
         console.log(err || res.rows[0])
         client.end()
     })
-```
+}
 
-### Connection Pool with Config Object
-```javascript 
+function connectionPoolWithConfig() {
     const pool = new Pool({
         user: process.env['V_USER'],
         host: process.env['V_HOST'],
@@ -81,10 +83,9 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
         console.log(err || res.rows[0])
         pool.end()
     })
-```
+}
 
-### Connection with Connection String
-```javascript 
+function connectionWithString() {
     const connectionString = 'vertica://'
                            + process.env['V_USER'] + ':'
                            + process.env['V_PASSWORD'] + '@'
@@ -99,10 +100,9 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
         console.log(err || res.rows[0])
         client.end()
     })
-```
+}
 
-### Connection Pool with Connection String
-```javascript 
+function connectionPoolWithString() {
     const connectionString = 'vertica://'
                            + process.env['V_USER'] + ':'
                            + process.env['V_PASSWORD'] + '@'
@@ -116,12 +116,22 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
         console.log(err || res.rows[0])
         pool.end()
     })
-```
+}
 
-## Executing Queries and Accessing Results
+connection()
+connectionPool()
+asyncConnection()
+asyncConnectionPool()
+connectionWithConfig()
+connectionPoolWithConfig()
+connectionWithString()
+connectionPoolWithString()
 
-### Simple Query
-```javascript 
+/** 
+ * Query and Results Examples
+ **/
+
+function simpleQuery(){
     const client = new Client()
 
     client.connect()
@@ -135,10 +145,9 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
             })
         })
     })
-```
+}
 
-### Parameterized Query
-```javascript 
+function parameterizedQuery() {
     const client = new Client()
 
     client.connect()
@@ -151,10 +160,9 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
         console.log(err || res.rows)
         client.end()
     })
-```
+}
 
-### Prepared Statement
-```javascript 
+function preparedStatement() {
     const client = new Client()
 
     client.connect()
@@ -173,10 +181,9 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
             client.end()
         })
     })
-```
+}
 
-### Modifying Result Rows with RowMode
-```javascript 
+function arrayRowModeQuery() {
     const client = new Client()
 
     client.connect()
@@ -187,10 +194,9 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
         console.log(err || res.rows) // [ [1, 'John'], [2, 'Jane'] ]
         client.end()
     })
-```
+}
 
-### Custom Type Parsing of Result Rows
-```javascript 
+function customTypeParser() {
     const client = new Client()
 
     client.connect()
@@ -209,20 +215,15 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
         console.log(err || res.rows) 
         client.end()
     })
-```
+}
 
-## Features
+simpleQuery()
+parameterizedQuery()
+preparedStatement()
+arrayRowModeQuery()
+customTypeParser()
 
-- Pure JavaScript client
-- Connection pooling
-- Extensible JS ↔ Vertica data-type coercion
-- Customizable type parsing
-
-## Data Type Parsing
-
-Currently the client only supports type parsing for booleans, integers, and floats where integers and floats are both parsed as javascript numbers. Everything else is treated as a string in the result rows. 
-
-## License
-
-Apache 2.0 License, please see [LICENSE](LICENSE) for details.
+/**
+ * TLS and other connection Properties Examples
+ */
 
