@@ -43,7 +43,6 @@
   },
   "scripts": {
     "test": "make -k test-all",
-    "testMocha": "node_modules/.bin/mocha test/mocha/*.js"
   },
   "files": [
     "lib",
