@@ -15,7 +15,7 @@
 'use strict'
 const vertica = require('../../../lib')
 const assert = require('assert')
-//const {describe, it} = require('mocha')
+const {describe, it} = require('mocha')
 
 describe('vertica label connection parameter', function () {
   it('has a default value that is used when left unspecified', function(done) {
@@ -27,7 +27,10 @@ describe('vertica label connection parameter', function () {
     assert.equal(client_default.client_label, vertica.defaults.client_label)
     client_default.connect()
     client_default.query('SELECT GET_CLIENT_LABEL()', (err, res) => {
-      if (err) assert(false)
+      if (err){
+        console.log(err)
+        assert(false)
+      } 
       assert.equal(res.rows[0]['GET_CLIENT_LABEL'], vertica.defaults.client_label)
       client_default.end()
       done()
@@ -40,7 +43,10 @@ describe('vertica label connection parameter', function () {
     assert.equal(client_test.client_label, 'distinctLabel')
     client_test.connect()
     client_test.query('SELECT GET_CLIENT_LABEL()', (err, res) => {
-      if (err) assert(false)
+      if (err){
+        console.log(err)
+        assert(false)
+      } 
       assert.equal(res.rows[0]['GET_CLIENT_LABEL'], 'distinctLabel')
       client_test.end()
       done()
@@ -54,7 +60,7 @@ describe('vertica protocol_version connection parameter', function () {
     assert.equal(vertica.defaults.protocol_version, undefined)
   })
 
-  it('provides a maximum value for the protocol version used by the server', function() {
+  it('provides a maximum value for the protocol version used by the server', function(done) {
     const client = new vertica.Client({client_label: 'pvTest'}) // make easy to find session
     client.connect()
     client.query("SELECT effective_protocol from sessions where client_label = 'pvTest'", (err, res) => {
@@ -63,6 +69,7 @@ describe('vertica protocol_version connection parameter', function () {
       var int32pv = (parseInt(pv.split(".")[0]) << 16 | parseInt(pv.split(".")[1])) // int32 from (M << 16 | m)
       assert(int32pv <= client.protocol_version) // server isn't trying to talk in a protocol newer than we know
       client.end()
+      done()
     })
   })
 })
