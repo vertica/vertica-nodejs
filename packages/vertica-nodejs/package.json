@@ -38,10 +38,12 @@
     "async": "0.9.0",
     "bluebird": "3.5.2",
     "co": "4.6.0",
-    "pg-copy-streams": "0.3.0"
+    "pg-copy-streams": "0.3.0",
+    "mocha": "^7.1.2"
   },
   "scripts": {
-    "test": "make -k test-all"
+    "test": "make -k test-all",
+    "testMocha": "node_modules/.bin/mocha test/mocha/*.js"
   },
   "files": [
     "lib",

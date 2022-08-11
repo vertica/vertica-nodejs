@@ -5,8 +5,9 @@ connectionString=vertica://
 params := $(connectionString)
 
 node-command := xargs -n 1 -I file node file $(params)
+mocha-command := xargs -n 1 -I file mocha file 
 
-.PHONY : test test-connection test-integration bench publish update-npm
+.PHONY : test test-connection test-integration test-mocha-integration bench publish update-npm
 
 all:
 	npm install
@@ -16,7 +17,7 @@ help:
 
 test: test-unit
 
-test-all: test-unit test-integration
+test-all: test-mocha-integration test-unit test-integration
 
 
 update-npm:
@@ -26,18 +27,17 @@ bench:
 	@find benchmark -name "*-bench.js" | $(node-command)
 
 test-unit:
+	@echo "***Testing vertica-nodejs Unit Tests***"
 	@find test/unit -name "*-tests.js" | $(node-command)
 
 test-connection:
 	@echo "***Testing connection***"
 
 test-integration: test-connection
-	@echo "***Testing Pure Javascript***"
+	@echo "***Testing vertica-nodejs Integration Tests***"
 	@find test/integration -name "*-tests.js" | $(node-command)
 
-test-binary: test-connection
-	@echo "***Testing Pure Javascript (binary)***"
-	@find test/integration -name "*-tests.js" | $(node-command) binary
+test-mocha-integration:
+	@echo "***Testing vertica-nodejs mocha Integration Tests***"
+	@find mochatest/integration -name "*-tests.js" | $(mocha-command)
 
-test-pool:
-	@find test/integration/connection-pool -name "*.js" | $(node-command) binary
