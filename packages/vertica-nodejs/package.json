@@ -42,7 +42,7 @@
     "pg-copy-streams": "0.3.0"
   },
   "scripts": {
-    "test": "make -k test-all",
+    "test": "make -k test-all"
   },
   "files": [
     "lib",
