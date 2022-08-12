@@ -90,16 +90,16 @@ describe('vertica backup_server_node connection parameter', function() {
     assert.equal(vertica.defaults.backup_server_node, '')
   })
 
-  it('is correctly parsed and used when primary node fails', async function() {
+  it('is correctly parsed and used when primary node fails', async function(done) {
     //only finish this test if there is a vertica server listening on localhost:5433. This will always run in CI
     const client = new vertica.Client({host: '127.0.0.1', port: 5433})
     const addresses = ['127.0.0.1', '127.0.0.1:5433', '0:0:0:0:0:0:0:1', '::1', '[0:0:0:0:0:0:0:1]:5433', '[0:0:0:0:0:0:0:1]', 'localhost', 'localhost:5433']
     client.connect().then(() => {
       client.end()
+      addresses.forEach(testBackupNode)
     }).catch(() => {
-      console.log("Skipping test")
-      return
+      console.log("Skipping test ")
     })
-    addresses.forEach(testBackupNode)
+    done()
   })
 })

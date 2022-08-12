@@ -128,37 +128,6 @@ class ConnectionParameters {
       this.keepalives_idle = Math.floor(config.keepAliveInitialDelayMillis / 1000)
     }
   }
-
-  getLibpqConnectionString(cb) {
-    var params = []
-    add(params, this, 'user')
-    add(params, this, 'password')
-    add(params, this, 'port')
-    add(params, this, 'connect_timeout')
-    add(params, this, 'options')
-    add(params, this, 'backup_server_node')
-
-    if (this.database) {
-      params.push('dbname=' + quoteParamValue(this.database))
-    }
-    if (this.replication) {
-      params.push('replication=' + quoteParamValue(this.replication))
-    }
-    if (this.host) {
-      params.push('host=' + quoteParamValue(this.host))
-    }
-    if (this.isDomainSocket) {
-      return cb(null, params.join(' '))
-    }
-    if (this.client_encoding) {
-      params.push('client_encoding=' + quoteParamValue(this.client_encoding))
-    }
-    dns.lookup(this.host, function (err, address) {
-      if (err) return cb(err, null)
-      params.push('hostaddr=' + quoteParamValue(address))
-      return cb(null, params.join(' '))
-    })
-  }
 }
 
 module.exports = ConnectionParameters
