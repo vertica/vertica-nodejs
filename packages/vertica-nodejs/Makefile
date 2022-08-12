@@ -24,18 +24,17 @@ bench:
 	@find benchmark -name "*-bench.js" | $(node-command)
 
 test-unit:
-	@echo -e "\n***TESTING VERTICA-NODEJS UNIT TESTS***\n"
+	@printf "\n***TESTING VERTICA-NODEJS UNIT TESTS***\n\n"
 	@find test/unit -name "*-tests.js" | $(node-command)
 
 test-integration:
-	@echo -e "\n***TESTING VERTICA-NODEJS INTEGRATION TESTS***\n"
+	@printf "\n***TESTING VERTICA-NODEJS INTEGRATION TESTS***\n\n"
 	@find test/integration -name "*-tests.js" | $(node-command)
 
 test-mocha-integration:
-	@echo -e "\n***TESTING VERTICA-NODEJS MOCHA UNIT TESTS***\n"
+	@printf "\n***TESTING VERTICA-NODEJS MOCHA UNIT TESTS***\n\n"
 	@find mochatest/integration -name "*-tests.js" | $(mocha-command)
 
 test-mocha-unit:
-	@echo -e "\n***TESTING VERTICA-NODEJS MOCHA INTEGRATION TESTS***\n"
+	@printf "\n***TESTING VERTICA-NODEJS MOCHA INTEGRATION TESTS***\n\n"
 	@find mochatest/unit -name "*-tests.js" | $(mocha-command)
-

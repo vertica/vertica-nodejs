@@ -15,7 +15,6 @@
 'use strict'
 const vertica = require('../../../lib')
 const assert = require('assert')
-const {describe, it} = require('mocha')
 
 describe('vertica label connection parameter', function () {
   it('has a default value that is used when left unspecified', function(done) {
