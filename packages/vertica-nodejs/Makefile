@@ -7,7 +7,7 @@ params := $(connectionString)
 node-command := xargs -I file node file $(params)
 mocha-command := xargs -I file mocha file 
 
-.PHONY : test test-connection test-integration test-mocha-integration test-mocha-unit bench publish update-npm
+.PHONY : test-integration test-mocha-integration test-mocha-unit bench update-npm
 
 all:
 	npm install
@@ -32,9 +32,9 @@ test-integration:
 	@find test/integration -name "*-tests.js" | $(node-command)
 
 test-mocha-integration:
-	@printf "\n***TESTING VERTICA-NODEJS MOCHA UNIT TESTS***\n\n"
+	@printf "\n***TESTING VERTICA-NODEJS MOCHA INTEGRATION TESTS***\n\n"
 	@find mochatest/integration -name "*-tests.js" | $(mocha-command)
 
 test-mocha-unit:
-	@printf "\n***TESTING VERTICA-NODEJS MOCHA INTEGRATION TESTS***\n\n"
+	@printf "\n***TESTING VERTICA-NODEJS MOCHA UNIT TESTS***\n\n"
 	@find mochatest/unit -name "*-tests.js" | $(mocha-command)
