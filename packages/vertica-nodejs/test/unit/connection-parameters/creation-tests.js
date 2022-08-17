@@ -15,7 +15,7 @@ const suite = new helper.Suite()
 suite.test('ConnectionParameters construction', function () {
   assert.ok(new ConnectionParameters(), 'with null config')
   assert.ok(new ConnectionParameters({ user: 'asdf' }), 'with config object')
-  assert.ok(new ConnectionParameters('postgres://localhost/postgres'), 'with connection string')
+  assert.ok(new ConnectionParameters('vertica://localhost/vertica'), 'with connection string')
 })
 
 var compare = function (actual, expected, type) {
@@ -59,7 +59,7 @@ suite.test('ConnectionParameters initializing from defaults with connectionStrin
   // Just changing this here doesn't actually work because it's no longer in scope when viewed inside of
   // of ConnectionParameters() so we have to pass in the defaults explicitly to test it
   defaults.connectionString =
-    'postgres://brians-are-the-best:mypassword@foo.bar.net:7777/scoobysnacks?options=-c geqo=off'
+    'vertica://brians-are-the-best:mypassword@foo.bar.net:7777/scoobysnacks?options=-c geqo=off'
   var subject = new ConnectionParameters(defaults)
   defaults.connectionString = original_value
   compare(subject, config, 'defaults-connectionString')
@@ -88,17 +88,17 @@ suite.test('ConnectionParameters initializing from config', function () {
 
 suite.test('ConnectionParameters initializing from config and config.connectionString', function () {
   var subject1 = new ConnectionParameters({
-    connectionString: 'postgres://test@host/db',
+    connectionString: 'vertica://test@host/db',
   })
   var subject2 = new ConnectionParameters({
-    connectionString: 'postgres://test@host/db?tls_mode=require',
+    connectionString: 'vertica://test@host/db?tls_mode=require',
   })
   var subject3 = new ConnectionParameters({
-    connectionString: 'postgres://test@host/db',
+    connectionString: 'vertica://test@host/db',
     tls_mode: 'require',
   })
   var subject4 = new ConnectionParameters({
-    connectionString: 'postgres://test@host/db?tls_mode=require', // connection string has preference
+    connectionString: 'vertica://test@host/db?tls_mode=require', // connection string has preference
     tls_mode: 'disable',
   })
 
@@ -109,12 +109,12 @@ suite.test('ConnectionParameters initializing from config and config.connectionS
 })
 
 suite.test('escape spaces if present', function () {
-  var subject = new ConnectionParameters('postgres://localhost/post gres')
+  var subject = new ConnectionParameters('vertica://localhost/post gres')
   assert.equal(subject.database, 'post gres')
 })
 
 suite.test('do not double escape spaces', function () {
-  var subject = new ConnectionParameters('postgres://localhost/post%20gres')
+  var subject = new ConnectionParameters('vertica://localhost/post%20gres')
   assert.equal(subject.database, 'post gres')
 })
 
@@ -160,126 +160,16 @@ const getDNSHost = async function (host) {
   })
 }
 
-suite.testAsync('builds simple string', async function () {
-  var config = {
-    user: 'brian',
-    password: 'xyz',
-    port: 888,
-    host: 'localhost',
-    database: 'bam',
-  }
-  var subject = new ConnectionParameters(config)
-  const dnsHost = await getDNSHost(config.host)
-  return new Promise((resolve) => {
-    subject.getLibpqConnectionString(function (err, constring) {
-      assert(!err)
-      var parts = constring.split(' ')
-      checkForPart(parts, "user='brian'")
-      checkForPart(parts, "password='xyz'")
-      checkForPart(parts, "port='888'")
-      checkForPart(parts, `hostaddr='${dnsHost}'`)
-      checkForPart(parts, "dbname='bam'")
-      resolve()
-    })
-  })
-})
-
-suite.test('builds dns string', async function () {
-  var config = {
-    user: 'brian',
-    password: 'asdf',
-    port: 5432,
-    host: 'localhost',
-  }
-  var subject = new ConnectionParameters(config)
-  const dnsHost = await getDNSHost(config.host)
-  return new Promise((resolve) => {
-    subject.getLibpqConnectionString(function (err, constring) {
-      assert(!err)
-      var parts = constring.split(' ')
-      checkForPart(parts, "user='brian'")
-      checkForPart(parts, `hostaddr='${dnsHost}'`)
-      resolve()
-    })
-  })
-})
-
-suite.test('error when dns fails', function () {
-  var config = {
-    user: 'brian',
-    password: 'asf',
-    port: 5432,
-    host: 'asdlfkjasldfkksfd#!$!!!!..com',
-  }
-  var subject = new ConnectionParameters(config)
-  subject.getLibpqConnectionString(
-    assert.calls(function (err, constring) {
-      assert.ok(err)
-      assert.isNull(constring)
-    })
-  )
-})
-
-suite.test('connecting to unix domain socket', function () {
-  var config = {
-    user: 'brian',
-    password: 'asf',
-    port: 5432,
-    host: '/tmp/',
-  }
-  var subject = new ConnectionParameters(config)
-  subject.getLibpqConnectionString(
-    assert.calls(function (err, constring) {
-      assert(!err)
-      var parts = constring.split(' ')
-      checkForPart(parts, "user='brian'")
-      checkForPart(parts, "host='/tmp/'")
-    })
-  )
-})
-
-suite.test('config contains quotes and backslashes', function () {
-  var config = {
-    user: 'not\\brian',
-    password: "bad'chars",
-    port: 5432,
-    host: '/tmp/',
-  }
-  var subject = new ConnectionParameters(config)
-  subject.getLibpqConnectionString(
-    assert.calls(function (err, constring) {
-      assert(!err)
-      var parts = constring.split(' ')
-      checkForPart(parts, "user='not\\\\brian'")
-      checkForPart(parts, "password='bad\\'chars'")
-    })
-  )
-})
-
-suite.test('encoding can be specified by config', function () {
-  var config = {
-    client_encoding: 'utf-8',
-  }
-  var subject = new ConnectionParameters(config)
-  subject.getLibpqConnectionString(
-    assert.calls(function (err, constring) {
-      assert(!err)
-      var parts = constring.split(' ')
-      checkForPart(parts, "client_encoding='utf-8'")
-    })
-  )
-})
-
 suite.test('password contains  < and/or >  characters', function () {
   var sourceConfig = {
     user: 'brian',
     password: 'hello<ther>e',
     port: 5432,
     host: 'localhost',
-    database: 'postgres',
+    database: 'vertica',
   }
   var connectionString =
-    'postgres://' +
+    'vertica://' +
     sourceConfig.user +
     ':' +
     sourceConfig.password +
@@ -317,7 +207,7 @@ suite.test('ssl is set on client', function () {
   var Client = require('../../../lib/client')
   var defaults = require('../../../lib/defaults')
   defaults.tls_mode = 'require'
-  var c = new Client('postgres://user@password:host/database')
+  var c = new Client('vertica://user@password:host/database')
   assert(c.tls_mode == 'require', 'Client should have ssl enabled via defaults')
 })
 

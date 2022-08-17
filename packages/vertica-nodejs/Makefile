@@ -4,9 +4,10 @@ connectionString=vertica://
 
 params := $(connectionString)
 
-node-command := xargs -n 1 -I file node file $(params)
+node-command := xargs -I file node file $(params)
+mocha-command := xargs -I file mocha file 
 
-.PHONY : test test-connection test-integration bench publish update-npm
+.PHONY : test-integration test-mocha-integration test-mocha-unit bench update-npm
 
 all:
 	npm install
@@ -14,10 +15,7 @@ all:
 help:
 	@echo "make test-all [connectionString=vertica://<your connection string>]"
 
-test: test-unit
-
-test-all: test-unit test-integration
-
+test-all: test-mocha-unit test-mocha-integration test-unit test-integration
 
 update-npm:
 	@npm i npm --global
@@ -26,18 +24,17 @@ bench:
 	@find benchmark -name "*-bench.js" | $(node-command)
 
 test-unit:
+	@printf "\n***TESTING VERTICA-NODEJS UNIT TESTS***\n\n"
 	@find test/unit -name "*-tests.js" | $(node-command)
 
-test-connection:
-	@echo "***Testing connection***"
-
-test-integration: test-connection
-	@echo "***Testing Pure Javascript***"
+test-integration:
+	@printf "\n***TESTING VERTICA-NODEJS INTEGRATION TESTS***\n\n"
 	@find test/integration -name "*-tests.js" | $(node-command)
 
-test-binary: test-connection
-	@echo "***Testing Pure Javascript (binary)***"
-	@find test/integration -name "*-tests.js" | $(node-command) binary
+test-mocha-integration:
+	@printf "\n***TESTING VERTICA-NODEJS MOCHA INTEGRATION TESTS***\n\n"
+	@find mochatest/integration -name "*-tests.js" | $(mocha-command)
 
-test-pool:
-	@find test/integration/connection-pool -name "*.js" | $(node-command) binary
+test-mocha-unit:
+	@printf "\n***TESTING VERTICA-NODEJS MOCHA UNIT TESTS***\n\n"
+	@find mochatest/unit -name "*-tests.js" | $(mocha-command)

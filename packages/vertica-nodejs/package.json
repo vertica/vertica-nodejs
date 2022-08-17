@@ -28,16 +28,17 @@
   "dependencies": {
     "buffer-writer": "2.0.0",
     "packet-reader": "1.0.0",
+    "pg-types": "^2.1.0",
+    "pgpass": "1.x",
     "v-connection-string": "1.0.0",
     "v-pool": "1.0.0",
-    "v-protocol": "1.0.0",
-    "pg-types": "^2.1.0",
-    "pgpass": "1.x"
+    "v-protocol": "1.0.0"
   },
   "devDependencies": {
     "async": "0.9.0",
     "bluebird": "3.5.2",
     "co": "4.6.0",
+    "mocha": "^7.2.0",
     "pg-copy-streams": "0.3.0"
   },
   "scripts": {

@@ -5,9 +5,7 @@
   "main": "./index.js",
   "types": "./index.d.ts",
   "scripts": {
-    "test": "istanbul cover _mocha && npm run check-coverage",
-    "check-coverage": "istanbul check-coverage --statements 100 --branches 100 --lines 100 --functions 100",
-    "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls"
+    "test": "node_modules/.bin/mocha"
   },
   "repository": {
     "type": "git",
