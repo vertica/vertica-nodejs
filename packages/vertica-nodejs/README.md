@@ -75,6 +75,12 @@ The causes and solutions to common errors can be found among the [Frequently Ask
 
 # Usage examples
 
+To use the driver after installation, you need to use require much like you would with any other built-in node module. For these examples, we are using the Client and Pool components and you can require them like this:
+
+```javascript
+    const {Client, Pool} = require('vertica-nodejs')
+```
+
 ## Establishing Connections
 
 There are a number of different ways to establish a connection to your Vertica server. You can create and connect with a single client or a pool of clients, in an asynchronous or synchronous fashion, and using environment variables, default values, configuration objects, or connection strings. 
