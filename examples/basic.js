@@ -32,7 +32,7 @@ async function tearDown() {
   client.end()
 }
 
-async function main() {
+async function getAllEmployees() {
   await setup()
 
   // Run SELECT query
@@ -42,6 +42,8 @@ async function main() {
   console.log(res)
 
   await tearDown()
+
+  return res
 }
 
-main()
+getAllEmployees().then(console.log).catch(console.log)

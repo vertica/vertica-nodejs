@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 const { Client } = require('vertica-nodejs')
 
 const client = new Client()
@@ -32,16 +31,15 @@ async function tearDown() {
   client.end()
 }
 
-async function main() {
+async function getEmployeesOlderThan50() {
   await setup()
 
   // Run parameterized query
-  var res = await client.query('SELECT * FROM Employee WHERE age > ?', [50])
-
-  // print results
-  console.log(res)
+  const res = await client.query('SELECT * FROM Employee WHERE age > ?', [50])
 
   await tearDown()
+
+  return res
 }
 
-main()
+getEmployeesOlderThan50().then(console.log).catch(console.log)
