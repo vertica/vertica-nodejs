@@ -13,7 +13,6 @@
 // limitations under the License.
 
 const { Client } = require('vertica-nodejs')
-const Result = require('vertica-nodejs/lib/result')
 
 const client = new Client()
 
