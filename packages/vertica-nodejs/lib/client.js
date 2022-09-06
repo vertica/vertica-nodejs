@@ -26,8 +26,6 @@ var Query = require('./query')
 var defaults = require('./defaults')
 var Connection = require('./connection')
 
-// and all tls related properties including the commented out ones should get moved from client to connection-parameters
-
 class Client extends EventEmitter {
   constructor(config) {
     super()
