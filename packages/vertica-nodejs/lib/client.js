@@ -26,6 +26,8 @@ var Query = require('./query')
 var defaults = require('./defaults')
 var Connection = require('./connection')
 
+// and all tls related properties including the commented out ones should get moved from client to connection-parameters
+
 class Client extends EventEmitter {
   constructor(config) {
     super()
@@ -46,11 +48,6 @@ class Client extends EventEmitter {
       value: this.connectionParameters.password,
     })
 
-    this.replication = this.connectionParameters.replication
-
-    this.client_label = this.connectionParameters.client_label;
-    this.protocol_version = this.connectionParameters.protocol_version;
-
     var c = config || {}
 
     this._Promise = c.Promise || global.Promise
@@ -67,20 +64,15 @@ class Client extends EventEmitter {
         stream: c.stream,
         tls_mode: this.connectionParameters.tls_mode,
         tls_trusted_certs: this.connectionParameters.tls_trusted_certs,
-        //tls_client_key: this.connectionParameters.tls_client_key,
-        //tls_client_cert: this.connectionParameters.tls_client_cert,
         keepAlive: c.keepAlive || false,
         keepAliveInitialDelayMillis: c.keepAliveInitialDelayMillis || 0,
         encoding: this.connectionParameters.client_encoding || 'utf8',
         client_label: this.connectionParameters.client_label,
       })
     this.queryQueue = []
-    this.binary = c.binary || defaults.binary
     this.processID = null
     this.secretKey = null
     this.tls_mode = this.connectionParameters.tls_mode || 'disable'
-    //this.tls_client_key = this.connectionParameters.tls_client_key
-    //this.tls_client_cert = this.connectionParameters.tls_client_cert
     this.tls_trusted_certs = this.connectionParameters.tls_trusted_certs
     this._connectionTimeoutMillis = c.connectionTimeoutMillis || 0
   }
@@ -317,7 +309,7 @@ class Client extends EventEmitter {
 
   _handleParameterStatus(msg) {
     const min_supported_version = (3 << 16 | 5)         // 3.5
-    const max_supported_version = this.protocol_version // for now we are enforcing 3.5
+    const max_supported_version = this.connectionParameters.protocol_version // for now we are enforcing 3.5
     switch(msg.parameterName) {
       // right now we only care about the protocol_version
       // if we want to have the parameterStatus message update any other connection properties, add them here
@@ -656,7 +648,8 @@ class Client extends EventEmitter {
       }
     }
 
-    if (this.binary && !query.binary) {
+    const binary = c.binary || defaults.binary
+    if (binary && !query.binary) {
       query.binary = true
     }
 
