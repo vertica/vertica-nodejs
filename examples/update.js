@@ -32,24 +32,22 @@ async function tearDown() {
   client.end()
 }
 
-async function main() {
+async function getAllEmployees() {
   await setup()
 
   // Run UPDATE query
-  var res = await client.query('UPDATE Employee SET age = age + 1')
+  const res = await client.query('UPDATE Employee SET age = age + 1')
 
   // print results
-  console.log("UPDATE complete")
+  console.log('UPDATE complete')
   console.log(res)
 
   // Run SELECT query
-  var allRows = await client.query('SELECT * FROM Employee')
-
-  // print results
-  console.log("SELECT complete")
-  console.log(allRows.rows)
+  const allRows = await client.query('SELECT * FROM Employee')
 
   await tearDown()
+
+  return allRows.rows
 }
 
-main()
+getAllEmployees().then(console.log).catch(console.log)

@@ -38,16 +38,15 @@ async function tearDown() {
   client.end()
 }
 
-async function main() {
+async function getEmployeesOlderThan50() {
   await setup()
 
   // Run prepared statement
-  var res = await client.query(fetchOlderQuery)
-
-  // print results
-  console.log(res)
+  const res = await client.query(fetchOlderQuery)
 
   await tearDown()
+
+  return res
 }
 
-main()
+getEmployeesOlderThan50().then(console.log).catch(console.log)
