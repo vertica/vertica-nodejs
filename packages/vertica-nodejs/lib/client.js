@@ -46,6 +46,8 @@ class Client extends EventEmitter {
       value: this.connectionParameters.password,
     })
 
+    this.protocol_version = this.connectionParameters.protocol_version;
+
     var c = config || {}
 
     this._Promise = c.Promise || global.Promise
@@ -72,6 +74,10 @@ class Client extends EventEmitter {
     this.secretKey = null
     this.tls_mode = this.connectionParameters.tls_mode || 'disable'
     this.tls_trusted_certs = this.connectionParameters.tls_trusted_certs
+
+    delete this.connectionParameters.tls_mode
+    delete this.connectionParameters.tls_trusted_certs
+
     this._connectionTimeoutMillis = c.connectionTimeoutMillis || 0
   }
 
@@ -307,7 +313,7 @@ class Client extends EventEmitter {
 
   _handleParameterStatus(msg) {
     const min_supported_version = (3 << 16 | 5)         // 3.5
-    const max_supported_version = this.connectionParameters.protocol_version // for now we are enforcing 3.5
+    const max_supported_version = this.protocol_version // for now we are enforcing 3.5
     switch(msg.parameterName) {
       // right now we only care about the protocol_version
       // if we want to have the parameterStatus message update any other connection properties, add them here
@@ -646,7 +652,11 @@ class Client extends EventEmitter {
       }
     }
 
+<<<<<<< HEAD
     const binary = c.binary || defaults.binary
+=======
+    const binary = this.connectionParameters.binary || defaults.binary
+>>>>>>> cleanup_params_testing_incr
     if (binary && !query.binary) {
       query.binary = true
     }

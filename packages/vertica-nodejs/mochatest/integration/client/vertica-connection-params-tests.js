@@ -23,7 +23,7 @@ describe('vertica label connection parameter', function () {
 
     //assert creating a client connection will use default label
     var client_default = new vertica.Client()
-    assert.equal(client_default.client_label, vertica.defaults.client_label)
+    assert.equal(client_default.connectionParameters.client_label, vertica.defaults.client_label)
     client_default.connect()
     client_default.query('SELECT GET_CLIENT_LABEL()', (err, res) => {
       if (err){
@@ -39,7 +39,7 @@ describe('vertica label connection parameter', function () {
   it('can be specified and used in a client connection', function(done) {
     // assert creating a client connection with specified label will persist
     var client_test = new vertica.Client({client_label: 'distinctLabel'})
-    assert.equal(client_test.client_label, 'distinctLabel')
+    assert.equal(client_test.connectionParameters.client_label, 'distinctLabel')
     client_test.connect()
     client_test.query('SELECT GET_CLIENT_LABEL()', (err, res) => {
       if (err){
