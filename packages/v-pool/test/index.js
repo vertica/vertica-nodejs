@@ -41,7 +41,7 @@ describe('pool', function () {
       pool.connect(function (err, client, release) {
         release()
         if (err) return done(err)
-        expect(client.binary).to.eql(true)
+        expect(client.connectionParameters.binary).to.eql(true)
         pool.end(done)
       })
     })

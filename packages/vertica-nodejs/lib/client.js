@@ -70,11 +70,14 @@ class Client extends EventEmitter {
         client_label: this.connectionParameters.client_label,
       })
     this.queryQueue = []
-    this.binary = c.binary || defaults.binary
     this.processID = null
     this.secretKey = null
     this.tls_mode = this.connectionParameters.tls_mode || 'disable'
     this.tls_trusted_certs = this.connectionParameters.tls_trusted_certs
+
+    delete this.connectionParameters.tls_mode
+    delete this.connectionParameters.tls_trusted_certs
+
     this._connectionTimeoutMillis = c.connectionTimeoutMillis || 0
   }
 
@@ -649,7 +652,8 @@ class Client extends EventEmitter {
       }
     }
 
-    if (this.binary && !query.binary) {
+    const binary = this.connectionParameters.binary || defaults.binary
+    if (binary && !query.binary) {
       query.binary = true
     }
 
