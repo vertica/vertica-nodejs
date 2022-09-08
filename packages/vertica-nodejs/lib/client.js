@@ -652,11 +652,7 @@ class Client extends EventEmitter {
       }
     }
 
-<<<<<<< HEAD
-    const binary = c.binary || defaults.binary
-=======
     const binary = this.connectionParameters.binary || defaults.binary
->>>>>>> cleanup_params_testing_incr
     if (binary && !query.binary) {
       query.binary = true
     }
