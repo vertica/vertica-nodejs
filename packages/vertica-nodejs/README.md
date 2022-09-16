@@ -46,19 +46,6 @@ Ensure that the applicable environment variables are configured for connecting t
 
 See [DATATYPES.md](https://github.com/vertica/vertica-nodejs/blob/master/DATATYPES.md) to view the mappings from type IDs to Vertica data types.
 
-## Setting up for local driver development
-
-The following instructions are for working with the driver source code. Follow this set up if you intend to contribute to the driver. These steps are similar to those for developing with the driver, but include steps for building and testing locally. 
-
-1. Clone the repo
-2. If yarn is not already installed, install yarn `npm install -g yarn`
-3. From your workspace root run `yarn` and then `yarn lerna bootstrap`
-4. Ensure you have a Vertica instance running with 
-5. Ensure you have the proper environment variables configured for connecting to the instance (`V_HOST`, `V_PORT`, `V_USER`, `V_PASSWORD`, `V_DATABASE`, `V_BACKUP_SERVER_NODE`)
-6. Run `yarn test` to run all the tests, or run `yarn test` from within an individual package to only run that package's tests
-
-If using VS Code, you can install the `Remote - Containers` extension and it will use the configuration under the `.devcontainer` folder to automatically create dev containers, including Vertica.  See [here](https://code.visualstudio.com/docs/remote/containers) for more information on developing in containers using VS Code.  This process will complete steps 3 to 5 above.
-
 ## Support
 
 vertica-nodejs is free software. If you encounter a bug with the library please open an issue on the [GitHub repo](https://github.com/vertica/vertica-nodejs). If you have questions unanswered by the documentation please open an issue pointing out how the documentation was unclear and we will address it as needed. 
@@ -75,11 +62,6 @@ The causes and solutions to common errors can be found among the [Frequently Ask
 
 # Usage examples
 
-To use the driver after installation, you need to use require much like you would with any other built-in node module. For these examples, we are using the Client and Pool components and you can require them like this:
-
-```javascript
-    const {Client, Pool} = require('vertica-nodejs')
-```
 
 ## Establishing Connections
 
@@ -93,6 +75,7 @@ is the ability to run single queries at a time on any available client from the 
 The simplest way to establish a connection is by creating a single Client instance and calling connect(). This will attempt to create a connection based on your environment variables, if set, or the assigned default values. 
 
 ```javascript
+    const {Client} = require('vertica-nodejs')
     const client = new Client()
 
     client.connect()
@@ -107,6 +90,7 @@ The simplest way to establish a connection is by creating a single Client instan
 This accomplishes the same thing, but querying with an available client in a connection pool.
 
 ```javascript 
+    const {Pool} = require('vertica-nodejs')
     const pool = new Pool()
 
     pool.query("SELECT 'success' as connectionPool", (err, res) => {
@@ -120,6 +104,7 @@ This accomplishes the same thing, but querying with an available client in a con
 You can use async/await
 
 ```javascript 
+    const {Client} = require('vertica-nodejs')
     const client = new Client()
 
     await client.connect()
@@ -133,6 +118,7 @@ You can use async/await
 You can use async/await with pooling
 
 ```javascript 
+    const {Pool} = require('vertica-nodejs')
     const pool = new Pool()
 
     const res = await pool.query("SELECT 'success' as asyncConnectionPool")
@@ -145,6 +131,7 @@ You can use async/await with pooling
 You can override environment variables and defaults by providing your own configuration object. In this example we are providng a configuration object that uses the environment variables, so there would be no change in behavior, but you can provide any valid user, host, database, password, port, or a subset.
 
 ```javascript 
+    const {Client} = require('vertica-nodejs')
     const client = new Client({
         user: process.env['V_USER'],
         host: process.env['V_HOST'],
@@ -165,6 +152,7 @@ You can override environment variables and defaults by providing your own config
 Configuration objects work the same way with connection pools
 
 ```javascript 
+    const {Pool} = require('vertica-nodejs')
     const pool = new Pool({
         user: process.env['V_USER'],
         host: process.env['V_HOST'],
@@ -184,6 +172,7 @@ Configuration objects work the same way with connection pools
 You can further override defaults, environment variables, and configuration objects by providing your own connection string of the format "vertica://user:password@host:port/databaseName". Again, in this example we are constructing this connection string using the environment variables, so the behavior would remain unchanged.
 
 ```javascript 
+    const {Client} = require('vertica-nodejs')
     const connectionString = 'vertica://'
                            + process.env['V_USER'] + ':'
                            + process.env['V_PASSWORD'] + '@'
@@ -205,6 +194,7 @@ You can further override defaults, environment variables, and configuration obje
 Connection strings work the same way with connection pools
 
 ```javascript 
+    const {Pool} = require('vertica-nodejs')
     const connectionString = 'vertica://'
                            + process.env['V_USER'] + ':'
                            + process.env['V_PASSWORD'] + '@'
@@ -243,6 +233,7 @@ Currently, all calls to query() will return a result object, but only queries th
 For simple query protocol in which your query contains only text and no parameters, you can provide just the query string as a parameter to the query() method. 
 
 ```javascript 
+    const {Client} = require('vertica-nodejs')
     const client = new Client()
 
     client.connect()
@@ -263,6 +254,7 @@ For simple query protocol in which your query contains only text and no paramete
 In a parameterized query, both the queryString and an ordered array of values need to be provided.
 
 ```javascript 
+    const {Client} = require('vertica-nodejs')
     const client = new Client()
 
     client.connect()
@@ -282,6 +274,7 @@ In a parameterized query, both the queryString and an ordered array of values ne
 Prepared statements are slightly different. Here we will provide a query in the form of an object containing a query name (name), query string (text), and an ordered array of values (values). Once the query has been submitted, subsequent uses of the same prepared statement need only to use the name and value array, and not the query string in the query object. 
 
 ```javascript 
+    const {Client} = require('vertica-nodejs')
     const client = new Client()
 
     client.connect()
@@ -306,6 +299,7 @@ Prepared statements are slightly different. Here we will provide a query in the 
 The Result.rows returned by a query are by default an array of objects with key-value pairs that map the column name to column value for each row. Often you will find you don't need that, especially for very large result sets. In this case you can provide a query object parameter containing the rowMode field set to 'array'. This will cause the driver to parse row data into arrays of values without creating an object and having key-value pairs. 
 
 ```javascript 
+    const {Client} = require('vertica-nodejs')
     const client = new Client()
 
     client.connect()
@@ -325,6 +319,7 @@ It is also possible to provide your own type parsers. See the Data Type Parsing 
 For this example, note that the server is returning everything as a string. The driver by default knows how to parse integers, but we have provided a type parser that does not modify the values returned by the server. In this case our Result rows will contain the integer values returned from the server as strings. 
 
 ```javascript 
+    const {Client} = require('vertica-nodejs')
     const client = new Client()
 
     client.connect()
@@ -342,10 +337,6 @@ For this example, note that the server is returning everything as a string. The 
         client.end()
     })
 ```
-
-## Data Type Parsing
-
-Currently the client only supports type parsing for booleans, integers, and floats where integers and floats are both parsed as javascript numbers. Everything else is treated as a string in the result rows. 
 
 ## License
 

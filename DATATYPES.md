@@ -36,3 +36,6 @@ The result set metadata currently just displays the Type ID for each column as a
 |               301 | Array                            | Array                                   |
 |               302 | Map                              | Map                                     |
 
+## Data Type Parsing
+
+Currently the client only supports type parsing for booleans, integers, and floats where integers and floats are both parsed as javascript numbers. Everything else is treated as a string in the result rows. 
