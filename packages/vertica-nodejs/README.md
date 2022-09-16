@@ -6,6 +6,18 @@
 
 Non-blocking Vertica client for Node.js made with pure Javascript.
 
+#Jump to
+1. [Features](#Features)
+2. [Contributing](#Contributing)
+3. [Vertica Data Types](#Vertica-Data-Types)
+4. [Support](#Support)
+5. [Troubleshooting and FAQ](#Troubleshooting-and-FAQ)
+6. [Installation](#Installation)
+7. [Post Installation Setup](#Post-Installation-Setup)
+8. [Usage Examples](#Usage-Examples)
+    - [Establishing Connections](#Establishing-Connections)
+    - [Executing Queries and Accessing Results](#Executing-Queries-and-Accessing-Results)
+
 ## Features
 
 - Pure JavaScript client
