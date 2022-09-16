@@ -6,7 +6,7 @@
 
 Non-blocking Vertica client for Node.js made with pure Javascript.
 
-#Jump to
+## Jump to
 1. [Features](#Features)
 2. [Contributing](#Contributing)
 3. [Vertica Data Types](#Vertica-Data-Types)
