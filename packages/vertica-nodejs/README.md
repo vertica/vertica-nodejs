@@ -140,7 +140,7 @@ You can use async/await with pooling
 
 ### Connection With Config Object
 
-You can override environment variables and defaults by providing your own configuration object. In this example we are providng a configuration object that uses the environment variables, so there would be no change in behavior, but you can provide any valid user, host, database, password, port, or a subset.
+You can override environment variables and defaults by providing your own configuration object. In this example we are providing a configuration object. We are initializing it with the same environment variables used in the previous examples, but you can provide any user, host, database, password or port you want.
 
 ```javascript 
     const {Client} = require('vertica-nodejs')
