@@ -1,9 +1,4 @@
-## Setting up for local driver development
 
-The following instructions are for working with the driver source code. Follow this set up if you intend to contribute to the driver. These steps are similar to those for developing with the driver, but include steps for building and testing locally. 
-
-6. Run `yarn test` to run all the tests, or run `yarn test` from within an individual package to only run that package's tests 
----------------------------
 First off, thank you for considering contributing to *vertica-nodejs* and helping make it even better than it is today!
 
 This document will guide you through the contribution process. There are a number of ways you can help:
@@ -34,7 +29,7 @@ Fork the project [on Github](https://github.com/vertica/vertica-nodejs) and chec
 
 ```shell
 git clone git@github.com:YOURUSERNAME/vertica-nodejs.git
-cd vertica-python
+cd vertica-nodejs
 ```
 
 Your GitHub repository **YOURUSERNAME/vertica-nodjes** will be called "origin" in
