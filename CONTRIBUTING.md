@@ -85,10 +85,10 @@ Spin up your Vertica database for integration tests. Once done you will need to 
 
   ```shell
   # Set environment variables in linux
-  $ export V_HOST=10.0.0.2
+  $ export V_HOST=localhost
   $ export V_PORT=5433
   $ export V_USER=dbadmin
-  $ export V_PASSWORD=xxxx
+  $ export V_PASSWORD=
   $ export V_DATABASE=VMart
   $ export V_BACKUP_SERVER_NODE=10.0.0.3 (NOT REQUIRED)
 
