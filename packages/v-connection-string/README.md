@@ -21,7 +21,10 @@ Other packages part of the vertica-nodejs project can be found here:
 ## Establishing a TCP Connection with Connection String
 
 The URL format for opening a TCP connection: 
+
+```javascript 
 vertica://<user>:<password>@<host>:<port>/<database>?configParams
+```
 
 where configParams are of the format ?parameterName=parameterValue and include other supported options outside of the required five. These config parameters will be passed through the same way as establishing a client connection with a config object. 
 
