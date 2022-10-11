@@ -4,9 +4,8 @@
 [![NPM version](https://img.shields.io/npm/v/v-protocol?color=blue)](https://www.npmjs.com/package/v-protocol)
 [![NPM downloads](https://img.shields.io/npm/dm/v-protocol)](https://www.npmjs.com/package/v-protocol)
 
-Enables use of standard Vertica client-server protocol in the vertica-nodejs driver.
-This is used by the [vertica-nodejs](https://github.com/vertica/vertica-nodejs) client driver and is *not* meant to be
-used separately by developers writing their own applications with vertica-nodejs.
+Responsible for serialization and deserialization of low level wire protocol for use in the implementation of Vertica's unique client-server protocol. 
+This is used by the [vertica-nodejs](https://github.com/vertica/vertica-nodejs) client driver and does not have an exposed API for development of other applications.
 
 ## Documentation
 
