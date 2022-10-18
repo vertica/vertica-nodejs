@@ -58,8 +58,8 @@ jobs:
             sleep 3; \
           done;
           echo "Vertica is up"
-          docker exec -u dbadmin vertica_docker /opt/vertica/bin/vsql -c "\l"
-          docker exec -u dbadmin vertica_docker /opt/vertica/bin/vsql -c "select version()"
+          docker exec -u dbadmin vertica_ce /opt/vertica/bin/vsql -c "\l"
+          docker exec -u dbadmin vertica_ce /opt/vertica/bin/vsql -c "select version()"
 
       - name: test-v-connection-string
         if: always()
