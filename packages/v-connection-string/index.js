@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Micro Focus or one of its affiliates.
+// Copyright (c) 2022-2023 Micro Focus or one of its affiliates.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ var fs = require('fs')
 
 //Parse method copied from https://github.com/brianc/node-postgres
 //Original work Copyright (c) 2010-2014 Brian Carlson (brian.m.carlson@gmail.com)
-//Modified work Copyright (c) 2022 Micro Focus or one of its affiliates.
+//Modified work Copyright (c) 2022-2023 Micro Focus or one of its affiliates.
 
 //parses a connection string
 function parse(str) {
