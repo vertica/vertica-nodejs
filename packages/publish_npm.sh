@@ -20,11 +20,31 @@ check_prerequisites ()
         echo "Error: You have local changes, which is not allowed.  Use 'git status' to view."
         return 1
     fi
+
+    # Checks for publishing to Github release
+    regex='"version": "([0-9.]+)",'
+    package=$(cat ./vertica-nodejs/package.json)
+    [[ $package =~ $regex ]]
+    version=${BASH_REMATCH[1]}
+    if [ -z "$version" ]
+    then
+        echo "Error: Cannot detect version to be published."
+        return 1
+    else
+        echo "[Success] Detected version to be published: $version"
+    fi
+
+    if [ -z "$GITHUB_TOKEN" ]
+    then
+        echo "Error: Cannot detect Github token. Set the Github token via GITHUB_TOKEN environment variable."
+        return 1
+    fi
+
     return 0;
 }
 
 
-echo "This script will publish vertica-nodejs to Node Package Manager (NPM)."
+echo "This script will publish vertica-nodejs to Node Package Manager (NPM) and Github release page."
 echo "This includes the Vertica specific packages v-connection-string, v-pool and v-protocol."
 dry_run_arg=""
 
@@ -55,6 +75,19 @@ if [[ ${shouldContinue} == "yes" ]]; then
     npm publish ./v-pool $dry_run_arg
     npm publish ./v-protocol $dry_run_arg
     npm publish ./vertica-nodejs $dry_run_arg
+
+    if [ -z "$dry_run_arg" ]
+    then
+	echo "Publishing to Github release.."
+	curl -X POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer $GITHUB_TOKEN"\
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          https://api.github.com/repos/vertica/vertica-nodejs/releases \
+          -d '{"tag_name":"'$version'","target_commitish":"master","name":"'$version'","draft":false,"prerelease":false,"generate_release_notes":true}'
+    else
+	echo "Canceled to publish to Github release in dry run"
+    fi
 else
     echo "Publishing canceled"
 fi
