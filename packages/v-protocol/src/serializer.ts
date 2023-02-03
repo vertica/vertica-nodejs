@@ -47,10 +47,10 @@ const startup = (opts: Record<string, string>): Buffer => {
     }
     writer.addCString(key).addCString(opts[key])
   }
-  writer.addCString('protocol_version').addInt32(parseInt(opts['protocol_version']))
-  writer.addCString('client_encoding').addCString('UTF8')
+  writer.addCString('protocol_version').addInt32(parseInt(opts['protocol_version'])).addCString('')
+  //writer.addCString('client_encoding').addCString('UTF8')
 
-  var bodyBuffer = writer.addCString('').addCString('').flush()
+  var bodyBuffer = writer.addCString('').flush()
   // this message is sent without a code
 
   var length = bodyBuffer.length + 4 // server expects length of message to include the int32 telling the length
