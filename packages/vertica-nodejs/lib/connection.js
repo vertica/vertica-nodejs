@@ -133,8 +133,6 @@ class Connection extends EventEmitter {
           tls_options.checkServerIdentity = (host, cer) => undefined
           if (self.tls_trusted_certs) {
             tls_options.ca = fs.readFileSync(self.tls_trusted_certs).toString()
-          } else {
-            throw new Error('verify-ca mode requires setting tls_trusted_certs property')
           }
           /*if (self.tls_client_cert) {// the client won't know whether or not this is required, depends on server mode
             tls_options.cert = fs.readFileSync(self.tls_client_cert).toString()
@@ -152,8 +150,6 @@ class Connection extends EventEmitter {
           tls_options.rejectUnauthorized = true
           if (self.tls_trusted_certs) {
             tls_options.ca = fs.readFileSync(self.tls_trusted_certs).toString()
-          } else {
-            throw new Error('verify-ca mode requires setting tls_trusted_certs property')
           }
           /*if (self.tls_client_cert) {// the client won't know whether or not this is required, depends on server mode
             tls_options.cert = fs.readFileSync(self.tls_client_cert).toString()
