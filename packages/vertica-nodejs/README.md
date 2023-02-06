@@ -228,7 +228,7 @@ Connection strings work the same way with connection pools
 
 Current TLS Support in vertica-nodejs is limited to server modes that does not require the client to present a certificate. mTLS will be supported in a future version of vertica-nodejs. 
 
-Valid values for the tls_mode connection property are `disable`, `require` which will ensure the connection is encrypted, `verify-ca` which ensures the connection is encrypted and the client trusts the server certificate, and `verify-full` which ensures the connection is encrypted, the client trusts the server certificate, and the server hostname has been verified to match the provided server certificate. 
+Valid values for the `tls_mode` connection property are `disable`, `require` which will ensure the connection is encrypted, `verify-ca` which ensures the connection is encrypted and the client trusts the server certificate, and `verify-full` which ensures the connection is encrypted, the client trusts the server certificate, and the server hostname has been verified to match the provided server certificate. 
 
 ### TLS Connection Properties
 
