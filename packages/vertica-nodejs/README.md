@@ -222,6 +222,29 @@ Connection strings work the same way with connection pools
     })
 ```
 
+## TLS
+
+### TLS Modes
+
+Current TLS Support in vertica-nodejs is limited to server modes that does not require the client to present a certificate. mTLS will be supported in a future version of vertica-nodejs. 
+
+Valid values for the tls_mode connection property are `disable`, `require` which will ensure the connection is encrypted, `verify-ca` which ensures the connection is encrypted and the client trusts the server certificate, and `verify-full` which ensures the connection is encrypted, the client trusts the server certificate, and the server hostname has been verified to match the provided server certificate. 
+
+### TLS Connection Properties
+
+The `tls_mode` connection property is a string that determines the mode of tls the client will attempt to use. By default it is `disable`. Other valid values are described in the above section.
+
+The `tls_trusted_certs` connection property is an optional override of the trusted CA certificates. `tls_trusted_certs` is a path to the .pem file being used to override defaults. The default is based on the node.js tls module which defaults to well-known CAs curated by Mozilla.
+
+### Sample TLS Client Creation
+
+```javascript
+    const {Client} = require('vertica-nodejs')
+    var client = new Client({tls_mode: 'verify-ca',
+                             tls_trusted_certs: './tls/ca_cert.pem'})
+    client.connect()
+```
+
 ## Executing Queries and Accessing Results
 
 After establishing a connection in whatever way you choose, you can query your Vertica database. There are a number of ways to do this including simple queries, parameterized queries, and prepared statements. The results can be further modified by changing the rowMode, or using custom type parsers as you will see in the examples below. 
