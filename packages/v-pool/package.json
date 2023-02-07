@@ -1,6 +1,6 @@
 {
   "name": "v-pool",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Connection pool for Vertica",
   "main": "index.js",
   "directories": {
@@ -35,6 +35,6 @@
     "mocha": "^7.1.2"
   },
   "peerDependencies": {
-    "vertica-nodejs": "1.0.1"
+    "vertica-nodejs": "1.0.2"
   }
 }
