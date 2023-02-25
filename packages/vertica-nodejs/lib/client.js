@@ -62,6 +62,7 @@ class Client extends EventEmitter {
       c.connection ||
       new Connection({
         stream: c.stream,
+        tls_config: this.connectionParameters.tls_config,
         tls_mode: this.connectionParameters.tls_mode,
         tls_trusted_certs: this.connectionParameters.tls_trusted_certs,
         keepAlive: c.keepAlive || false,
@@ -72,6 +73,7 @@ class Client extends EventEmitter {
     this.queryQueue = []
     this.processID = null
     this.secretKey = null
+    this.tls_config = this.connectionParameters.tls_config
     this.tls_mode = this.connectionParameters.tls_mode || 'disable'
     this.tls_trusted_certs = this.connectionParameters.tls_trusted_certs
 
@@ -186,7 +188,7 @@ class Client extends EventEmitter {
     // once connection is established send startup message
     con.on('connect', function () {
       // SSLRequest Message
-      if (self.tls_mode !== 'disable') {
+      if (self.tls_mode !== 'disable' || self.tls_config !== undefined) {
         con.requestSsl()
       } else {
         con.startup(self.getStartupConf())
