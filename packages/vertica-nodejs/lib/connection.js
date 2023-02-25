@@ -182,10 +182,10 @@ class Connection extends EventEmitter {
         else {
           self.emit('error', 'Invalid TLS mode has been entered'); // should be unreachable
         }
+        
       }
       self.attachListeners(self.stream)
       self.stream.on('error', reportStreamError)
-
       self.emit('sslconnect')
     })
   } 
@@ -208,6 +208,7 @@ class Connection extends EventEmitter {
   }
 
   startup(config) {
+    console.log(config)
     this.stream.write(serialize.startup(config))
   }
 
