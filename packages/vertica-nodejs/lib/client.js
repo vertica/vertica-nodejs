@@ -77,6 +77,7 @@ class Client extends EventEmitter {
     this.tls_mode = this.connectionParameters.tls_mode || 'disable'
     this.tls_trusted_certs = this.connectionParameters.tls_trusted_certs
 
+    delete this.connectionParameters.tls_config
     delete this.connectionParameters.tls_mode
     delete this.connectionParameters.tls_trusted_certs
 
@@ -188,6 +189,12 @@ class Client extends EventEmitter {
     // once connection is established send startup message
     con.on('connect', function () {
       // SSLRequest Message
+      if (self.tls_config === undefined) {
+        console.log("TLS config is undefined")
+      }
+      else {
+        console.log("TLS config is not undefined")
+      }
       if (self.tls_mode !== 'disable' || self.tls_config !== undefined) {
         con.requestSsl()
       } else {

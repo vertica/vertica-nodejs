@@ -44,10 +44,14 @@ class Connection extends EventEmitter {
     this.tls_config = config.tls_config
 
     if (this.tls_config === undefined) {
+      console.log("TLS config undefined")
       this.tls_mode = config.tls_mode || 'disable'
       //this.tls_client_key = config.tls_client_key
       //this.tls_client_cert = config.tls_client_cert
       this.tls_trusted_certs = config.tls_trusted_certs
+    }
+    else {
+      console.log("TLS config not undefined")
     }
     var self = this
     this.on('newListener', function (eventName) {
@@ -88,7 +92,11 @@ class Connection extends EventEmitter {
 
     // only try to connect with tls if we are set up to
     // server might reject us if we dont, but we don't know that yet
-    if (this.tls_mode === 'disable' || (this.tls_mode === undefined && this.tls_config === undefined)) {
+    //if (this.tls_mode === 'disable' || (this.tls_mode === undefined && this.tls_config === undefined)) {
+      //return this.attachListeners(this.stream)
+    //}
+
+    if (self.tls_config === undefined && self.tls_mode === 'disable') {
       return this.attachListeners(this.stream)
     }
 

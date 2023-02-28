@@ -97,12 +97,12 @@ class ConnectionParameters {
     // if the user wants to have more control over the tls socket they can provide their own tls_config object
     // this is particularly useful for customers migrating over from node-vertica
     // otherwise we will support standard tls mode support as in other drivers
-    if (this.tls_config === undefined) {
+    //if (this.tls_config === undefined) {
       this.tls_mode = val('tls_mode', config)
       //this.tls_client_key = val('tls_client_key', config)
       //this.tls_client_cert = val('tls_client_cert', config)
       this.tls_trusted_certs = val('tls_trusted_certs', config)
-    }
+    //}
     this.client_encoding = val('client_encoding', config)
     this.replication = val('replication', config)
     // a domain socket begins with '/'
