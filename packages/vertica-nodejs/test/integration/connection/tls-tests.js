@@ -175,6 +175,31 @@ suite.test('vertica tls - verify-full - valid server certificate', function () {
   })
 })
 
+// Test case for tls_config feature
+suite.test('vertica tls - tls_config feature', function() {
+  var client = new vertica.Client({tls_config: {rejectUnauthorized: false,
+                                                checkServerIdentity = (host , cert) => undefined}
+                                  })
+  client.connect(err => {
+    if (err) {
+      assert(err.message.includes("SSL alert number 40") // VERIFY_CA mode, this is ok
+          || err.message.includes("The server does not support TLS connections")) // DISABLE mode, this is ok
+      return
+    }
+    // this is how we can tell we actually used tls_config and created a tls socket
+    assert.equal(client.connection.stream.constructor.name.toString(), "TLSSocket")
+    client.query("SELECT mode FROM tls_configurations where name = 'server' LIMIT 1", (err, res) => {
+      if (err) {
+        console.log(err)
+        assert(false)
+      }
+      // server should be in one of these modes for us to have gotten this far without sending client certificate
+      assert(['ENABLE', 'TRY_VERIFY'].includes(res.rows[0].mode))
+      client.end()
+    })
+  })
+})
+
 // MUTUAL MODE TESTS
 
 /*suite.test('vertica tls - verify-full - valid server certificate', function () {
