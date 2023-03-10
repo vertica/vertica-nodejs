@@ -212,7 +212,6 @@ class Connection extends EventEmitter {
   }
 
   startup(config) {
-    console.log(config)
     this.stream.write(serialize.startup(config))
   }
 
