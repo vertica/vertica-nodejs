@@ -178,7 +178,7 @@ suite.test('vertica tls - verify-full - valid server certificate', function () {
 // Test case for tls_config feature
 suite.test('vertica tls - tls_config feature', function() {
   var client = new vertica.Client({tls_config: {rejectUnauthorized: false,
-                                                checkServerIdentity = (host , cert) => undefined}
+                                                checkServerIdentity: (host , cert) => undefined}
                                   })
   client.connect(err => {
     if (err) {

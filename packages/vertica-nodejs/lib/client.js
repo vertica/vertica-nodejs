@@ -190,6 +190,7 @@ class Client extends EventEmitter {
     con.on('connect', function () {
       // SSLRequest Message
       if (self.tls_mode !== 'disable' || self.tls_config !== undefined) {
+        console.log("Requesting SSL")
         con.requestSsl()
       } else {
         con.startup(self.getStartupConf())
