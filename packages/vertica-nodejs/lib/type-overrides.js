@@ -17,23 +17,19 @@
 const { VerticaType } = require('v-protocol')
 var types = require('pg-types')
 
+// this is a 'temporary' solution allowing us to continue to use pg-types as long as we can to avoid another large 
+// package implementation while we get close to the 1.0 release
+types.setTypeParser(VerticaType.Boolean, types.getTypeParser(16, 'text'))
+types.setTypeParser(VerticaType.Integer, types.getTypeParser(21, 'text'))
+types.setTypeParser(VerticaType.Float, types.getTypeParser(700, 'text'))
+types.setTypeParser(VerticaType.Numeric, types.getTypeParser(9, 'text'))
+types.setTypeParser(VerticaType.Varbinary, types.getTypeParser(9, 'text'))
+//types.setTypeParser(VerticaType.Uuid, types.getTypeParser(9, 'text')) //Uuid not introduced yet in the current protocol 3.5
 function TypeOverrides(userTypes) {
+  //console.log("Type Overrides called")
   this._types = userTypes || types
   this.text = {}
   this.binary = {}
-  // this is a 'temporary' solution allowing us to continue to use pg-types as long as we can to avoid another large 
-  // package implementation while we get close to the 1.0 release
-  if (this._types === types) {
-    // Types representing javascript primitives and their array. Keep parsing these, but use the correct typeID
-    this._types.setTypeParser(VerticaType.Boolean, 'text', this._types.getTypeParser(16, 'text'))  // boolean
-    this._types.setTypeParser(VerticaType.Integer, 'text', this._types.getTypeParser(21, 'text'))  // integer
-    this._types.setTypeParser(VerticaType.Float, 'text', this._types.getTypeParser(700, 'text')) // float
-
-    // Types that currently are being parsed as the wrong type, force these to be parsed as strings
-    this._types.setTypeParser(VerticaType.Numeric, 'text', this._types.getTypeParser(9, 'text'))  //numerics use varchar (no parser)
-    this._types.setTypeParser(VerticaType.Varbinary, 'text', this._types.getTypeParser(9, 'text'))  //varbinary use varchar(no parser)
-    this._types.setTypeParser(VerticaType.Uuid, 'text', this._types.getTypeParser(9, 'text'))  //uuid use varchar(no parser)
-  }
 }
 
 TypeOverrides.prototype.getOverrides = function (format) {
