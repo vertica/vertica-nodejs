@@ -15,6 +15,7 @@
 'use strict'
 
 var dns = require('dns')
+var os = require('os')
 var EventEmitter = require('events').EventEmitter
 var util = require('util')
 var utils = require('./utils')
@@ -76,12 +77,13 @@ class Client extends EventEmitter {
     this.tls_config = this.connectionParameters.tls_config
     this.tls_mode = this.connectionParameters.tls_mode || 'disable'
     this.tls_trusted_certs = this.connectionParameters.tls_trusted_certs
+    this._connectionTimeoutMillis = c.connectionTimeoutMillis || 0
+    this.workload = this.connectionParameters.workload
 
     delete this.connectionParameters.tls_config
     delete this.connectionParameters.tls_mode
     delete this.connectionParameters.tls_trusted_certs
 
-    this._connectionTimeoutMillis = c.connectionTimeoutMillis || 0
   }
 
   _errorAllQueries(err) {
@@ -496,6 +498,7 @@ class Client extends EventEmitter {
       user: params.user,
       database: params.database,
       protocol_version: params.protocol_version.toString(),
+      client_os_hostname: params.client_os_hostname
     }
 
     if (params.replication) {
@@ -510,10 +513,13 @@ class Client extends EventEmitter {
     if (params.options) {
       data.options = params.options
     }
-
     if (params.client_label) {
       data.client_label = params.client_label
     }
+    if (params.workload) {
+      data.workload = params.workload
+    }
+
 
     return data
   }
