@@ -15,7 +15,6 @@
 'use strict'
 
 var dns = require('dns')
-var os = require('os')
 var EventEmitter = require('events').EventEmitter
 var util = require('util')
 var utils = require('./utils')
