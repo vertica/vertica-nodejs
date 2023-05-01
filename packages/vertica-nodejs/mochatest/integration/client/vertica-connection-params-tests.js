@@ -16,7 +16,9 @@
 const vertica = require('../../../lib')
 const assert = require('assert')
 
-describe('vertica label connection parameter', function () {
+var os = require('os')
+
+describe('vertica client label connection parameter', function () {
   it('has a default value that is used when left unspecified', function(done) {
     //assert current default value
     assert.equal(vertica.defaults.client_label, '')
@@ -100,5 +102,32 @@ describe('vertica backup_server_node connection parameter', function() {
       console.log("Skipping test ")
     })
     done()
+  })
+})
+
+describe('vertica client_os_hostname connection parameter', function() {
+  it('is automatically determined and sent in the startup packet', function() {
+    const client = new vertica.Client()
+    client.connect()
+    client.query("SELECT client_os_hostname FROM current_session", (err, res) => {
+      if (err) assert(false)
+      assert.equal(res.rows[0].client_os_hostname, os.hostname())
+      client.end()
+    })
+  })
+})
+
+describe('vertica workload connection parameter', function() {
+  it('can be set and is sent in the startup packet', function() {
+    const client = new vertica.Client({workload: 'testNodeWorkload'})
+    client.connect()
+    client.query(`SELECT contents FROM dc_client_server_messages 
+                  WHERE session_id = current_session()
+                  AND message_type = '^+'
+                  AND contents like '%workload%'`, (err, res) => {
+      if (err) assert(false)
+      assert.equal(res.rows[0].contents, 'workload: testNodeWorkload')
+      client.end()
+    })
   })
 })

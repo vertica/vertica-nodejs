@@ -51,39 +51,27 @@ module.exports = {
   // max milliseconds a client can go unused before it is removed
   // from the pool and destroyed
   idleTimeoutMillis: 30000,
-
   client_encoding: '',
-
   tls_mode: 'disable',
-
   tls_key_file: undefined,
-
   tls_cert_file: undefined,
-
   options: undefined,
-
   parseInputDatesAsUTC: false,
-
   // max milliseconds any query using this connection will execute for before timing out in error.
   // false=unlimited
   statement_timeout: false,
-
   // Terminate any session with an open transaction that has been idle for longer than the specified duration in milliseconds
   // false=unlimited
   idle_in_transaction_session_timeout: false,
-
   // max milliseconds to wait for query to complete (client side)
   query_timeout: false,
-
   connect_timeout: 0,
-
   keepalives: 1,
-
   keepalives_idle: 0,
-
   // A string to identify the vertica-nodejs connection's session on the server
   client_label: '',
-
   // A comma separated string listing all backup nodes to connect to. Each node is a host-port pair separated by a colon.
   backup_server_node: '',
+  // workload associated with this session
+  workload: '',
 }
