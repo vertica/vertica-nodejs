@@ -10,7 +10,7 @@ const DatabaseError = vertica.DatabaseError
 var createErorrClient = function () {
   var client = helper.client()
   client.once('error', function (err) {
-    assert.fail('Client shoud not throw error during query execution')
+    assert.fail('Client should not throw error during query execution')
   })
   client.on('drain', client.end.bind(client))
   return client
