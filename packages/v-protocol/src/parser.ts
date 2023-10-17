@@ -393,7 +393,7 @@ export class Parser {
         }
         break
       case 5: // AuthenticationMD5Password
-        if (message.length === 12) {
+        if (message.length === 32) {
           message.name = 'authenticationMD5Password'
           const salt = this.reader.bytes(4)
           return new AuthenticationMD5Password(length, salt)
