@@ -256,13 +256,12 @@ export class Parser {
     return new VerifyFilesMessage(length, numFiles, fileNames, rejectFile, exceptionFile)
   }
 
-  // how to determine if "returnrejected" was used. 
   private parseWriteFileMessage(offset: number, length: number, bytes: Buffer) {
     this.reader.setBuffer(offset, bytes)
     const fileName = this.reader.cstring()
     const fileLength = this.reader.int32()
     let fileContents: string | bigint[]
-    // if filename is empty, it means we used returnrejected instead of rejection file,the fileLength 
+    // if filename is empty, it means we used returnrejected instead of rejection file, the fileLength 
     // will be in mutliples of 8 bytes for each rejected row number in Little Endian 64 bit format
     if (fileName.length === 0) {
       fileContents = []

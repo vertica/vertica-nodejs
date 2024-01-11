@@ -315,12 +315,12 @@ class Connection extends EventEmitter {
     const fd = fs.openSync(msg.fileName, 'r');
     let bytesRead = 0;
     do {
-        // read bufferSize bytes from the file into our buffer starting at the current position in the file
-        bytesRead = fs.readSync(fd, buffer, 0, bufferSize, null);
-        if (bytesRead > 0) {
-            // Process the chunk (buffer.slice(0, bytesRead)) here
-            this.sendCopyData(buffer.subarray(0, bytesRead))
-        }
+      // read bufferSize bytes from the file into our buffer starting at the current position in the file
+      bytesRead = fs.readSync(fd, buffer, 0, bufferSize, null);
+      if (bytesRead > 0) {
+        // Process the chunk (buffer.slice(0, bytesRead)) here
+        this.sendCopyData(buffer.subarray(0, bytesRead))
+      }
     } while (bytesRead > 0);
     fs.closeSync(fd);
     this.sendEndOfBatchRequest()

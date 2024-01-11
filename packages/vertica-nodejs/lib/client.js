@@ -481,7 +481,6 @@ class Client extends EventEmitter {
   }
 
   _handleCopyDoneResponse(msg) {
-    console.log("copydone")
     this.activeQuery.handleCopyData(msg, this.connection)
   }
 

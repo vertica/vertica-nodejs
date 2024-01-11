@@ -36,14 +36,14 @@ class Result {
     }
   }
 
-  rejectedRows = []
+  #rejectedRows = []
 
   getRejectedRows() {
-    return this.rejectedRows
+    return this.#rejectedRows
   }
 
   _setRejectedRows(rows) {
-    this.rejectedRows = rows
+    this.#rejectedRows = rows
   }
 
   // adds a command complete message
