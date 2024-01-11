@@ -24,6 +24,8 @@ const flushBuffer = serialize.flush()
 const syncBuffer = serialize.sync()
 const endBuffer = serialize.end()
 
+const bufferSize = 65536 // 64KB
+
 // TODO(bmc) support binary mode at some point
 class Connection extends EventEmitter {
   constructor(config) {
@@ -197,7 +199,7 @@ class Connection extends EventEmitter {
       var eventName = msg.name === 'error' ? 'errorMessage' : msg.name
       if (this._emitMessage) {
         this.emit('message', msg)
-      }
+      } 
       this.emit(eventName, msg)
     })
   }
@@ -296,8 +298,32 @@ class Connection extends EventEmitter {
     this._send(serialize.copyFail(msg))
   }
 
-  sendVerifiedFiles() {
+  sendVerifiedFiles(msg) {
     this._send(serialize.verifiedFiles(msg))
+  }
+
+  sendCopyData(msg) {
+    this._send(serialize.copyData(msg))
+  }
+
+  sendEndOfBatchRequest() {
+    this._send(serialize.EndOfBatchRequest())
+  }
+
+  sendCopyDataStream(msg) {
+    const buffer = Buffer.alloc(bufferSize);
+    const fd = fs.openSync(msg.fileName, 'r');
+    let bytesRead = 0;
+    do {
+        // read bufferSize bytes from the file into our buffer starting at the current position in the file
+        bytesRead = fs.readSync(fd, buffer, 0, bufferSize, null);
+        if (bytesRead > 0) {
+            // Process the chunk (buffer.slice(0, bytesRead)) here
+            this.sendCopyData(buffer.subarray(0, bytesRead))
+        }
+    } while (bytesRead > 0);
+    fs.closeSync(fd);
+    this.sendEndOfBatchRequest()
   }
 
   makeStatementName() {

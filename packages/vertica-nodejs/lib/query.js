@@ -18,6 +18,7 @@ const { EventEmitter } = require('events')
 
 const Result = require('./result')
 const utils = require('./utils')
+const fs = require('fs')
 
 class Query extends EventEmitter {
   constructor(config, values, callback) {
@@ -248,6 +249,26 @@ class Query extends EventEmitter {
 
   handleCopyInResponse(connection) {
     connection.sendCopyFail('No source stream defined')
+  }
+
+  handleVerifyFiles(msg, connection) {
+    connection.sendVerifiedFiles(msg)
+  }
+
+  handleLoadFile(msg, connection) {
+    connection.sendCopyDataStream(msg)
+  }
+
+  handleWriteFile(msg, connection) {
+    if (msg.fileName.length === 0) { //using returnrejected, fileContents is an array of row numbers, not a string
+      this._result._setRejectedRows(msg.fileContents)
+    } else { // future enhancement, move file IO to util
+      fs.writeFile(msg.fileName, msg.fileContents, (err) => {
+        if (err) {
+          console.error('Error writing to file:', err);
+        }
+      });
+    }
   }
 
   // eslint-disable-next-line no-unused-vars

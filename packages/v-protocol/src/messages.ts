@@ -44,7 +44,8 @@ export type MessageName =
   | 'error'
   | 'notice'
   | 'verifyFiles'
-  | 'endOfBatch'
+  | 'endOfBatchResponse'
+  | 'writeFile'
 
 export interface BackendMessage {
   name: MessageName
@@ -86,8 +87,8 @@ export const copyDone: BackendMessage = {
   length: 5,
 }
 
-export const EndOfBatch: BackendMessage = {
-  name: 'endOfBatch',
+export const EndOfBatchResponse: BackendMessage = {
+  name: 'endOfBatchResponse',
   length: 5
 }
 
@@ -288,5 +289,13 @@ export class VerifyFilesMessage {
   {
     this.fileNames = [...files] // shallow copy 
   }
+}
+
+export class WriteFileMessage {
+  public readonly name: MessageName = 'writeFile'
+  constructor(public readonly length: number, 
+              public fileName: string,
+              public fileLength: number,
+              public fileContents: string | bigint[] ) {}
 }
 

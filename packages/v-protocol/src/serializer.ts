@@ -17,6 +17,7 @@
  */
 
 import { Writer } from './buffer-writer'
+import { statSync } from 'fs';
 
 const enum code {
   bind              = 0x42, // B
@@ -269,12 +270,27 @@ const copyFail = (message: string): Buffer => {
   return cstringMessage(code.copyFail, message)
 }
 
-const verifiedFiles = (numFiles: number, fileNames: string[], fileLengths: number[]): Buffer => {
-  writer.addInt32(numFiles)
-  for(let i = 0; i < numFiles; i++) {
-    writer.addCString(fileNames[i])
+type genericConfig = {
+  [key: string]: any;
+}
+
+function getFileSize(filePath: string): number {
+  try {
+    const stats = statSync(filePath);
+    return stats.size;
+  } catch (error) {
+    return -1; // or throw an exception if you prefer
+  }
+}
+
+
+//numFiles: number, fileNames: string[], fileLengths: number[]
+const verifiedFiles = (config: genericConfig): Buffer => {
+  writer.addInt16(config.numFiles) // In 3.15 this will be 'writer.addInt32(config.numFiles)
+  for(let i = 0; i < config.numFiles; i++) {
+    writer.addCString(config.fileNames[i])
     writer.addInt32(0)
-    writer.addInt32(fileLengths[i])
+    writer.addInt32(getFileSize(config.fileNames[i]))
   }
   return writer.flush(code.verifiedFiles)
 }

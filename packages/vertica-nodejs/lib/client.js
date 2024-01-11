@@ -481,23 +481,28 @@ class Client extends EventEmitter {
   }
 
   _handleCopyDoneResponse(msg) {
+    console.log("copydone")
     this.activeQuery.handleCopyData(msg, this.connection)
   }
 
   _handleLoadFile(msg) {
-    //todo
+    // initiate copy data message transfer.
+    // What determines the size sent to the server in each message?
+    this.activeQuery.handleLoadFile(msg, this.connection)
   }
 
   _handleWriteFile(msg) {
-    //todo
+    this.activeQuery.handleWriteFile(msg, this.connection)
   }
 
   _handleVerifyFiles(msg) {
-    //todo
+    // verify rejection/exception files are writable
+    // verify input files exist and are readable
+    this.activeQuery.handleVerifyFiles(msg, this.connection)
   }
 
   _handleEndOfBatchResponse(msg) {
-    //todo
+    // todo
   }
 
   _handleNotification(msg) {

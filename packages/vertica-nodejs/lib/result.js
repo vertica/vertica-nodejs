@@ -36,6 +36,16 @@ class Result {
     }
   }
 
+  rejectedRows = []
+
+  getRejectedRows() {
+    return this.rejectedRows
+  }
+
+  _setRejectedRows(rows) {
+    this.rejectedRows = rows
+  }
+
   // adds a command complete message
   addCommandComplete(msg) {
     var match

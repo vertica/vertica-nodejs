@@ -46,7 +46,8 @@ import {
   VerifyFilesMessage,
   LoadFileMessage,
   CopyInResponseMessage,
-  EndOfBatch,
+  EndOfBatchResponse,
+  WriteFileMessage,
 } from './messages'
 import { BufferReader } from './buffer-reader'
 import assert from 'assert'
@@ -82,7 +83,7 @@ const enum MessageCodes {
   CopyInResponse              = 0x47, // G
   LoadFile                    = 0x48, // H
   EmptyQuery                  = 0x49, // I
-  EndOfBatchResponse          = 0x4A, // J
+  EndOfBatchResponse          = 0x4a, // J
   BackendKeyData              = 0x4b, // K
   NoticeMessage               = 0x4e, // N
   WriteFile                   = 0x4f, // O
@@ -193,7 +194,7 @@ export class Parser {
       case MessageCodes.EmptyQuery:
         return emptyQuery
       case MessageCodes.EndOfBatchResponse:
-        return EndOfBatch
+        return EndOfBatchResponse
       case MessageCodes.DataRow:
         return this.parseDataRowMessage(offset, length, bytes)
       case MessageCodes.CommandComplete:
@@ -223,7 +224,9 @@ export class Parser {
       case MessageCodes.LoadFile:
         return this.parseLoadFileMessage(offset, length, bytes)
       case MessageCodes.VerifyFiles:
-        return this.parseVerifyFiles(offset, length, bytes)
+        return this.parseVerifyFilesMessage(offset, length, bytes)
+      case MessageCodes.WriteFile:
+        return this.parseWriteFileMessage(offset, length, bytes)
       default:
         assert.fail(`unknown message code: ${code.toString(16)}`)
     }
@@ -241,17 +244,35 @@ export class Parser {
     return new CommandCompleteMessage(length, text)
   }
 
-  private parseVerifyFiles(offset: number, length: number, bytes: Buffer) {
+  private parseVerifyFilesMessage(offset: number, length: number, bytes: Buffer) {
     this.reader.setBuffer(offset, bytes)
-    const len = this.reader.int32() //int32 length
     const numFiles = this.reader.int16() //int16 number of files, n
-    const fileNames: any[] = new Array(numFiles)
+    const fileNames: string[] = new Array(numFiles)
     for (let i = 0; i < numFiles; i++) {
       fileNames[i] = this.reader.cstring() //string[n], name of each file
     }
     const rejectFile = this.reader.cstring() //string reject file name
     const exceptionFile = this.reader.cstring() //string exceptions file name
-    return new VerifyFilesMessage(length, 0, fileNames, "", "")
+    return new VerifyFilesMessage(length, numFiles, fileNames, rejectFile, exceptionFile)
+  }
+
+  // how to determine if "returnrejected" was used. 
+  private parseWriteFileMessage(offset: number, length: number, bytes: Buffer) {
+    this.reader.setBuffer(offset, bytes)
+    const fileName = this.reader.cstring()
+    const fileLength = this.reader.int32()
+    let fileContents: string | bigint[]
+    // if filename is empty, it means we used returnrejected instead of rejection file,the fileLength 
+    // will be in mutliples of 8 bytes for each rejected row number in Little Endian 64 bit format
+    if (fileName.length === 0) {
+      fileContents = []
+      for (let i = 0; i < fileLength; i += 8) {
+          fileContents.push(this.reader.int64LE())
+      }
+    } else {
+      fileContents = this.reader.string(fileLength)
+    }
+    return new WriteFileMessage(length, fileName, fileLength, fileContents)
   }
 
   private parseCopyInResponseMessage(offset: number, length: number, bytes: Buffer) {
