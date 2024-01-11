@@ -193,7 +193,7 @@ var expectedTwoParameterMessage = {
 }
 
 var testForMessage = function (buffer: Buffer, expectedMessage: any) {
-  it('recieves and parses ' + expectedMessage.name, async () => {
+  it('receives and parses ' + expectedMessage.name, async () => {
     const messages = await parseBuffers([buffer])
     const [lastMessage] = messages
 
@@ -245,7 +245,7 @@ describe('PgPacketStream', function () {
   testForMessage(notificationResponseBuffer, expectedNotificationResponseMessage)
   testForMessage(buffers.emptyQuery(), {
     name: 'emptyQuery',
-    length: 4,
+    length: 5,
   })
 
   testForMessage(Buffer.from([0x6e, 0, 0, 0, 4]), {
@@ -420,7 +420,7 @@ describe('PgPacketStream', function () {
 
     testForMessage(buffers.copyDone(), {
       name: 'copyDone',
-      length: 4,
+      length: 5,
     })
 
     testForMessage(buffers.copyData(Buffer.from([5, 6, 7])), {

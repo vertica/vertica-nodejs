@@ -139,17 +139,6 @@ export class CopyDataMessage {
   constructor(public readonly length: number, public readonly chunk: Buffer) {}
 }
 
-export class CopyInResponse {
-  public readonly columnTypes: number[]
-  constructor(
-    public readonly length: number,
-    public readonly binary: boolean,
-    columnCount: number
-  ) {
-    this.columnTypes = new Array(columnCount)
-  }
-}
-
 export class Field {
   constructor(
     public readonly name: string,

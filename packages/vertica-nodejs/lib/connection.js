@@ -288,12 +288,16 @@ class Connection extends EventEmitter {
     this._send(serialize.copyData(chunk))
   }
 
-  endCopyFrom() {
+  sendCopyDone() {
     this._send(serialize.copyDone())
   }
 
   sendCopyFail(msg) {
     this._send(serialize.copyFail(msg))
+  }
+
+  sendVerifiedFiles() {
+    this._send(serialize.verifiedFiles(msg))
   }
 
   makeStatementName() {
