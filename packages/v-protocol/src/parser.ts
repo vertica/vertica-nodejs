@@ -28,8 +28,6 @@ import {
   emptyQuery,
   ReadyForQueryMessage,
   CommandCompleteMessage,
-  CopyDataMessage,
-  CopyResponse,
   NotificationResponseMessage,
   RowDescriptionMessage,
   ParameterDescriptionMessage,
@@ -46,6 +44,9 @@ import {
   NoticeMessage,
   AuthenticationSHA512Password,
   VerifyFilesMessage,
+  LoadFileMessage,
+  CopyInResponseMessage,
+  EndOfBatch,
 } from './messages'
 import { BufferReader } from './buffer-reader'
 import assert from 'assert'
@@ -70,30 +71,29 @@ type StreamOptions = TransformOptions & {
 }
 
 const enum MessageCodes {
-  ParseComplete = 0x31, // 1
-  BindComplete = 0x32, // 2
-  CloseComplete = 0x33, // 3
-  NotificationResponse = 0x41, // A
-  CommandComplete = 0x43, // C
-  DataRow = 0x44, // D
-  ErrorMessage = 0x45, // E
-  VerifyFiles = 0x46, // F
-  CopyInResponse = 0x47, // G
-  LoadFile = 0x48, // H
-  EmptyQuery = 0x49, // I
-  EndOfBatchResponse = 0x4A, // J
-  BackendKeyData = 0x4b, // K
-  NoticeMessage = 0x4e, // N
-  WriteFile = 0x4f, // O
-  AuthenticationResponse = 0x52, // R
-  ParameterStatus = 0x53, // S
-  RowDescriptionMessage = 0x54, // T
-  ReadyForQuery = 0x5a, // Z
-  CopyDoneResponse = 0x63, // c
-  CopyData = 0x64, // df
-  CommandDescriptionMessage = 0x6d, // m
-  NoData = 0x6e, // n
-  PortalSuspended = 0x73, // s
+  ParseComplete               = 0x31, // 1
+  BindComplete                = 0x32, // 2
+  CloseComplete               = 0x33, // 3
+  NotificationResponse        = 0x41, // A
+  CommandComplete             = 0x43, // C
+  DataRow                     = 0x44, // D
+  ErrorMessage                = 0x45, // E
+  VerifyFiles                 = 0x46, // F
+  CopyInResponse              = 0x47, // G
+  LoadFile                    = 0x48, // H
+  EmptyQuery                  = 0x49, // I
+  EndOfBatchResponse          = 0x4A, // J
+  BackendKeyData              = 0x4b, // K
+  NoticeMessage               = 0x4e, // N
+  WriteFile                   = 0x4f, // O
+  AuthenticationResponse      = 0x52, // R
+  ParameterStatus             = 0x53, // S
+  RowDescriptionMessage       = 0x54, // T
+  ReadyForQuery               = 0x5a, // Z
+  CopyDoneResponse            = 0x63, // c
+  CommandDescriptionMessage   = 0x6d, // m
+  NoData                      = 0x6e, // n
+  PortalSuspended             = 0x73, // s
   ParameterDescriptionMessage = 0x74, // t
 }
 
@@ -192,6 +192,8 @@ export class Parser {
         return copyDone
       case MessageCodes.EmptyQuery:
         return emptyQuery
+      case MessageCodes.EndOfBatchResponse:
+        return endOfBatch
       case MessageCodes.DataRow:
         return this.parseDataRowMessage(offset, length, bytes)
       case MessageCodes.CommandComplete:
@@ -220,8 +222,6 @@ export class Parser {
         return this.parseCopyInResponseMessage(offset, length, bytes)
       case MessageCodes.LoadFile:
         return this.parseLoadFileMessage(offset, length, bytes)
-      case MessageCodes.CopyData:
-        return this.parseCopyData(offset, length, bytes)
       case MessageCodes.VerifyFiles:
         return this.parseVerifyFiles(offset, length, bytes)
       default:
@@ -241,11 +241,6 @@ export class Parser {
     return new CommandCompleteMessage(length, text)
   }
 
-  private parseCopyData(offset: number, length: number, bytes: Buffer) {
-    const chunk = bytes.slice(offset, offset + (length - 4))
-    return new CopyDataMessage(length, chunk)
-  }
-
   private parseVerifyFiles(offset: number, length: number, bytes: Buffer) {
     this.reader.setBuffer(offset, bytes)
     const len = this.reader.int32() //int32 length
@@ -260,22 +255,20 @@ export class Parser {
   }
 
   private parseCopyInResponseMessage(offset: number, length: number, bytes: Buffer) {
-    return this.parseCopyMessage(offset, length, bytes, 'copyInResponse')
+      this.reader.setBuffer(offset, bytes)
+      const isBinary = this.reader.byte() !== 0
+      const columnCount = this.reader.int16()
+      const message = new CopyInResponseMessage(length, isBinary, columnCount)
+      for (let i = 0; i < columnCount; i++) {
+        message.columnFormats[i] = this.reader.int16()
+      }
+      return message
   }
 
   private parseLoadFileMessage(offset: number, length: number, bytes: Buffer) {
-    return this.parseCopyMessage(offset, length, bytes, 'loadFile')
-  }
-
-  private parseCopyMessage(offset: number, length: number, bytes: Buffer, messageName: MessageName) {
     this.reader.setBuffer(offset, bytes)
-    const isBinary = this.reader.byte() !== 0
-    const columnCount = this.reader.int16()
-    const message = new CopyResponse(length, messageName, isBinary, columnCount)
-    for (let i = 0; i < columnCount; i++) {
-      message.columnTypes[i] = this.reader.int16()
-    }
-    return message
+    const fileName = this.reader.cstring()
+    return new LoadFileMessage(length, fileName)
   }
 
   private parseNotificationMessage(offset: number, length: number, bytes: Buffer) {

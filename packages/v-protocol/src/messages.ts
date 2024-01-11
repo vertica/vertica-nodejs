@@ -45,6 +45,7 @@ export type MessageName =
   | 'error'
   | 'notice'
   | 'verifyFiles'
+  | 'endOfBatch'
 
 export interface BackendMessage {
   name: MessageName
@@ -78,12 +79,17 @@ export const portalSuspended: BackendMessage = {
 
 export const emptyQuery: BackendMessage = {
   name: 'emptyQuery',
-  length: 4,
+  length: 5,
 }
 
 export const copyDone: BackendMessage = {
   name: 'copyDone',
-  length: 4,
+  length: 5,
+}
+
+export const endOfBatch: BackendMessage = {
+  name: 'endOfBatch',
+  length: 5
 }
 
 interface NoticeOrError {
@@ -133,11 +139,10 @@ export class CopyDataMessage {
   constructor(public readonly length: number, public readonly chunk: Buffer) {}
 }
 
-export class CopyResponse {
+export class CopyInResponse {
   public readonly columnTypes: number[]
   constructor(
     public readonly length: number,
-    public readonly name: MessageName,
     public readonly binary: boolean,
     columnCount: number
   ) {
@@ -181,12 +186,24 @@ export class Parameter {
   ) {}
 }
 
-export class LoadFile {
+export class LoadFileMessage {
   public readonly name: MessageName = 'loadFile'
   constructor (
     public readonly length: number,
     public readonly fileName: string
   ) {}
+}
+
+export class CopyInResponseMessage {
+  public readonly name: MessageName = 'copyInResponse'
+  public readonly columnFormats: number[]
+  constructor (
+    public readonly length: number,
+    public readonly isBinary: boolean,
+    public readonly numColumns: number,
+  ) {
+    this.columnFormats = new Array(this.numColumns)
+  }
 }
 
 export class ParameterDescriptionMessage {
