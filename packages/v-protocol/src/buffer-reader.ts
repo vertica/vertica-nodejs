@@ -55,6 +55,7 @@ export class BufferReader {
     return result
   }
 
+  //signed 64 bit little endian
   public int64LE(): bigint {
     const result = this.buffer.readBigInt64LE(this.offset)
     this.offset += 8
