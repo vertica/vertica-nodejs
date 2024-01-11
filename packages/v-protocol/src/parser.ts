@@ -193,7 +193,7 @@ export class Parser {
       case MessageCodes.EmptyQuery:
         return emptyQuery
       case MessageCodes.EndOfBatchResponse:
-        return endOfBatch
+        return EndOfBatch
       case MessageCodes.DataRow:
         return this.parseDataRowMessage(offset, length, bytes)
       case MessageCodes.CommandComplete:

@@ -87,7 +87,7 @@ export const copyDone: BackendMessage = {
   length: 5,
 }
 
-export const endOfBatch: BackendMessage = {
+export const EndOfBatch: BackendMessage = {
   name: 'endOfBatch',
   length: 5
 }
