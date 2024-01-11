@@ -106,6 +106,10 @@ describe('Running Copy Commands', function () {
     })
   })
 
+  it('succeeds with multiple copy local files', function(done) {
+    done()
+  })
+
   it('behaves properly when input files do not exist', function(done) {
     done()
   })

@@ -481,7 +481,7 @@ class Client extends EventEmitter {
   }
 
   _handleCopyDoneResponse(msg) {
-    this.activeQuery.handleCopyData(msg, this.connection)
+    this.activeQuery.handleCopyDone(msg, this.connection)
   }
 
   _handleLoadFile(msg) {
@@ -500,8 +500,8 @@ class Client extends EventEmitter {
     this.activeQuery.handleVerifyFiles(msg, this.connection)
   }
 
-  _handleEndOfBatchResponse(msg) {
-    // todo
+  _handleEndOfBatchResponse() {
+    //noop
   }
 
   _handleNotification(msg) {
