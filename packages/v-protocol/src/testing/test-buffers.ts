@@ -148,7 +148,7 @@ const buffers = {
     return list.join(true, 'G')
   },
 
-  copyOut: function (cols: number) {
+  loadFile: function (cols: number) {
     const list = new BufferList()
       // text mode
       .addByte(0)

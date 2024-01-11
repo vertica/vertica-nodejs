@@ -24,7 +24,6 @@ export type MessageName =
   | 'closeComplete'
   | 'noData'
   | 'portalSuspended'
-  | 'replicationStart'
   | 'emptyQuery'
   | 'copyDone'
   | 'copyData'
@@ -38,13 +37,14 @@ export type MessageName =
   | 'commandComplete'
   | 'dataRow'
   | 'copyInResponse'
-  | 'copyOutResponse'
+  | 'loadFile'
   | 'authenticationOk'
   | 'authenticationMD5Password'
   | 'authenticationSHA512Password'
   | 'authenticationCleartextPassword'
   | 'error'
   | 'notice'
+  | 'verifyFiles'
 
 export interface BackendMessage {
   name: MessageName
@@ -74,11 +74,6 @@ export const noData: BackendMessage = {
 export const portalSuspended: BackendMessage = {
   name: 'portalSuspended',
   length: 5,
-}
-
-export const replicationStart: BackendMessage = {
-  name: 'replicationStart',
-  length: 4,
 }
 
 export const emptyQuery: BackendMessage = {
@@ -186,6 +181,14 @@ export class Parameter {
   ) {}
 }
 
+export class LoadFile {
+  public readonly name: MessageName = 'loadFile'
+  constructor (
+    public readonly length: number,
+    public readonly fileName: string
+  ) {}
+}
+
 export class ParameterDescriptionMessage {
   public readonly name: MessageName = 'parameterDescription'
   //public readonly nonNativeTyeps: number //breadcrumb for non native types
@@ -273,3 +276,17 @@ export class NoticeMessage implements BackendMessage, NoticeOrError {
   public line: string | undefined
   public routine: string | undefined
 }
+
+export class VerifyFilesMessage {
+  public readonly name: MessageName = 'verifyFiles'
+  public readonly fileNames: string[]
+  constructor(public readonly length: number,
+              public numFiles: number, 
+              public files: string[],
+              public readonly rejectFile: string, 
+              public readonly exceptionFile: string)
+  {
+    this.fileNames = [...files] // shallow copy 
+  }
+}
+

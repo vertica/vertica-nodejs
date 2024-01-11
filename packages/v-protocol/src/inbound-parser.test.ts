@@ -389,13 +389,6 @@ describe('PgPacketStream', function () {
     })
   })
 
-  describe('parses replication start message', function () {
-    testForMessage(Buffer.from([0x57, 0x00, 0x00, 0x00, 0x04]), {
-      name: 'replicationStart',
-      length: 4,
-    })
-  })
-
   describe('copy', () => {
     testForMessage(buffers.copyIn(0), {
       name: 'copyInResponse',
@@ -411,15 +404,15 @@ describe('PgPacketStream', function () {
       columnTypes: [0, 1],
     })
 
-    testForMessage(buffers.copyOut(0), {
-      name: 'copyOutResponse',
+    testForMessage(buffers.loadFile(0), {
+      name: 'loadFile',
       length: 7,
       binary: false,
       columnTypes: [],
     })
 
-    testForMessage(buffers.copyOut(3), {
-      name: 'copyOutResponse',
+    testForMessage(buffers.loadFile(3), {
+      name: 'loadFile',
       length: 13,
       binary: false,
       columnTypes: [0, 1, 2],

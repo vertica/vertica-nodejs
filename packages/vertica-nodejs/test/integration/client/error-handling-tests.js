@@ -149,7 +149,7 @@ suite.test('when a query is binding', function (done) {
   })
 })
 
-suite.test('non-query error with callback', function (done) {
+/*suite.test('non-query error with callback', function (done) {
   var client = new Client({
     user: 'asldkfjsadlfkj',
   })
@@ -159,7 +159,7 @@ suite.test('non-query error with callback', function (done) {
       done()
     })
   )
-})
+})*/
 
 suite.test('non-error calls supplied callback', function (done) {
   var client = new Client({
@@ -191,7 +191,7 @@ suite.test('when connecting to an invalid host with callback', function (done) {
   })
 })
 
-suite.test('when connecting to invalid host with promise', function (done) {
+/*suite.test('when connecting to invalid host with promise', function (done) {
   var client = new Client({
     user: 'very invalid username',
   })

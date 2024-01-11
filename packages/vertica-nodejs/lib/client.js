@@ -418,7 +418,6 @@ class Client extends EventEmitter {
     this.emit('error', err)
   }
 
-  // handle error messages from the postgres backend
   _handleErrorMessage(msg) {
     if (this._connecting) {
       return this._handleErrorWhileConnecting(msg)

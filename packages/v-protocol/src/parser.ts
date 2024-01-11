@@ -25,7 +25,6 @@ import {
   noData,
   portalSuspended,
   copyDone,
-  replicationStart,
   emptyQuery,
   ReadyForQueryMessage,
   CommandCompleteMessage,
@@ -46,6 +45,7 @@ import {
   AuthenticationMD5Password,
   NoticeMessage,
   AuthenticationSHA512Password,
+  VerifyFilesMessage,
 } from './messages'
 import { BufferReader } from './buffer-reader'
 import assert from 'assert'
@@ -70,29 +70,31 @@ type StreamOptions = TransformOptions & {
 }
 
 const enum MessageCodes {
-  DataRow = 0x44, // D
   ParseComplete = 0x31, // 1
   BindComplete = 0x32, // 2
   CloseComplete = 0x33, // 3
-  CommandComplete = 0x43, // C
-  ReadyForQuery = 0x5a, // Z
-  NoData = 0x6e, // n
   NotificationResponse = 0x41, // A
+  CommandComplete = 0x43, // C
+  DataRow = 0x44, // D
+  ErrorMessage = 0x45, // E
+  VerifyFiles = 0x46, // F
+  CopyInResponse = 0x47, // G
+  LoadFile = 0x48, // H
+  EmptyQuery = 0x49, // I
+  EndOfBatchResponse = 0x4A, // J
+  BackendKeyData = 0x4b, // K
+  NoticeMessage = 0x4e, // N
+  WriteFile = 0x4f, // O
   AuthenticationResponse = 0x52, // R
   ParameterStatus = 0x53, // S
-  BackendKeyData = 0x4b, // K
-  ErrorMessage = 0x45, // E
-  NoticeMessage = 0x4e, // N
   RowDescriptionMessage = 0x54, // T
-  ParameterDescriptionMessage = 0x74, // t
+  ReadyForQuery = 0x5a, // Z
+  CopyDoneResponse = 0x63, // c
+  CopyData = 0x64, // df
   CommandDescriptionMessage = 0x6d, // m
+  NoData = 0x6e, // n
   PortalSuspended = 0x73, // s
-  ReplicationStart = 0x57, // W
-  EmptyQuery = 0x49, // I
-  CopyIn = 0x47, // G
-  CopyOut = 0x48, // H
-  CopyDone = 0x63, // c
-  CopyData = 0x64, // d
+  ParameterDescriptionMessage = 0x74, // t
 }
 
 export type MessageCallback = (msg: BackendMessage) => void
@@ -186,10 +188,8 @@ export class Parser {
         return noData
       case MessageCodes.PortalSuspended:
         return portalSuspended
-      case MessageCodes.CopyDone:
+      case MessageCodes.CopyDoneResponse:
         return copyDone
-      case MessageCodes.ReplicationStart:
-        return replicationStart
       case MessageCodes.EmptyQuery:
         return emptyQuery
       case MessageCodes.DataRow:
@@ -216,12 +216,14 @@ export class Parser {
         return this.parseParameterDescriptionMessage(offset, length, bytes)
       case MessageCodes.CommandDescriptionMessage:
         return this.parseCommandDescriptionMessage(offset, length, bytes)
-      case MessageCodes.CopyIn:
-        return this.parseCopyInMessage(offset, length, bytes)
-      case MessageCodes.CopyOut:
-        return this.parseCopyOutMessage(offset, length, bytes)
+      case MessageCodes.CopyInResponse:
+        return this.parseCopyInResponseMessage(offset, length, bytes)
+      case MessageCodes.LoadFile:
+        return this.parseLoadFileMessage(offset, length, bytes)
       case MessageCodes.CopyData:
         return this.parseCopyData(offset, length, bytes)
+      case MessageCodes.VerifyFiles:
+        return this.parseVerifyFiles(offset, length, bytes)
       default:
         assert.fail(`unknown message code: ${code.toString(16)}`)
     }
@@ -244,12 +246,25 @@ export class Parser {
     return new CopyDataMessage(length, chunk)
   }
 
-  private parseCopyInMessage(offset: number, length: number, bytes: Buffer) {
+  private parseVerifyFiles(offset: number, length: number, bytes: Buffer) {
+    this.reader.setBuffer(offset, bytes)
+    const len = this.reader.int32() //int32 length
+    const numFiles = this.reader.int16() //int16 number of files, n
+    const fileNames: any[] = new Array(numFiles)
+    for (let i = 0; i < numFiles; i++) {
+      fileNames[i] = this.reader.cstring() //string[n], name of each file
+    }
+    const rejectFile = this.reader.cstring() //string reject file name
+    const exceptionFile = this.reader.cstring() //string exceptions file name
+    return new VerifyFilesMessage(length, 0, fileNames, "", "")
+  }
+
+  private parseCopyInResponseMessage(offset: number, length: number, bytes: Buffer) {
     return this.parseCopyMessage(offset, length, bytes, 'copyInResponse')
   }
 
-  private parseCopyOutMessage(offset: number, length: number, bytes: Buffer) {
-    return this.parseCopyMessage(offset, length, bytes, 'copyOutResponse')
+  private parseLoadFileMessage(offset: number, length: number, bytes: Buffer) {
+    return this.parseCopyMessage(offset, length, bytes, 'loadFile')
   }
 
   private parseCopyMessage(offset: number, length: number, bytes: Buffer, messageName: MessageName) {

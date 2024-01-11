@@ -19,19 +19,22 @@
 import { Writer } from './buffer-writer'
 
 const enum code {
-  startup = 0x70,
-  query = 0x51,
-  parse = 0x50,
-  bind = 0x42,
-  execute = 0x45,
-  flush = 0x48,
-  sync = 0x53,
-  end = 0x58,
-  close = 0x43,
-  describe = 0x44,
-  copyFromChunk = 0x64,
-  copyDone = 0x63,
-  copyFail = 0x66,
+  bind              = 0x42, // B
+  close             = 0x43, // C
+  describe          = 0x44, // D
+  execute           = 0x45, // E
+  verifiedFiles     = 0x46, // F
+  flush             = 0x48, // H 
+  parse             = 0x50, // P
+  query             = 0x51, // Q
+  sync              = 0x53, // S
+  end               = 0x58, // X aka Terminate
+  copyDone          = 0x63, // c 
+  copyData          = 0x64, // d
+  copyError         = 0x65, // e
+  copyFail          = 0x66, // f
+  endOfBatchRequest = 0x6A, // j  
+  startup           = 0x70  // p
 }
 
 const writer = new Writer()
@@ -251,7 +254,7 @@ const close = (msg: PortalOpts): Buffer => {
 }
 
 const copyData = (chunk: Buffer): Buffer => {
-  return writer.add(chunk).flush(code.copyFromChunk)
+  return writer.add(chunk).flush(code.copyData)
 }
 
 const copyFail = (message: string): Buffer => {
