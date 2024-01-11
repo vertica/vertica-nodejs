@@ -257,8 +257,26 @@ const copyData = (chunk: Buffer): Buffer => {
   return writer.add(chunk).flush(code.copyData)
 }
 
+const copyError = (fileName: string, lineNumber: number, methodName: string, errorMsg: string): Buffer => {
+  writer.addCString(fileName)
+  writer.addInt32(lineNumber)
+  writer.addCString(methodName)
+  writer.addCString(errorMsg)
+  return writer.flush(code.copyError)
+}
+
 const copyFail = (message: string): Buffer => {
   return cstringMessage(code.copyFail, message)
+}
+
+const verifiedFiles = (numFiles: number, fileNames: string[], fileLengths: number[]): Buffer => {
+  writer.addInt32(numFiles)
+  for(let i = 0; i < numFiles; i++) {
+    writer.addCString(fileNames[i])
+    writer.addInt32(0)
+    writer.addInt32(fileLengths[i])
+  }
+  return writer.flush(code.verifiedFiles)
 }
 
 const codeOnlyBuffer = (code: code): Buffer => Buffer.from([code, 0x00, 0x00, 0x00, 0x04])
@@ -267,6 +285,7 @@ const flushBuffer = codeOnlyBuffer(code.flush)
 const syncBuffer = codeOnlyBuffer(code.sync)
 const endBuffer = codeOnlyBuffer(code.end)
 const copyDoneBuffer = codeOnlyBuffer(code.copyDone)
+const endOfBatchRequestBuffer = codeOnlyBuffer(code.endOfBatchRequest)
 
 const serialize = {
   startup,
@@ -283,8 +302,11 @@ const serialize = {
   end: () => endBuffer,
   copyData,
   copyDone: () => copyDoneBuffer,
+  copyError,
   copyFail,
+  EndOfBatchRequest: () => endOfBatchRequestBuffer,
   cancel,
+  verifiedFiles,
 }
 
 export { serialize }
