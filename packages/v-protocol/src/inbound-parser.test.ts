@@ -393,40 +393,30 @@ describe('PgPacketStream', function () {
     testForMessage(buffers.copyIn(0), {
       name: 'copyInResponse',
       length: 7,
-      binary: false,
-      columnTypes: [],
+      isBinary: false,
+      columnFormats: [],
     })
 
     testForMessage(buffers.copyIn(2), {
       name: 'copyInResponse',
       length: 11,
-      binary: false,
-      columnTypes: [0, 1],
+      isBinary: false,
+      columnFormats: [0, 1],
     })
 
     testForMessage(buffers.loadFile(0), {
       name: 'loadFile',
       length: 7,
-      binary: false,
-      columnTypes: [],
     })
 
     testForMessage(buffers.loadFile(3), {
       name: 'loadFile',
       length: 13,
-      binary: false,
-      columnTypes: [0, 1, 2],
     })
 
     testForMessage(buffers.copyDone(), {
       name: 'copyDone',
       length: 5,
-    })
-
-    testForMessage(buffers.copyData(Buffer.from([5, 6, 7])), {
-      name: 'copyData',
-      length: 7,
-      chunk: Buffer.from([5, 6, 7]),
     })
   })
 

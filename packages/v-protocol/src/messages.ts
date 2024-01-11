@@ -26,7 +26,6 @@ export type MessageName =
   | 'portalSuspended'
   | 'emptyQuery'
   | 'copyDone'
-  | 'copyData'
   | 'rowDescription'
   | 'parameterDescription'
   | 'parameterStatus'
@@ -132,11 +131,6 @@ export class DatabaseError extends Error implements NoticeOrError {
   constructor(message: string, public readonly length: number, public readonly name: MessageName) {
     super(message)
   }
-}
-
-export class CopyDataMessage {
-  public readonly name = 'copyData'
-  constructor(public readonly length: number, public readonly chunk: Buffer) {}
 }
 
 export class Field {
