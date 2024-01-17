@@ -48,7 +48,7 @@ import {
   CopyInResponseMessage,
   EndOfBatchResponse,
   WriteFileMessage,
-} from './messages'
+} from './backend-messages'
 import { BufferReader } from './buffer-reader'
 import assert from 'assert'
 

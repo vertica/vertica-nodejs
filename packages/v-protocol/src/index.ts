@@ -16,7 +16,7 @@
  * =============================================================================
  */
 
-import { BackendMessage, DatabaseError } from './messages'
+import { BackendMessage, DatabaseError } from './backend-messages'
 import { serialize } from './serializer'
 import { VerticaType } from './vertica-types'
 import { Parser, MessageCallback } from './parser'

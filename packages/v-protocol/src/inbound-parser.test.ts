@@ -21,7 +21,7 @@ import BufferList from './testing/buffer-list'
 import { parse } from '.'
 import assert from 'assert'
 import { PassThrough } from 'stream'
-import { BackendMessage } from './messages'
+import { BackendMessage } from './backend-messages'
 
 var authOkBuffer = buffers.authenticationOk()
 var paramStatusBuffer = buffers.parameterStatus('client_encoding', 'UTF8')
