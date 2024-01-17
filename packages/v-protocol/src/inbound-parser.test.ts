@@ -395,14 +395,9 @@ describe('PgPacketStream', function () {
       columnFormats: [0, 1],
     })
 
-    testForMessage(buffers.loadFile(0), {
+    testForMessage(buffers.loadFile('sampleFile'), {
       name: 'loadFile',
-      length: 7,
-    })
-
-    testForMessage(buffers.loadFile(3), {
-      name: 'loadFile',
-      length: 13,
+      length: 15,
     })
 
     testForMessage(buffers.copyDone(), {

@@ -120,10 +120,6 @@ const buffers = {
     return new BufferList().join(true, '2')
   },
 
-  notification: function (id: number, channel: string, payload: string) {
-    return new BufferList().addInt32(id).addCString(channel).addCString(payload).join(true, 'A')
-  },
-
   emptyQuery: function () {
     return new BufferList().join(true, 'I')
   },
@@ -148,15 +144,9 @@ const buffers = {
     return list.join(true, 'G')
   },
 
-  loadFile: function (cols: number) {
+  loadFile: function (fileName: string) {
     const list = new BufferList()
-      // text mode
-      .addByte(0)
-      // column count
-      .addInt16(cols)
-    for (let i = 0; i < cols; i++) {
-      list.addInt16(i)
-    }
+    list.addCString(fileName)
     return list.join(true, 'H')
   },
 
