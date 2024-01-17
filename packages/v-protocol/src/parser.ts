@@ -28,7 +28,6 @@ import {
   emptyQuery,
   ReadyForQueryMessage,
   CommandCompleteMessage,
-  NotificationResponseMessage,
   RowDescriptionMessage,
   ParameterDescriptionMessage,
   Parameter,
@@ -75,7 +74,6 @@ const enum MessageCodes {
   ParseComplete               = 0x31, // 1
   BindComplete                = 0x32, // 2
   CloseComplete               = 0x33, // 3
-  NotificationResponse        = 0x41, // A
   CommandComplete             = 0x43, // C
   DataRow                     = 0x44, // D
   ErrorMessage                = 0x45, // E
@@ -201,8 +199,6 @@ export class Parser {
         return this.parseCommandCompleteMessage(offset, length, bytes)
       case MessageCodes.ReadyForQuery:
         return this.parseReadyForQueryMessage(offset, length, bytes)
-      case MessageCodes.NotificationResponse:
-        return this.parseNotificationMessage(offset, length, bytes)
       case MessageCodes.AuthenticationResponse:
         return this.parseAuthenticationResponse(offset, length, bytes)
       case MessageCodes.ParameterStatus:
@@ -289,14 +285,6 @@ export class Parser {
     this.reader.setBuffer(offset, bytes)
     const fileName = this.reader.cstring()
     return new LoadFileMessage(length, fileName)
-  }
-
-  private parseNotificationMessage(offset: number, length: number, bytes: Buffer) {
-    this.reader.setBuffer(offset, bytes)
-    const processId = this.reader.int32()
-    const channel = this.reader.cstring()
-    const payload = this.reader.cstring()
-    return new NotificationResponseMessage(length, processId, channel, payload)
   }
 
   private parseRowDescriptionMessage(offset: number, length: number, bytes: Buffer) {

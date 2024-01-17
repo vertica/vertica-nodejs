@@ -128,10 +128,6 @@ buffers.bindComplete = function () {
   return new BufferList().join(true, '2')
 }
 
-buffers.notification = function (id, channel, payload) {
-  return new BufferList().addInt32(id).addCString(channel).addCString(payload).join(true, 'A')
-}
-
 buffers.emptyQuery = function () {
   return new BufferList().join(true, 'I')
 }

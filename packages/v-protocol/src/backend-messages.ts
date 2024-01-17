@@ -31,7 +31,6 @@ export type MessageName =
   | 'parameterStatus'
   | 'commandDescription'
   | 'backendKeyData'
-  | 'notification'
   | 'readyForQuery'
   | 'commandComplete'
   | 'dataRow'
@@ -227,16 +226,6 @@ export class AuthenticationSHA512Password implements BackendMessage {
 export class BackendKeyDataMessage {
   public readonly name: MessageName = 'backendKeyData'
   constructor(public readonly length: number, public readonly processID: number, public readonly secretKey: number) {}
-}
-
-export class NotificationResponseMessage {
-  public readonly name: MessageName = 'notification'
-  constructor(
-    public readonly length: number,
-    public readonly processId: number,
-    public readonly channel: string,
-    public readonly payload: string
-  ) {}
 }
 
 export class ReadyForQueryMessage {

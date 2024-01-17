@@ -271,7 +271,6 @@ class Client extends EventEmitter {
     con.on('emptyQuery', this._handleEmptyQuery.bind(this))
     con.on('commandComplete', this._handleCommandComplete.bind(this))
     con.on('parseComplete', this._handleParseComplete.bind(this))
-    con.on('notification', this._handleNotification.bind(this))
     con.on('parameterDescription', this._handleParameterDescription.bind(this))
     con.on('parameterStatus', this._handleParameterStatus.bind(this))
     con.on('bindComplete', this._handleBindComplete.bind(this))
@@ -502,10 +501,6 @@ class Client extends EventEmitter {
 
   _handleEndOfBatchResponse() {
     //noop
-  }
-
-  _handleNotification(msg) {
-    this.emit('notification', msg)
   }
 
   _handleNotice(msg) {

@@ -215,14 +215,6 @@ var expectedMD5PasswordMessage = {
   salt: Buffer.from([1, 2, 3, 4]),
 }
 
-var notificationResponseBuffer = buffers.notification(4, 'hi', 'boom')
-var expectedNotificationResponseMessage = {
-  name: 'notification',
-  processId: 4,
-  channel: 'hi',
-  payload: 'boom',
-}
-
 const parseBuffers = async (buffers: Buffer[]): Promise<BackendMessage[]> => {
   const stream = new PassThrough()
   for (const buffer of buffers) {
@@ -242,7 +234,6 @@ describe('PgPacketStream', function () {
   testForMessage(backendKeyDataBuffer, expectedBackendKeyDataMessage)
   testForMessage(readyForQueryBuffer, expectedReadyForQueryMessage)
   testForMessage(commandCompleteBuffer, expectedCommandCompleteMessage)
-  testForMessage(notificationResponseBuffer, expectedNotificationResponseMessage)
   testForMessage(buffers.emptyQuery(), {
     name: 'emptyQuery',
     length: 5,
