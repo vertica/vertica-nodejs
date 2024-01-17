@@ -480,7 +480,7 @@ class Client extends EventEmitter {
   }
 
   _handleCopyDoneResponse(msg) {
-    this.activeQuery.handleCopyDone(msg, this.connection)
+    this.activeQuery._handleCopyDoneResponse(msg, this.connection)
   }
 
   _handleLoadFile(msg) {

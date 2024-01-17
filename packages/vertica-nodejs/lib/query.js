@@ -272,7 +272,7 @@ class Query extends EventEmitter {
   }
 
   // eslint-disable-next-line no-unused-vars
-  handleCopyDone(msg, connection) {
+  handleCopyDoneResponse(msg, connection) {
     // noop
   }
 }

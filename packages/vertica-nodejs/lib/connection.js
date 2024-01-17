@@ -199,7 +199,7 @@ class Connection extends EventEmitter {
       var eventName = msg.name === 'error' ? 'errorMessage' : msg.name
       if (this._emitMessage) {
         this.emit('message', msg)
-      } 
+      }
       this.emit(eventName, msg)
     })
   }
