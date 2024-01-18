@@ -61,13 +61,16 @@ describe('Running Copy Commands', function () {
 
   it('writes rejects to file with REJECTED DATA specified', function (done) {
     pool.query("COPY copyTable FROM LOCAL 'copy-bad.dat' REJECTED DATA 'rejects.txt'", (err, res) => {
-      assert.equal(err, undefined)
-      assert.equal(res.rows[0]['Rows Loaded'], 3) // 3 good rows in badFileContents
-      fs.readFile('rejects.txt', 'utf8', (err, data) => {
+      try {
         assert.equal(err, undefined)
-        assert.equal(data, "'b'|2\n'd'|4\n") // rows 2 and 4 are malformed
+        assert.equal(res.rows[0]['Rows Loaded'], 3) // 3 good rows in badFileContents
+        fs.readFile('rejects.txt', 'utf8', (err, data) => {
+          assert.equal(err, undefined)
+          assert.equal(data, "'b'|2\n'd'|4\n") // rows 2 and 4 are malformed
+        })
+      } finally {
         fs.unlink('rejects.txt', done)
-      })
+      }
     })
   })
 
@@ -86,10 +89,13 @@ describe('Running Copy Commands', function () {
     writableStream.end()
 
     pool.query("COPY copyTable FROM LOCAL 'large-copy.dat' RETURNREJECTED", (err, res) => {
-      assert.equal(err, undefined)
-      assert.equal(res.rows[0]['Rows Loaded'], requiredLines)
-      assert.deepEqual(res.getRejectedRows(), [])
-      fs.unlink(largeFilePath, done)
+      try {
+        assert.equal(err, undefined)
+        assert.equal(res.rows[0]['Rows Loaded'], requiredLines)
+        assert.deepEqual(res.getRejectedRows(), [])
+      } finally {
+        fs.unlink(largeFilePath, done)
+      }
     })
   })
 
@@ -98,10 +104,13 @@ describe('Running Copy Commands', function () {
     const binaryFilePath = path.join(process.cwd(), 'binary-copy.bin')
     fs.writeFile(binaryFilePath, binaryFileContents, () => {
       pool.query("COPY copyTable FROM LOCAL 'binary-copy.bin' RETURNREJECTED", (err, res) => {
-        assert.equal(err, undefined)
-        assert.equal(res.rows[0]['Rows Loaded'], 5)
-        assert.deepEqual(res.getRejectedRows(), [])
-        fs.unlink(binaryFilePath, done)
+        try {
+          assert.equal(err, undefined)
+          assert.equal(res.rows[0]['Rows Loaded'], 5)
+          assert.deepEqual(res.getRejectedRows(), [])
+        } finally {
+          fs.unlink(binaryFilePath, done)
+        }
       })    
     })
   })
@@ -118,8 +127,11 @@ describe('Running Copy Commands', function () {
     fs.writeFile(readOnlyFilePath, '', () => {
       fs.chmod(readOnlyFilePath, 0o444, () => {
         pool.query("COPY copyTable FROM LOCAL 'copy-good.dat' REJECTED DATA 'readOnlyRejects.txt'", (err) => {
-          assert.ok(err.message.includes("Reject file exists but could not be opened for writing"))
-          fs.unlink(readOnlyFilePath, done)
+          try {
+            assert.ok(err.message.includes("Reject file exists but could not be opened for writing"))
+          } finally {
+            fs.unlink(readOnlyFilePath, done)
+          }
         })
       })
     })
@@ -130,13 +142,49 @@ describe('Running Copy Commands', function () {
     fs.writeFile(readOnlyFilePath, '', () => {
       fs.chmod(readOnlyFilePath, 0o444, () => {
         pool.query("COPY copyTable FROM LOCAL 'copy-good.dat' EXCEPTIONS 'readOnlyExceptions.txt'", (err) => {
-          assert.ok(err.message.includes("Exception file exists but could not be opened for writing"))
-          fs.unlink(readOnlyFilePath, done)
+          try {
+            assert.ok(err.message.includes("Exception file exists but could not be opened for writing"))
+          } finally {
+            fs.unlink(readOnlyFilePath, done)
+          }
         })
       })
     })
   })
 
+  it ('succeeds with rejects file larger than buffer size', function(done) {
+    // file logic copied from good large copy file test, but with the columns switched so they are all bad instead
+    const largeFilePath = path.join(process.cwd(), "large-copy-bad.dat")
+    const writableStream = fs.createWriteStream(largeFilePath, { encoding: 'utf8' });
+    const bytesPerLine = 6 // single quote + letter + single quote + bar + integer + newline = 6 bytes
+    const desiredFileSize = 66000 // 65536 is our max buffer size. This will force multiple copyData messages
+    const requiredLines = desiredFileSize / bytesPerLine
+
+    for (let i = 1; i <= requiredLines; i++) {
+      const char = String.fromCharCode('a'.charCodeAt(0) + (i % 26)); // a - z
+      const line = `'${char}'|${i}\n`
+      writableStream.write(line)
+    }
+    writableStream.end()
+
+    pool.query("COPY copyTable FROM LOCAL 'large-copy-bad.dat' REJECTED DATA 'rejects-large.txt'", (err, res) => {
+      try {
+        assert.equal(err, undefined);
+        assert.equal(res.rows[0]['Rows Loaded'], 0);
+        assert.deepEqual(res.getRejectedRows(), []);
+    
+        fs.stat('rejects-large.txt', (statErr, stats) => {
+          assert.equal(statErr, null);
+          assert.equal(stats.size, 98894);
+        });
+      } finally {
+        fs.unlink('large-copy-bad.dat', () => {
+          fs.unlink('rejects-large.txt', done)
+        });
+      }
+    });
+    
+  })
   it ('behaves properly with ABORT ON ERROR', function(done) {
     done()
   })
