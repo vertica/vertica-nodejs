@@ -294,6 +294,10 @@ class Connection extends EventEmitter {
     this._send(serialize.copyDone())
   }
 
+  sendCopyError(fileName, lineNumber, methodName, errorMsg) {
+    this._send(serialize.copyError(fileName, lineNumber, methodName, errorMsg))
+  }
+
   sendCopyFail(msg) {
     this._send(serialize.copyFail(msg))
   }

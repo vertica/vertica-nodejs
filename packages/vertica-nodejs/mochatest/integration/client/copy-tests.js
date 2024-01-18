@@ -43,8 +43,8 @@ describe('Running Copy Commands', function () {
 
   it('succeeds with basic copy from file command', function(done) {
     pool.query("COPY copyTable FROM LOCAL 'copy-good.dat' RETURNREJECTED", (err, res) => {
-      assert.equal(res.rows[0]['Rows Loaded'], 5) // 5 good rows in goodFileContents
       assert.equal(err, undefined)
+      assert.equal(res.rows[0]['Rows Loaded'], 5) // 5 good rows in goodFileContents
       assert.deepEqual(res.getRejectedRows(), [])
       done()
     })
@@ -52,8 +52,8 @@ describe('Running Copy Commands', function () {
 
   it('returns rejected rows with RETURNREJECTED specified', function(done) {
     pool.query("COPY copyTable FROM LOCAL 'copy-bad.dat' RETURNREJECTED", (err, res) => {
-      assert.equal(res.rows[0]['Rows Loaded'], 3) // 3 good rows in badFileContents
       assert.equal(err, undefined)
+      assert.equal(res.rows[0]['Rows Loaded'], 3) // 3 good rows in badFileContents
       assert.deepEqual(res.getRejectedRows(), [2, 4]) // rows 2 and 4 are malformed
     })
     done()
@@ -61,8 +61,8 @@ describe('Running Copy Commands', function () {
 
   it('writes rejects to file with REJECTED DATA specified', function (done) {
     pool.query("COPY copyTable FROM LOCAL 'copy-bad.dat' REJECTED DATA 'rejects.txt'", (err, res) => {
-      assert.equal(res.rows[0]['Rows Loaded'], 3) // 3 good rows in badFileContents
       assert.equal(err, undefined)
+      assert.equal(res.rows[0]['Rows Loaded'], 3) // 3 good rows in badFileContents
       fs.readFile('rejects.txt', 'utf8', (err, data) => {
         assert.equal(err, undefined)
         assert.equal(data, "'b'|2\n'd'|4\n") // rows 2 and 4 are malformed
@@ -86,8 +86,8 @@ describe('Running Copy Commands', function () {
     writableStream.end()
 
     pool.query("COPY copyTable FROM LOCAL 'large-copy.dat' RETURNREJECTED", (err, res) => {
-      assert.equal(res.rows[0]['Rows Loaded'], requiredLines)
       assert.equal(err, undefined)
+      assert.equal(res.rows[0]['Rows Loaded'], requiredLines)
       assert.deepEqual(res.getRejectedRows(), [])
       fs.unlink(largeFilePath, done)
     })
@@ -98,24 +98,59 @@ describe('Running Copy Commands', function () {
     const binaryFilePath = path.join(process.cwd(), 'binary-copy.bin')
     fs.writeFile(binaryFilePath, binaryFileContents, () => {
       pool.query("COPY copyTable FROM LOCAL 'binary-copy.bin' RETURNREJECTED", (err, res) => {
-        assert.equal(res.rows[0]['Rows Loaded'], 5)
         assert.equal(err, undefined)
+        assert.equal(res.rows[0]['Rows Loaded'], 5)
         assert.deepEqual(res.getRejectedRows(), [])
         fs.unlink(binaryFilePath, done)
       })    
     })
   })
 
-  
-  it('succeeds with multiple copy local files', function(done) {
+  it('behaves properly when input file does not exist', function(done) {
+    pool.query("COPY copyTable FROM LOCAL 'nonexistant.dat' RETURNREJECTED", (err) => {
+      assert.ok(err.message.includes("Unable to open input file for reading "))
+      done()
+    })
+  })
+
+  it ('behaves properly when rejects file cannot be written to', function(done) {
+    const readOnlyFilePath = path.join(process.cwd(), 'readOnlyRejects.txt')
+    fs.writeFile(readOnlyFilePath, '', () => {
+      fs.chmod(readOnlyFilePath, 0o444, () => {
+        pool.query("COPY copyTable FROM LOCAL 'copy-good.dat' REJECTED DATA 'readOnlyRejects.txt'", (err) => {
+          assert.ok(err.message.includes("Reject file exists but could not be opened for writing"))
+          fs.unlink(readOnlyFilePath, done)
+        })
+      })
+    })
+  })
+
+  it ('behaves properly when exceptions file cannot be written to', function(done) {
+    const readOnlyFilePath = path.join(process.cwd(), 'readOnlyExceptions.txt')
+    fs.writeFile(readOnlyFilePath, '', () => {
+      fs.chmod(readOnlyFilePath, 0o444, () => {
+        pool.query("COPY copyTable FROM LOCAL 'copy-good.dat' EXCEPTIONS 'readOnlyExceptions.txt'", (err) => {
+          assert.ok(err.message.includes("Exception file exists but could not be opened for writing"))
+          fs.unlink(readOnlyFilePath, done)
+        })
+      })
+    })
+  })
+
+  it ('behaves properly with ABORT ON ERROR', function(done) {
     done()
   })
 
-  it('behaves properly when input files do not exist', function(done) {
+  it('succeeds using glob patterns', function(done) {
+    done()
+  })
+
+  it('succeeds with multiple input files', function(done) {
     done()
   })
 
   it('succeeds with basic copy from stdin command', function(done) {
+    //todo
     done()
   })
 })

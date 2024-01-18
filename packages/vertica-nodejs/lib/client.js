@@ -494,8 +494,6 @@ class Client extends EventEmitter {
   }
 
   _handleVerifyFiles(msg) {
-    // verify rejection/exception files are writable
-    // verify input files exist and are readable
     this.activeQuery.handleVerifyFiles(msg, this.connection)
   }
 

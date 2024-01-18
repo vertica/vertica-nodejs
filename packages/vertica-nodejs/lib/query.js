@@ -19,6 +19,7 @@ const { EventEmitter } = require('events')
 const Result = require('./result')
 const utils = require('./utils')
 const fs = require('fs')
+const fsPromises = require('fs').promises
 
 class Query extends EventEmitter {
   constructor(config, values, callback) {
@@ -251,10 +252,53 @@ class Query extends EventEmitter {
     connection.sendCopyFail('No source stream defined')
   }
 
-  handleVerifyFiles(msg, connection) {
-    connection.sendVerifiedFiles(msg)
+  async handleVerifyFiles(msg, connection) {
+    try { // Check if the data file can be read
+      await fsPromises.access(msg.files[0], fs.constants.R_OK);
+    } catch (readInputFileErr) { // Can't open input file for reading, send CopyError
+      console.log(readInputFileErr.code)
+      connection.sendCopyError(msg.files[0], 0, '', "Unable to open input file for reading")
+      return;
+    }
+    if (msg.rejectFile) {
+      try { // Check if the rejections file can be written to, if specified
+        await fsPromises.access(msg.rejectFile, fs.constants.W_OK);
+      } catch (writeRejectsFileErr) {
+        if (writeRejectsFileErr.code === 'ENOENT') { // file doesn't exist, see if we can create it
+          try {
+            const rejectHandle = await fsPromises.open(msg.rejectFile, 'w');
+            await rejectHandle.close()
+          } catch (createErr) { // can't open or create output file for writing, send CopyError 
+            connection.sendCopyError(msg.rejectFile, 0, '', "Unable to open or create rejects file for writing")
+            return
+          }
+        } else { // file exists but we can't open, likely permissions issue
+          connection.sendCopyError(msg.rejectFile, 0, '', "Reject file exists but could not be opened for writing")
+          return
+        }
+      }
+    }
+    if (msg.exceptionFile) {
+      try { // Check if the exceptions file can be written to, if specified
+        await fsPromises.access(msg.exceptionFile, fs.constants.W_OK);
+      } catch (writeExceptionsFileErr) { // Can't open exceptions output file for writing, send CopyError
+        if (writeExceptionsFileErr.code === 'ENOENT') { // file doesn't exist, see if we can create it
+          try {
+            const exceptionHandle = await fsPromises.open(msg.exceptionFile, 'w');
+            await exceptionHandle.close()
+          } catch (createErr) { // can't open or create output file for writing, send CopyError 
+            connection.sendCopyError(msg.exceptionFile, 0, '', "Unable to open or create exception file for writing")
+            return
+          }
+        } else { // file exists but we can't open, likely permissions issue
+          connection.sendCopyError(msg.rejectFile, 0, '', "Exception file exists but could not be opened for writing")
+          return
+        }
+      }
+    }
+    connection.sendVerifiedFiles(msg); // All files are verified
   }
-
+     
   handleLoadFile(msg, connection) {
     connection.sendCopyDataStream(msg)
   }
