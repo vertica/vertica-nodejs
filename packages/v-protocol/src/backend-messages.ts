@@ -24,27 +24,27 @@ export type MessageName =
   | 'closeComplete'
   | 'noData'
   | 'portalSuspended'
-  | 'replicationStart'
   | 'emptyQuery'
   | 'copyDone'
-  | 'copyData'
   | 'rowDescription'
   | 'parameterDescription'
   | 'parameterStatus'
   | 'commandDescription'
   | 'backendKeyData'
-  | 'notification'
   | 'readyForQuery'
   | 'commandComplete'
   | 'dataRow'
   | 'copyInResponse'
-  | 'copyOutResponse'
+  | 'loadFile'
   | 'authenticationOk'
   | 'authenticationMD5Password'
   | 'authenticationSHA512Password'
   | 'authenticationCleartextPassword'
   | 'error'
   | 'notice'
+  | 'verifyFiles'
+  | 'endOfBatchResponse'
+  | 'writeFile'
 
 export interface BackendMessage {
   name: MessageName
@@ -76,19 +76,19 @@ export const portalSuspended: BackendMessage = {
   length: 5,
 }
 
-export const replicationStart: BackendMessage = {
-  name: 'replicationStart',
-  length: 4,
-}
-
 export const emptyQuery: BackendMessage = {
   name: 'emptyQuery',
-  length: 4,
+  length: 5,
 }
 
 export const copyDone: BackendMessage = {
   name: 'copyDone',
-  length: 4,
+  length: 5,
+}
+
+export const EndOfBatchResponse: BackendMessage = {
+  name: 'endOfBatchResponse',
+  length: 5
 }
 
 interface NoticeOrError {
@@ -133,23 +133,6 @@ export class DatabaseError extends Error implements NoticeOrError {
   }
 }
 
-export class CopyDataMessage {
-  public readonly name = 'copyData'
-  constructor(public readonly length: number, public readonly chunk: Buffer) {}
-}
-
-export class CopyResponse {
-  public readonly columnTypes: number[]
-  constructor(
-    public readonly length: number,
-    public readonly name: MessageName,
-    public readonly binary: boolean,
-    columnCount: number
-  ) {
-    this.columnTypes = new Array(columnCount)
-  }
-}
-
 export class Field {
   constructor(
     public readonly name: string,
@@ -184,6 +167,26 @@ export class Parameter {
     public readonly typemod: number,
     public readonly hasNotNullConstraint: number
   ) {}
+}
+
+export class LoadFileMessage {
+  public readonly name: MessageName = 'loadFile'
+  constructor (
+    public readonly length: number,
+    public readonly fileName: string
+  ) {}
+}
+
+export class CopyInResponseMessage {
+  public readonly name: MessageName = 'copyInResponse'
+  public readonly columnFormats: number[]
+  constructor (
+    public readonly length: number,
+    public readonly isBinary: boolean,
+    public readonly numColumns: number,
+  ) {
+    this.columnFormats = new Array(this.numColumns)
+  }
 }
 
 export class ParameterDescriptionMessage {
@@ -225,16 +228,6 @@ export class BackendKeyDataMessage {
   constructor(public readonly length: number, public readonly processID: number, public readonly secretKey: number) {}
 }
 
-export class NotificationResponseMessage {
-  public readonly name: MessageName = 'notification'
-  constructor(
-    public readonly length: number,
-    public readonly processId: number,
-    public readonly channel: string,
-    public readonly payload: string
-  ) {}
-}
-
 export class ReadyForQueryMessage {
   public readonly name: MessageName = 'readyForQuery'
   constructor(public readonly length: number, public readonly status: string) {}
@@ -273,3 +266,25 @@ export class NoticeMessage implements BackendMessage, NoticeOrError {
   public line: string | undefined
   public routine: string | undefined
 }
+
+export class VerifyFilesMessage {
+  public readonly name: MessageName = 'verifyFiles'
+  public readonly fileNames: string[]
+  constructor(public readonly length: number,
+              public numFiles: number, 
+              public files: string[],
+              public readonly rejectFile: string, 
+              public readonly exceptionFile: string)
+  {
+    this.fileNames = [...files] // shallow copy 
+  }
+}
+
+export class WriteFileMessage {
+  public readonly name: MessageName = 'writeFile'
+  constructor(public readonly length: number, 
+              public fileName: string,
+              public fileLength: number,
+              public fileContents: string | bigint[] ) {}
+}
+

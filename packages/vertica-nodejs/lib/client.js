@@ -272,12 +272,15 @@ class Client extends EventEmitter {
     con.on('emptyQuery', this._handleEmptyQuery.bind(this))
     con.on('commandComplete', this._handleCommandComplete.bind(this))
     con.on('parseComplete', this._handleParseComplete.bind(this))
-    con.on('copyInResponse', this._handleCopyInResponse.bind(this))
-    con.on('copyData', this._handleCopyData.bind(this))
-    con.on('notification', this._handleNotification.bind(this))
     con.on('parameterDescription', this._handleParameterDescription.bind(this))
     con.on('parameterStatus', this._handleParameterStatus.bind(this))
     con.on('bindComplete', this._handleBindComplete.bind(this))
+    con.on('copyInResponse', this._handleCopyInResponse.bind(this))
+    con.on('copyDoneResponse', this._handleCopyDoneResponse.bind(this))
+    con.on('loadFile', this._handleLoadFile.bind(this))
+    con.on('writeFile', this._handleWriteFile.bind(this))
+    con.on('verifyFiles', this._handleVerifyFiles.bind(this))
+    con.on('endOfBatchResponse', this._handleEndOfBatchResponse.bind(this))
   }
 
   // TODO(bmc): deprecate pgpass "built in" integration since this.password can be a function
@@ -419,7 +422,6 @@ class Client extends EventEmitter {
     this.emit('error', err)
   }
 
-  // handle error messages from the postgres backend
   _handleErrorMessage(msg) {
     if (this._connecting) {
       return this._handleErrorWhileConnecting(msg)
@@ -478,12 +480,26 @@ class Client extends EventEmitter {
     this.activeQuery.handleCopyInResponse(this.connection)
   }
 
-  _handleCopyData(msg) {
-    this.activeQuery.handleCopyData(msg, this.connection)
+  _handleCopyDoneResponse(msg) {
+    this.activeQuery._handleCopyDoneResponse(msg, this.connection)
   }
 
-  _handleNotification(msg) {
-    this.emit('notification', msg)
+  _handleLoadFile(msg) {
+    // initiate copy data message transfer.
+    // What determines the size sent to the server in each message?
+    this.activeQuery.handleLoadFile(msg, this.connection)
+  }
+
+  _handleWriteFile(msg) {
+    this.activeQuery.handleWriteFile(msg, this.connection)
+  }
+
+  _handleVerifyFiles(msg) {
+    this.activeQuery.handleVerifyFiles(msg, this.connection)
+  }
+
+  _handleEndOfBatchResponse() {
+    //noop
   }
 
   _handleNotice(msg) {

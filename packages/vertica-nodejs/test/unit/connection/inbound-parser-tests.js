@@ -143,14 +143,6 @@ var expectedMD5PasswordMessage = {
   name: 'authenticationMD5Password',
 }
 
-var notificationResponseBuffer = buffers.notification(4, 'hi', 'boom')
-var expectedNotificationResponseMessage = {
-  name: 'notification',
-  processId: 4,
-  channel: 'hi',
-  payload: 'boom',
-}
-
 test('Connection', function () {
   testForMessage(authOkBuffer, expectedAuthenticationOkayMessage)
   testForMessage(plainPasswordBuffer, expectedPlainPasswordMessage)
@@ -163,7 +155,6 @@ test('Connection', function () {
   testForMessage(backendKeyDataBuffer, expectedBackendKeyDataMessage)
   testForMessage(readyForQueryBuffer, expectedReadyForQueryMessage)
   testForMessage(commandCompleteBuffer, expectedCommandCompleteMessage)
-  testForMessage(notificationResponseBuffer, expectedNotificationResponseMessage)
   test('empty row message', function () {
     var message = testForMessage(emptyRowDescriptionBuffer, expectedEmptyRowDescriptionMessage)
     test('has no fields', function () {
@@ -370,13 +361,6 @@ test('Connection', function () {
   test('parses portal suspended message', function () {
     testForMessage(portalSuspendedBuffer, {
       name: 'portalSuspended',
-    })
-  })
-
-  test('parses replication start message', function () {
-    testForMessage(Buffer.from([0x57, 0x00, 0x00, 0x00, 0x04]), {
-      name: 'replicationStart',
-      length: 4,
     })
   })
 })

@@ -17,21 +17,25 @@
  */
 
 import { Writer } from './buffer-writer'
+import { statSync } from 'fs';
 
 const enum code {
-  startup = 0x70,
-  query = 0x51,
-  parse = 0x50,
-  bind = 0x42,
-  execute = 0x45,
-  flush = 0x48,
-  sync = 0x53,
-  end = 0x58,
-  close = 0x43,
-  describe = 0x44,
-  copyFromChunk = 0x64,
-  copyDone = 0x63,
-  copyFail = 0x66,
+  bind              = 0x42, // B
+  close             = 0x43, // C
+  describe          = 0x44, // D
+  execute           = 0x45, // E
+  verifiedFiles     = 0x46, // F
+  flush             = 0x48, // H 
+  parse             = 0x50, // P
+  query             = 0x51, // Q
+  sync              = 0x53, // S
+  end               = 0x58, // X aka Terminate
+  copyDone          = 0x63, // c 
+  copyData          = 0x64, // d
+  copyError         = 0x65, // e
+  copyFail          = 0x66, // f
+  endOfBatchRequest = 0x6A, // j  
+  startup           = 0x70  // p
 }
 
 const writer = new Writer()
@@ -251,11 +255,44 @@ const close = (msg: PortalOpts): Buffer => {
 }
 
 const copyData = (chunk: Buffer): Buffer => {
-  return writer.add(chunk).flush(code.copyFromChunk)
+  return writer.add(chunk).flush(code.copyData)
+}
+
+const copyError = (fileName: string, lineNumber: number, methodName: string, errorMsg: string): Buffer => {
+  writer.addCString(fileName)
+  writer.addInt32(lineNumber)
+  writer.addCString(methodName)
+  writer.addCString(errorMsg)
+  return writer.flush(code.copyError)
 }
 
 const copyFail = (message: string): Buffer => {
   return cstringMessage(code.copyFail, message)
+}
+
+type genericConfig = {
+  [key: string]: any;
+}
+
+function getFileSize(filePath: string): number {
+  try {
+    const stats = statSync(filePath);
+    return stats.size;
+  } catch (error) {
+    return -1; // or throw an exception if you prefer
+  }
+}
+
+
+//numFiles: number, fileNames: string[], fileLengths: number[]
+const verifiedFiles = (config: genericConfig): Buffer => {
+  writer.addInt16(config.numFiles) // In 3.15 this will be 'writer.addInt32(config.numFiles)
+  for(let i = 0; i < config.numFiles; i++) {
+    writer.addCString(config.fileNames[i])
+    writer.addInt32(0)
+    writer.addInt32(getFileSize(config.fileNames[i]))
+  }
+  return writer.flush(code.verifiedFiles)
 }
 
 const codeOnlyBuffer = (code: code): Buffer => Buffer.from([code, 0x00, 0x00, 0x00, 0x04])
@@ -264,6 +301,7 @@ const flushBuffer = codeOnlyBuffer(code.flush)
 const syncBuffer = codeOnlyBuffer(code.sync)
 const endBuffer = codeOnlyBuffer(code.end)
 const copyDoneBuffer = codeOnlyBuffer(code.copyDone)
+const endOfBatchRequestBuffer = codeOnlyBuffer(code.endOfBatchRequest)
 
 const serialize = {
   startup,
@@ -280,8 +318,11 @@ const serialize = {
   end: () => endBuffer,
   copyData,
   copyDone: () => copyDoneBuffer,
+  copyError,
   copyFail,
+  EndOfBatchRequest: () => endOfBatchRequestBuffer,
   cancel,
+  verifiedFiles,
 }
 
 export { serialize }

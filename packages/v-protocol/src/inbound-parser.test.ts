@@ -21,7 +21,7 @@ import BufferList from './testing/buffer-list'
 import { parse } from '.'
 import assert from 'assert'
 import { PassThrough } from 'stream'
-import { BackendMessage } from './messages'
+import { BackendMessage } from './backend-messages'
 
 var authOkBuffer = buffers.authenticationOk()
 var paramStatusBuffer = buffers.parameterStatus('client_encoding', 'UTF8')
@@ -193,7 +193,7 @@ var expectedTwoParameterMessage = {
 }
 
 var testForMessage = function (buffer: Buffer, expectedMessage: any) {
-  it('recieves and parses ' + expectedMessage.name, async () => {
+  it('receives and parses ' + expectedMessage.name, async () => {
     const messages = await parseBuffers([buffer])
     const [lastMessage] = messages
 
@@ -215,14 +215,6 @@ var expectedMD5PasswordMessage = {
   salt: Buffer.from([1, 2, 3, 4]),
 }
 
-var notificationResponseBuffer = buffers.notification(4, 'hi', 'boom')
-var expectedNotificationResponseMessage = {
-  name: 'notification',
-  processId: 4,
-  channel: 'hi',
-  payload: 'boom',
-}
-
 const parseBuffers = async (buffers: Buffer[]): Promise<BackendMessage[]> => {
   const stream = new PassThrough()
   for (const buffer of buffers) {
@@ -242,10 +234,9 @@ describe('PgPacketStream', function () {
   testForMessage(backendKeyDataBuffer, expectedBackendKeyDataMessage)
   testForMessage(readyForQueryBuffer, expectedReadyForQueryMessage)
   testForMessage(commandCompleteBuffer, expectedCommandCompleteMessage)
-  testForMessage(notificationResponseBuffer, expectedNotificationResponseMessage)
   testForMessage(buffers.emptyQuery(), {
     name: 'emptyQuery',
-    length: 4,
+    length: 5,
   })
 
   testForMessage(Buffer.from([0x6e, 0, 0, 0, 4]), {
@@ -389,51 +380,29 @@ describe('PgPacketStream', function () {
     })
   })
 
-  describe('parses replication start message', function () {
-    testForMessage(Buffer.from([0x57, 0x00, 0x00, 0x00, 0x04]), {
-      name: 'replicationStart',
-      length: 4,
-    })
-  })
-
   describe('copy', () => {
     testForMessage(buffers.copyIn(0), {
       name: 'copyInResponse',
       length: 7,
-      binary: false,
-      columnTypes: [],
+      isBinary: false,
+      columnFormats: [],
     })
 
     testForMessage(buffers.copyIn(2), {
       name: 'copyInResponse',
       length: 11,
-      binary: false,
-      columnTypes: [0, 1],
+      isBinary: false,
+      columnFormats: [0, 1],
     })
 
-    testForMessage(buffers.copyOut(0), {
-      name: 'copyOutResponse',
-      length: 7,
-      binary: false,
-      columnTypes: [],
-    })
-
-    testForMessage(buffers.copyOut(3), {
-      name: 'copyOutResponse',
-      length: 13,
-      binary: false,
-      columnTypes: [0, 1, 2],
+    testForMessage(buffers.loadFile('sampleFile'), {
+      name: 'loadFile',
+      length: 15,
     })
 
     testForMessage(buffers.copyDone(), {
       name: 'copyDone',
-      length: 4,
-    })
-
-    testForMessage(buffers.copyData(Buffer.from([5, 6, 7])), {
-      name: 'copyData',
-      length: 7,
-      chunk: Buffer.from([5, 6, 7]),
+      length: 5,
     })
   })
 
