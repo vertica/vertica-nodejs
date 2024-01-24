@@ -314,7 +314,18 @@ class Connection extends EventEmitter {
     this._send(serialize.EndOfBatchRequest())
   }
 
-  sendCopyDataStream(msg) {
+  sendCopyDataStream(copyStream) {
+    const buffer = Buffer.alloc(bufferSize);
+    let chunk;
+    copyStream.on('readable', () => {
+      while ((chunk = copyStream.read(bufferSize)) !== null) {
+        this.sendCopyData(buffer.subarray(0, chunk))
+      }
+      this.sendEndOfBatchRequest()
+    })
+  }
+
+  sendCopyDataFile(msg) {
     const buffer = Buffer.alloc(bufferSize);
     const fd = fs.openSync(msg.fileName, 'r');
     let bytesRead = 0;

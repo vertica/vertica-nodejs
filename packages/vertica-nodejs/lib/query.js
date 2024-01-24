@@ -48,6 +48,9 @@ class Query extends EventEmitter {
     this._canceledDueToError = false
     this._activeError = false
     this._promise = null
+    if (this.values) {
+      this.copyStream = this.values.copyStream || null
+    }
   }
 
   requiresPreparation() {
@@ -65,7 +68,7 @@ class Query extends EventEmitter {
       return false
     }
     // prepare if there are values
-    if (!this.values) {
+    if (!this.values || !Array.isArray(this.values)) {
       return false
     }
     return this.values.length > 0
@@ -176,10 +179,10 @@ class Query extends EventEmitter {
     if (this.text && previous && this.text !== previous) {
       return new Error(`Prepared statements must be unique - '${this.name}' was used for a different statement`)
     }
-    if (this.values && !Array.isArray(this.values)) {
-      return new Error('Query values must be an array')
-    }
     if (this.requiresPreparation()) {
+      if (this.values && !Array.isArray(this.values)) {
+        return new Error('Query values must be an array')
+      }
       this.prepare(connection)
     } else {
       connection.query(this.text)
@@ -193,6 +196,13 @@ class Query extends EventEmitter {
 
   handlePortalSuspended(connection) {
     //do nothing, vertica doesn't support result-row count limit
+  }
+
+  handleEndOfBatchResponse(connection) {
+    if (this.values && this.values.copyStream) { //copy from stdin
+      connection.sendCopyDone()
+    }
+    // else noop, backend will send CopyDoneResponse for copy from local file to continue the process
   }
 
   prepare(connection) {
@@ -249,16 +259,18 @@ class Query extends EventEmitter {
   }
 
   handleCopyInResponse(connection) {
-    connection.sendCopyFail('No source stream defined')
+    connection.sendCopyDataStream(this.copyStream)
   }
 
   async handleVerifyFiles(msg, connection) {
-    try { // Check if the data file can be read
-      await fsPromises.access(msg.files[0], fs.constants.R_OK);
-    } catch (readInputFileErr) { // Can't open input file for reading, send CopyError
-      console.log(readInputFileErr.code)
-      connection.sendCopyError(msg.files[0], 0, '', "Unable to open input file for reading")
-      return;
+    if (msg.numFiles !== 0) { // we are copying from file, not stdin
+      try { // Check if the data file can be read
+        await fsPromises.access(msg.files[0], fs.constants.R_OK);
+      } catch (readInputFileErr) { // Can't open input file for reading, send CopyError
+        console.log(readInputFileErr.code)
+        connection.sendCopyError(msg.files[0], 0, '', "Unable to open input file for reading")
+        return;
+      }
     }
     if (msg.rejectFile) {
       try { // Check if the rejections file can be written to, if specified
@@ -300,7 +312,7 @@ class Query extends EventEmitter {
   }
      
   handleLoadFile(msg, connection) {
-    connection.sendCopyDataStream(msg)
+    connection.sendCopyDataFile(msg)
   }
 
   handleWriteFile(msg, connection) {

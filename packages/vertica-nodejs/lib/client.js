@@ -485,8 +485,6 @@ class Client extends EventEmitter {
   }
 
   _handleLoadFile(msg) {
-    // initiate copy data message transfer.
-    // What determines the size sent to the server in each message?
     this.activeQuery.handleLoadFile(msg, this.connection)
   }
 
@@ -499,7 +497,7 @@ class Client extends EventEmitter {
   }
 
   _handleEndOfBatchResponse() {
-    //noop
+    this.activeQuery.handleEndOfBatchResponse(this.connection)
   }
 
   _handleNotice(msg) {
@@ -619,23 +617,25 @@ class Client extends EventEmitter {
     }
   }
 
+  // todo - refactor to improve readibility. Move out logic for identifying parameter types to helper function if possible
   query(config, values, callback) {
     // can take in strings, config object or query object
-    var query
-    var result
-    var readTimeout
-    var readTimeoutTimer
-    var queryCallback
+    let query
+    let result
+    let readTimeout
+    let readTimeoutTimer
+    let queryCallback
 
     if (config === null || config === undefined) {
       throw new TypeError('Client was passed a null or undefined query')
-    } else if (typeof config.submit === 'function') {
+    } 
+    if (typeof config.submit === 'function') {
       readTimeout = config.query_timeout || this.connectionParameters.query_timeout
       result = query = config
       if (typeof values === 'function') {
         query.callback = query.callback || values
       }
-    } else {
+    } else { // config is a string
       readTimeout = this.connectionParameters.query_timeout
       query = new Query(config, values, callback)
       if (!query.callback) {

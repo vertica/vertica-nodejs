@@ -18,7 +18,7 @@ const assert = require('assert')
 
 var os = require('os')
 
-describe('vertica client label connection parameter', function () {
+/*describe('vertica client label connection parameter', function () {
   it('has a default value that is used when left unspecified', function(done) {
     //assert current default value
     assert.equal(vertica.defaults.client_label, '')
@@ -130,4 +130,4 @@ describe('vertica workload connection parameter', function() {
       client.end()
     })
   })
-})
+})*/

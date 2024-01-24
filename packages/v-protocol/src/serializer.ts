@@ -292,6 +292,7 @@ const verifiedFiles = (config: genericConfig): Buffer => {
     writer.addInt32(0)
     writer.addInt32(getFileSize(config.fileNames[i]))
   }
+  console.log("Sending verified Files")
   return writer.flush(code.verifiedFiles)
 }
 
