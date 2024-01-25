@@ -276,7 +276,8 @@ export class VerifyFilesMessage {
               public readonly rejectFile: string, 
               public readonly exceptionFile: string)
   {
-    this.fileNames = files !== null ? [...files] : null // shallow copy the fileNames if there are any, or set to null for
+    // shallow copy the fileNames, or null for copy from local stdin
+    this.fileNames = files !== null ? [...files] : null
   }
 }
 

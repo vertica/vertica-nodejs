@@ -273,7 +273,7 @@ class Query extends EventEmitter {
       }
     } else { // check to make sure the readableStream is in fact a readableStream
       if (!(this.copyStream instanceof stream.Readable)) {
-        connection.sendCopyError(msg.files[0], 0, '', "Cannot perform copy operation. Stream must be an instance of stream.Readable")
+        connection.sendCopyError(this.copyStream, 0, '', "Cannot perform copy operation. Stream must be an instance of stream.Readable")
         return
       }
     }

@@ -306,7 +306,7 @@ class Connection extends EventEmitter {
     this._send(serialize.verifiedFiles(msg))
   }
 
-  async sendCopyData(msg) {
+  sendCopyData(msg) {
     this._send(serialize.copyData(msg))
   }
 
