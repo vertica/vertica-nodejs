@@ -306,7 +306,7 @@ class Connection extends EventEmitter {
     this._send(serialize.verifiedFiles(msg))
   }
 
-  sendCopyData(msg) {
+  async sendCopyData(msg) {
     this._send(serialize.copyData(msg))
   }
 
@@ -315,12 +315,17 @@ class Connection extends EventEmitter {
   }
 
   sendCopyDataStream(copyStream) {
-    const buffer = Buffer.alloc(bufferSize);
-    let chunk;
     copyStream.on('readable', () => {
-      while ((chunk = copyStream.read(bufferSize)) !== null) {
-        this.sendCopyData(buffer.subarray(0, chunk))
+      let bytesRead
+      while ((bytesRead = copyStream.read(bufferSize)) !== null) {
+        if (Buffer.isBuffer(bytesRead)) { // readableStream is binary
+          this.sendCopyData(bytesRead)
+        } else { // readableStream is utf-8 encoded
+          this.sendCopyData(Buffer.from(bytesRead, 'utf-8'))
+        }
       }
+    })
+    copyStream.on('end', () => {
       this.sendEndOfBatchRequest()
     })
   }

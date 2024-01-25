@@ -20,6 +20,7 @@ const Result = require('./result')
 const utils = require('./utils')
 const fs = require('fs')
 const fsPromises = require('fs').promises
+const stream = require('stream')
 
 class Query extends EventEmitter {
   constructor(config, values, callback) {
@@ -264,12 +265,19 @@ class Query extends EventEmitter {
 
   async handleVerifyFiles(msg, connection) {
     if (msg.numFiles !== 0) { // we are copying from file, not stdin
+      console.log("Made it here")
       try { // Check if the data file can be read
         await fsPromises.access(msg.files[0], fs.constants.R_OK);
       } catch (readInputFileErr) { // Can't open input file for reading, send CopyError
-        console.log(readInputFileErr.code)
         connection.sendCopyError(msg.files[0], 0, '', "Unable to open input file for reading")
         return;
+      }
+    } else { // check to make sure the readableStream is in fact a readableStream
+      console.log("else made it here")
+      if (!this.copyStream instanceof stream.Readable) {
+        console.log("And made it here too")
+        connection.sendCopyError(msg.files[0], 0, '', "Cannot perform copy operation. Stream must be an instance of stream.Readable")
+        return
       }
     }
     if (msg.rejectFile) {
