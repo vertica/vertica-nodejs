@@ -44,7 +44,7 @@ describe('Running Copy From Local Stdin Commands', function () {
   it ('succeeds with basic copy from stdin command', function(done) {
     const readableStream = fs.createReadStream(goodFilePath, { encoding: 'utf8' })
     readableStream.on('open', () => {
-      pool.query("COPY copyTable FROM LOCAL STDIN REJECTED DATA RETURNREJECTED", {copyStream: readableStream}, (err, res) => {
+      pool.query("COPY copyTable FROM LOCAL STDIN RETURNREJECTED", {copyStream: readableStream}, (err, res) => {
         assert.equal(err, undefined)
         assert.equal(res.rows[0]['Rows Loaded'], 5) 
         done()
