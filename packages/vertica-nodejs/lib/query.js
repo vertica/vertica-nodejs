@@ -21,6 +21,7 @@ const utils = require('./utils')
 const fs = require('fs')
 const fsPromises = require('fs').promises
 const stream = require('stream')
+const glob = require('glob')
 
 class Query extends EventEmitter {
   constructor(config, values, callback) {
@@ -265,11 +266,23 @@ class Query extends EventEmitter {
 
   async handleVerifyFiles(msg, connection) {
     if (msg.numFiles !== 0) { // we are copying from file, not stdin
-      try { // Check if the data file can be read
-        await fsPromises.access(msg.files[0], fs.constants.R_OK);
-      } catch (readInputFileErr) { // Can't open input file for reading, send CopyError
-        connection.sendCopyError(msg.files[0], 0, '', "Unable to open input file for reading")
-        return;
+      let expandedFileNames = []
+      for (const fileName of msg.files) {
+        if (/[*?[\]]/.test(fileName)) { // contains glob pattern
+          const matchingFiles = glob.sync(fileName)
+          expandedFileNames = expandedFileNames.concat(matchingFiles)
+        } else {
+          expandedFileNames.push(fileName)
+        }
+      }
+      const uniqueFileNames = [...new Set(expandedFileNames)] // remove duplicates
+      for (const fileName of uniqueFileNames) {
+        try { // Check if the data file can be read
+          await fsPromises.access(fileName, fs.constants.R_OK);
+        } catch (readInputFileErr) { // Can't open input file for reading, send CopyError
+          connection.sendCopyError(fileName, 0, '', "Unable to open input file for reading")
+          return;
+        }
       }
     } else { // check to make sure the readableStream is in fact a readableStream
       if (!(this.copyStream instanceof stream.Readable)) {
@@ -317,7 +330,7 @@ class Query extends EventEmitter {
   }
      
   handleLoadFile(msg, connection) {
-    connection.sendCopyDataFile(msg)
+    connection.sendCopyDataFiles(msg)
   }
 
   handleWriteFile(msg, connection) {
