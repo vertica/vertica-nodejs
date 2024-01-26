@@ -191,6 +191,11 @@ describe('Running Copy From Local File Commands', function () {
   })
 
   it('succeeds with multiple input files', function(done) {
-    done()
+    pool.query("COPY copyTable FROM LOCAL 'copy-good.dat', 'copy-bad.dat' RETURNREJECTED", (err, res) => {
+      assert.equal(err, undefined)
+      assert.equal(res.rows[0]['Rows Loaded'], 8) // 5 good rows in goodFileContents
+      assert.deepEqual(res.getRejectedRows(), [7, 9])
+      done()
+    })
   })
 })
