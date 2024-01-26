@@ -28,13 +28,13 @@ class Query extends EventEmitter {
     super()
 
     config = utils.normalizeQueryConfig(config, values, callback)
-
     this.text = config.text
     this.values = config.values
     this.rows = config.rows
     this.types = config.types
     this.name = config.name
     this.binary = config.binary || false
+    this.copyStream = config.copyStream || null
     // use unique portal name each time
     this.portal = config.portal || ''
     this.callback = config.callback
@@ -50,9 +50,6 @@ class Query extends EventEmitter {
     this._canceledDueToError = false
     this._activeError = false
     this._promise = null
-    if (this.values) {
-      this.copyStream = this.values.copyStream || null
-    }
   }
 
   requiresPreparation() {
@@ -70,7 +67,7 @@ class Query extends EventEmitter {
       return false
     }
     // prepare if there are values
-    if (!this.values || !Array.isArray(this.values)) {
+    if (!this.values) {
       return false
     }
     return this.values.length > 0
@@ -181,10 +178,10 @@ class Query extends EventEmitter {
     if (this.text && previous && this.text !== previous) {
       return new Error(`Prepared statements must be unique - '${this.name}' was used for a different statement`)
     }
+    if (this.values && !Array.isArray(this.values)) {
+      return new Error('Query values must be an array')
+    }
     if (this.requiresPreparation()) {
-      if (this.values && !Array.isArray(this.values)) {
-        return new Error('Query values must be an array')
-      }
       this.prepare(connection)
     } else {
       connection.query(this.text)
@@ -201,7 +198,7 @@ class Query extends EventEmitter {
   }
 
   handleEndOfBatchResponse(connection) {
-    if (this.values && this.values.copyStream) { //copy from stdin
+    if (this.copyStream) { //copy from stdin
       connection.sendCopyDone()
     }
     // else noop, backend will send CopyDoneResponse for copy from local file to continue the process

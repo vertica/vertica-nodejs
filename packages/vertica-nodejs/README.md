@@ -363,7 +363,7 @@ Copy from local stdin in vertica-nodejs can be better described as copy from loc
     const readableStream = fs.createReadStream(filePath) // assumes filePath is a string containing the path to a data file
     client.query("CREATE LOCAL TEMP TABLE myTable(x int)", (err) => {
         if (err) console.log(err) 
-        client.query("COPY myTable FROM LOCAL STDIN RETURNREJECTED", {copyStream: readableStream}, (err, res) => {
+        client.query({text: "COPY myTable FROM LOCAL STDIN RETURNREJECTED", copyStream: readableStream}, (err, res) => {
             console.log(err || res.getRejectedRows())
             client.end()
         })

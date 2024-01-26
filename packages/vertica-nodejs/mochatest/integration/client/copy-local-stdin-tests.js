@@ -44,7 +44,7 @@ describe('Running Copy From Local Stdin Commands', function () {
   it ('succeeds with basic copy from stdin command', function(done) {
     const readableStream = fs.createReadStream(goodFilePath, { encoding: 'utf8' })
     readableStream.on('open', () => {
-      pool.query("COPY copyTable FROM LOCAL STDIN RETURNREJECTED", {copyStream: readableStream}, (err, res) => {
+      pool.query({text: "COPY copyTable FROM LOCAL STDIN RETURNREJECTED", copyStream: readableStream}, (err, res) => {
         assert.equal(err, undefined)
         assert.equal(res.rows[0]['Rows Loaded'], 5) 
         done()
@@ -55,7 +55,7 @@ describe('Running Copy From Local Stdin Commands', function () {
   it ('succeeds with a binary input stream', function(done) {
     const readableStream = fs.createReadStream(goodFilePath)
     readableStream.on('open', () => {
-      pool.query("COPY copyTable FROM LOCAL STDIN RETURNREJECTED", {copyStream: readableStream}, (err, res) => {
+      pool.query({text: "COPY copyTable FROM LOCAL STDIN RETURNREJECTED", copyStream: readableStream}, (err, res) => {
         assert.equal(err, undefined)
         assert.equal(res.rows[0]['Rows Loaded'], 5) 
         done()
@@ -78,7 +78,7 @@ describe('Running Copy From Local Stdin Commands', function () {
     writableStream.end(() => {
       const readableStream = fs.createReadStream(largeFilePath, { encoding: 'utf8' })
       readableStream.on('open', () => {
-        pool.query("COPY copyTable FROM LOCAL STDIN RETURNREJECTED", {copyStream: readableStream}, (err, res) => {
+        pool.query({text: "COPY copyTable FROM LOCAL STDIN RETURNREJECTED", copyStream: readableStream}, (err, res) => {
           try {
             assert.equal(err, undefined)
             assert.equal(res.rows[0]['Rows Loaded'], requiredLines)
@@ -94,7 +94,7 @@ describe('Running Copy From Local Stdin Commands', function () {
   it('returns rejected rows with RETURNREJECTED specified', function(done) {
     const readableStream = fs.createReadStream(badFilePath, { encoding: 'utf8' })
     readableStream.on('open', () => {
-      pool.query("COPY copyTable FROM LOCAL STDIN RETURNREJECTED", {copyStream: readableStream}, (err, res) => {
+      pool.query({text: "COPY copyTable FROM LOCAL STDIN RETURNREJECTED", copyStream: readableStream}, (err, res) => {
         assert.equal(err, undefined)
         assert.equal(res.rows[0]['Rows Loaded'], 3) // 3 good rows in badFileContents
         assert.deepEqual(res.getRejectedRows(), [2, 4]) // rows 2 and 4 are malformed
@@ -105,7 +105,7 @@ describe('Running Copy From Local Stdin Commands', function () {
 
   it('behaves properly when input stream does not exist/is invalid', function(done) {
     const badStream = null
-    pool.query("COPY copyTable FROM LOCAL STDIN RETURNREJECTED", {copyStream: badStream}, (err) => {
+    pool.query({text: "COPY copyTable FROM LOCAL STDIN RETURNREJECTED", copyStream: badStream}, (err) => {
       assert.ok(err.message.includes("Cannot perform copy operation. Stream must be an instance of stream.Readable"))
       done()
     })
