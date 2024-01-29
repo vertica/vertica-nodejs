@@ -19,7 +19,7 @@ describe('Running Copy From Local File Commands', function () {
   // generate temporary test files, create table before tests begin
   before((done) => { 
     fs.writeFile(copyGoodPath, goodFileContents, () => {
-      fs.writeFile(badFilePath, badFileContents, () => {
+      fs.writeFile(copyBadPath, badFileContents, () => {
         pool.query("CREATE TABLE copyTable (num int, let char)", (done))
       })
     })
@@ -28,7 +28,7 @@ describe('Running Copy From Local File Commands', function () {
   // delete temporary test files, drop table after tests are complete
   after((done) => {
     fs.unlink(copyGoodPath, () => {
-      fs.unlink(badFilePath, () => {
+      fs.unlink(copyBadPath, () => {
         pool.query("DROP TABLE IF EXISTS copyTable", () => {
           pool.end(done)
         })
