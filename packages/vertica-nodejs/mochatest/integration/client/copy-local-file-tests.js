@@ -9,16 +9,16 @@ describe('Running Copy From Local File Commands', function () {
   const pool = new vertica.Pool()
 
   // global file names and paths
-  const goodFileName = "copy-good.dat"
-  const badFileName = "copy-bad.dat"
-  const goodFilePath = path.join(process.cwd(), goodFileName);
-  const badFilePath = path.join(process.cwd(), badFileName)
+  const copyGoodName = "copy-good.dat"
+  const copyBadName = "copy-bad.dat"
+  const copyGoodPath = path.join(process.cwd(), copyGoodName);
+  const copyBadPath = path.join(process.cwd(), copyBadName)
   const goodFileContents = "1|a\n2|b\n3|c\n4|d\n5|e\n" // 5 correctly formatted rows
   const badFileContents = "6|f\ng|7\n8|h\ni|9\n10|j\n"   // rows 2 and 4 malformed
 
   // generate temporary test files, create table before tests begin
   before((done) => { 
-    fs.writeFile(goodFilePath, goodFileContents, () => {
+    fs.writeFile(copyGoodPath, goodFileContents, () => {
       fs.writeFile(badFilePath, badFileContents, () => {
         pool.query("CREATE TABLE copyTable (num int, let char)", (done))
       })
@@ -27,7 +27,7 @@ describe('Running Copy From Local File Commands', function () {
 
   // delete temporary test files, drop table after tests are complete
   after((done) => {
-    fs.unlink(goodFilePath, () => {
+    fs.unlink(copyGoodPath, () => {
       fs.unlink(badFilePath, () => {
         pool.query("DROP TABLE IF EXISTS copyTable", () => {
           pool.end(done)

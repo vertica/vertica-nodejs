@@ -9,17 +9,17 @@ describe('Running Copy From Local Stdin Commands', function () {
   const pool = new vertica.Pool()
 
   // global file names and paths
-  const goodFileName = "copy-good.dat"
-  const badFileName = "copy-bad.dat"
-  const goodFilePath = path.join(process.cwd(), goodFileName);
-  const badFilePath = path.join(process.cwd(), badFileName)
+  const copyGoodName = "copy-good.dat"
+  const copyBadName = "copy-bad.dat"
+  const copyGoodPath = path.join(process.cwd(), copyGoodName);
+  const copyBadPath = path.join(process.cwd(), copyBadName)
   const goodFileContents = "1|'a'\n2|'b'\n3|'c'\n4|'d'\n5|'e'" // 5 correctly formatted rows
   const badFileContents = "1|'a'\n'b'|2\n3|'c'\n'd'|4\n5|'e'"   // rows 2 and 4 malformed
 
   // generate temporary test files, create table before tests begin
   before((done) => { 
-    fs.writeFile(goodFilePath, goodFileContents, () => {
-      fs.writeFile(badFilePath, badFileContents, () => {
+    fs.writeFile(copyGoodPath, goodFileContents, () => {
+      fs.writeFile(copyBadPath, badFileContents, () => {
         pool.query("CREATE TABLE copyTable (num int, let char)", (done))
       })
     })
@@ -27,8 +27,8 @@ describe('Running Copy From Local Stdin Commands', function () {
 
   // delete temporary test files, drop table after tests are complete
   after((done) => {
-    fs.unlink(goodFilePath, () => {
-      fs.unlink(badFilePath, () => {
+    fs.unlink(copyGoodPath, () => {
+      fs.unlink(copyBadPath, () => {
         pool.query("DROP TABLE IF EXISTS copyTable", () => {
           pool.end(done)
         })
@@ -42,7 +42,7 @@ describe('Running Copy From Local Stdin Commands', function () {
   })
 
   it ('succeeds with basic copy from stdin command', function(done) {
-    const readableStream = fs.createReadStream(goodFilePath, { encoding: 'utf8' })
+    const readableStream = fs.createReadStream(copyGoodPath, { encoding: 'utf8' })
     readableStream.on('open', () => {
       pool.query({text: "COPY copyTable FROM LOCAL STDIN RETURNREJECTED", copyStream: readableStream}, (err, res) => {
         assert.equal(err, undefined)
@@ -53,7 +53,7 @@ describe('Running Copy From Local Stdin Commands', function () {
   })
 
   it ('succeeds with a binary input stream', function(done) {
-    const readableStream = fs.createReadStream(goodFilePath)
+    const readableStream = fs.createReadStream(copyGoodPath)
     readableStream.on('open', () => {
       pool.query({text: "COPY copyTable FROM LOCAL STDIN RETURNREJECTED", copyStream: readableStream}, (err, res) => {
         assert.equal(err, undefined)
@@ -92,7 +92,7 @@ describe('Running Copy From Local Stdin Commands', function () {
   })
 
   it('returns rejected rows with RETURNREJECTED specified', function(done) {
-    const readableStream = fs.createReadStream(badFilePath, { encoding: 'utf8' })
+    const readableStream = fs.createReadStream(copyBadPath, { encoding: 'utf8' })
     readableStream.on('open', () => {
       pool.query({text: "COPY copyTable FROM LOCAL STDIN RETURNREJECTED", copyStream: readableStream}, (err, res) => {
         assert.equal(err, undefined)

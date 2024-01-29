@@ -35,6 +35,7 @@ suite.test('sending non-array argument as values causes an error callback', (don
   })
 })
 
+
 suite.test('re-using connections results in error callback', (done) => {
   const client = new Client()
   client.connect((err) => {
