@@ -273,6 +273,8 @@ class Query extends EventEmitter {
         }
       }
       const uniqueFileNames = [...new Set(expandedFileNames)] // remove duplicates
+      msg.numFiles = uniqueFileNames.length
+      msg.fileNames = uniqueFileNames
       for (const fileName of uniqueFileNames) {
         try { // Check if the data file can be read
           await fsPromises.access(fileName, fs.constants.R_OK);

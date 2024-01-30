@@ -17,7 +17,6 @@
 var net = require('net')
 var fs = require('fs')
 var EventEmitter = require('events').EventEmitter
-const glob = require('glob')
 
 const { parse, serialize } = require('v-protocol')
 
@@ -333,27 +332,17 @@ class Connection extends EventEmitter {
 
   sendCopyDataFiles(msg) {
     const buffer = Buffer.alloc(bufferSize);
-    let expandedFileNames = []
-    if (/[*?[\]]/.test(msg.fileName)) { // contains glob pattern
-      const matchingFiles = glob.sync(msg.fileName)
-      expandedFileNames = expandedFileNames.concat(matchingFiles)
-    } else {
-      expandedFileNames.push(msg.fileName)
-    }
-    const uniqueFileNames = [...new Set(expandedFileNames)] // remove duplicates
-    for (const fileName of uniqueFileNames) {
-      const fd = fs.openSync(fileName, 'r');
-      let bytesRead = 0;
-      do {
-        // read bufferSize bytes from the file into our buffer starting at the current position in the file
-        bytesRead = fs.readSync(fd, buffer, 0, bufferSize, null);
-        if (bytesRead > 0) {
-          // Process the chunk (buffer.slice(0, bytesRead)) here
-          this.sendCopyData(buffer.subarray(0, bytesRead))
-        }
-      } while (bytesRead > 0);
-      fs.closeSync(fd);
-    }
+    const fd = fs.openSync(msg.fileName, 'r');
+    let bytesRead = 0;
+    do {
+      // read bufferSize bytes from the file into our buffer starting at the current position in the file
+      bytesRead = fs.readSync(fd, buffer, 0, bufferSize, null);
+      if (bytesRead > 0) {
+        // Process the chunk (buffer.slice(0, bytesRead)) here
+        this.sendCopyData(buffer.subarray(0, bytesRead))
+      }
+    } while (bytesRead > 0);
+    fs.closeSync(fd);
     this.sendEndOfBatchRequest()
   }
 
