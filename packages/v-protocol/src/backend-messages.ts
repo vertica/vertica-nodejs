@@ -269,14 +269,15 @@ export class NoticeMessage implements BackendMessage, NoticeOrError {
 
 export class VerifyFilesMessage {
   public readonly name: MessageName = 'verifyFiles'
-  public readonly fileNames: string[]
+  public readonly fileNames: string[] | null
   constructor(public readonly length: number,
               public numFiles: number, 
-              public files: string[],
+              public files: string[] | null,
               public readonly rejectFile: string, 
               public readonly exceptionFile: string)
   {
-    this.fileNames = [...files] // shallow copy 
+    // shallow copy the fileNames, or null for copy from local stdin
+    this.fileNames = files !== null ? [...files] : null
   }
 }
 

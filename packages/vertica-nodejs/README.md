@@ -329,6 +329,47 @@ Prepared statements are slightly different. Here we will provide a query in the 
     })
 ```
 
+### Copy Local Commands 
+
+Copy Local commands allow you to quickly load data from a client system to your vertica database. There are two type of copy local commands, copy from local file and copy from local stdin. If REJECTED DATA or EXCEPTIONS are specified in the copy command, the provided file paths must be writable by the process running the driver. If the files exist, the driver will append to the end of them. If the files don't exist, the driver will create them first. If RETURNREJECTED is specified in place of REJECTED DATA, the rejected rows can be retrieved from the result object with result.getRejectedRows().
+
+#### Copy From Local File
+
+Copy from local file opens and reads the file(s) from the client system and sends the data in chunks of 64Kb to the server for insertion. The files must be readable by the process running the driver. 
+
+```javascript 
+    const {Client} = require('vertica-nodejs')
+    const client = new Client()
+
+    client.connect()
+    client.query("CREATE LOCAL TEMP TABLE myTable(x int)", (err) => {
+        if (err) console.log(err) 
+        client.query("COPY myTable FROM LOCAL 'ints.dat' REJECTED DATA 'rejects.txt' EXCEPTIONS 'exceptions.txt'", (err, res) => {
+            console.log(err || res)
+            client.end()
+        })
+    })
+```
+
+#### Copy From Local Stdin (stream)
+
+Copy from local stdin in vertica-nodejs can be better described as copy from local stream. The driver supports inserting any stream of data that is an instance of `stream.Readable``. Binary and utf-8 encoded streams are supported. Since the query syntax does not specify where to access the stream in the same way that copy from local file specifies the location of the file, an additional parameter must be provided in a config object, copyStream.
+
+```javascript 
+    const {Client} = require('vertica-nodejs')
+    const client = new Client()
+
+    client.connect()
+    const readableStream = fs.createReadStream(filePath) // assumes filePath is a string containing the path to a data file
+    client.query("CREATE LOCAL TEMP TABLE myTable(x int)", (err) => {
+        if (err) console.log(err) 
+        client.query({text: "COPY myTable FROM LOCAL STDIN RETURNREJECTED", copyStream: readableStream}, (err, res) => {
+            console.log(err || res.getRejectedRows())
+            client.end()
+        })
+    })
+```
+
 ### Modifying Result Rows with RowMode
 
 The Result.rows returned by a query are by default an array of objects with key-value pairs that map the column name to column value for each row. Often you will find you don't need that, especially for very large result sets. In this case you can provide a query object parameter containing the rowMode field set to 'array'. This will cause the driver to parse row data into arrays of values without creating an object and having key-value pairs. 

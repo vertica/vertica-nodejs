@@ -243,10 +243,14 @@ export class Parser {
   private parseVerifyFilesMessage(offset: number, length: number, bytes: Buffer) {
     this.reader.setBuffer(offset, bytes)
     const numFiles = this.reader.int16() //int16 number of files, n
-    const fileNames: string[] = new Array(numFiles)
-    for (let i = 0; i < numFiles; i++) {
-      fileNames[i] = this.reader.cstring() //string[n], name of each file
+    let fileNames: string[] | null = null;
+    if (numFiles !== 0) {
+      fileNames = new Array(numFiles);
+      for (let i = 0; i < numFiles; i++) {
+        fileNames[i] = this.reader.cstring(); // string[n], name of each file
+      }
     }
+    
     const rejectFile = this.reader.cstring() //string reject file name
     const exceptionFile = this.reader.cstring() //string exceptions file name
     return new VerifyFilesMessage(length, numFiles, fileNames, rejectFile, exceptionFile)

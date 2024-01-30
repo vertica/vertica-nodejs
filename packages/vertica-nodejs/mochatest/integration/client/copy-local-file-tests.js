@@ -4,22 +4,22 @@ const assert = require('assert')
 const path = require('path')
 const fs = require('fs')
 
-describe('Running Copy Commands', function () {
+describe('Running Copy From Local File Commands', function () {
   // global pool to use for queries
   const pool = new vertica.Pool()
 
   // global file names and paths
-  const goodFileName = "copy-good.dat"
-  const badFileName = "copy-bad.dat"
-  const goodFilePath = path.join(process.cwd(), goodFileName);
-  const badFilePath = path.join(process.cwd(), badFileName)
-  const goodFileContents = "1|'a'\n2|'b'\n3|'c'\n4|'d'\n5|'e'" // 5 correctly formatted rows
-  const badFileContents = "1|'a'\n'b'|2\n3|'c'\n'd'|4\n5|'e'"   // rows 2 and 4 malformed
+  const copyGoodName = "copy-good.dat"
+  const copyBadName = "copy-bad.dat"
+  const copyGoodPath = path.join(process.cwd(), copyGoodName);
+  const copyBadPath = path.join(process.cwd(), copyBadName)
+  const goodFileContents = "1|a\n2|b\n3|c\n4|d\n5|e\n" // 5 correctly formatted rows
+  const badFileContents = "6|f\ng|7\n8|h\ni|9\n10|j\n"   // rows 2 and 4 malformed
 
   // generate temporary test files, create table before tests begin
   before((done) => { 
-    fs.writeFile(goodFilePath, goodFileContents, () => {
-      fs.writeFile(badFilePath, badFileContents, () => {
+    fs.writeFile(copyGoodPath, goodFileContents, () => {
+      fs.writeFile(copyBadPath, badFileContents, () => {
         pool.query("CREATE TABLE copyTable (num int, let char)", (done))
       })
     })
@@ -27,8 +27,8 @@ describe('Running Copy Commands', function () {
 
   // delete temporary test files, drop table after tests are complete
   after((done) => {
-    fs.unlink(goodFilePath, () => {
-      fs.unlink(badFilePath, () => {
+    fs.unlink(copyGoodPath, () => {
+      fs.unlink(copyBadPath, () => {
         pool.query("DROP TABLE IF EXISTS copyTable", () => {
           pool.end(done)
         })
@@ -66,7 +66,7 @@ describe('Running Copy Commands', function () {
         assert.equal(res.rows[0]['Rows Loaded'], 3) // 3 good rows in badFileContents
         fs.readFile('rejects.txt', 'utf8', (err, data) => {
           assert.equal(err, undefined)
-          assert.equal(data, "'b'|2\n'd'|4\n") // rows 2 and 4 are malformed
+          assert.equal(data, "g|7\ni|9\n") // rows 2 and 4 are malformed
         })
       } finally {
         fs.unlink('rejects.txt', done)
@@ -185,20 +185,25 @@ describe('Running Copy Commands', function () {
     });
     
   })
-  it ('behaves properly with ABORT ON ERROR', function(done) {
-    done()
+
+  it('succeeds with multiple input files', function(done) {
+    pool.query("COPY copyTable FROM LOCAL 'copy-good.dat', 'copy-bad.dat' RETURNREJECTED", (err, res) => {
+      assert.equal(err, undefined)
+      assert.equal(res.rows[0]['Rows Loaded'], 8) // 5 good rows in goodFileContents
+      assert.deepEqual(res.getRejectedRows(), [7, 9])
+      done()
+    })
   })
 
   it('succeeds using glob patterns', function(done) {
-    done()
-  })
-
-  it('succeeds with multiple input files', function(done) {
-    done()
-  })
-
-  it('succeeds with basic copy from stdin command', function(done) {
-    //todo
-    done()
+    pool.query("COPY copyTable FROM LOCAL 'copy-*.dat' RETURNREJECTED", (err, res) => {
+      assert.equal(err, undefined)
+      assert.equal(res.rows[0]['Rows Loaded'], 8) // 5 good rows in goodFileContents
+      assert.equal(res.getRejectedRows().length, 2) // check the length instead of position in case the order of files loaded changes 
+      pool.query({text: "SELECT num FROM copyTable ORDER BY num ASC", rowMode: 'array'}, (err, res) => {
+        assert.deepEqual(res.rows, [[1],[2],[3],[4],[5],[6],[8],[10]]) // 7 and 9 malformed.
+        done()
+      })
+    })
   })
 })

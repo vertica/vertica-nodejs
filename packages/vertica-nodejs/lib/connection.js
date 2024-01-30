@@ -314,7 +314,23 @@ class Connection extends EventEmitter {
     this._send(serialize.EndOfBatchRequest())
   }
 
-  sendCopyDataStream(msg) {
+  sendCopyDataStream(copyStream) {
+    copyStream.on('readable', () => {
+      let bytesRead
+      while ((bytesRead = copyStream.read(bufferSize)) !== null) {
+        if (Buffer.isBuffer(bytesRead)) { // readableStream is binary
+          this.sendCopyData(bytesRead)
+        } else { // readableStream is utf-8 encoded
+          this.sendCopyData(Buffer.from(bytesRead, 'utf-8'))
+        }
+      }
+    })
+    copyStream.on('end', () => {
+      this.sendEndOfBatchRequest()
+    })
+  }
+
+  sendCopyDataFiles(msg) {
     const buffer = Buffer.alloc(bufferSize);
     const fd = fs.openSync(msg.fileName, 'r');
     let bytesRead = 0;

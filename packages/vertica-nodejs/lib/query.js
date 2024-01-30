@@ -20,19 +20,21 @@ const Result = require('./result')
 const utils = require('./utils')
 const fs = require('fs')
 const fsPromises = require('fs').promises
+const stream = require('stream')
+const glob = require('glob')
 
 class Query extends EventEmitter {
   constructor(config, values, callback) {
     super()
 
     config = utils.normalizeQueryConfig(config, values, callback)
-
     this.text = config.text
     this.values = config.values
     this.rows = config.rows
     this.types = config.types
     this.name = config.name
     this.binary = config.binary || false
+    this.copyStream = config.copyStream || null
     // use unique portal name each time
     this.portal = config.portal || ''
     this.callback = config.callback
@@ -195,6 +197,13 @@ class Query extends EventEmitter {
     //do nothing, vertica doesn't support result-row count limit
   }
 
+  handleEndOfBatchResponse(connection) {
+    if (this.copyStream) { //copy from stdin
+      connection.sendCopyDone()
+    }
+    // else noop, backend will send CopyDoneResponse for copy from local file to continue the process
+  }
+
   prepare(connection) {
     // prepared statements need sync to be called after each command
     // complete or when an error is encountered
@@ -249,16 +258,36 @@ class Query extends EventEmitter {
   }
 
   handleCopyInResponse(connection) {
-    connection.sendCopyFail('No source stream defined')
+    connection.sendCopyDataStream(this.copyStream)
   }
 
   async handleVerifyFiles(msg, connection) {
-    try { // Check if the data file can be read
-      await fsPromises.access(msg.files[0], fs.constants.R_OK);
-    } catch (readInputFileErr) { // Can't open input file for reading, send CopyError
-      console.log(readInputFileErr.code)
-      connection.sendCopyError(msg.files[0], 0, '', "Unable to open input file for reading")
-      return;
+    if (msg.numFiles !== 0) { // we are copying from file, not stdin
+      let expandedFileNames = []
+      for (const fileName of msg.files) {
+        if (/[*?[\]]/.test(fileName)) { // contains glob pattern
+          const matchingFiles = glob.sync(fileName)
+          expandedFileNames = expandedFileNames.concat(matchingFiles)
+        } else {
+          expandedFileNames.push(fileName)
+        }
+      }
+      const uniqueFileNames = [...new Set(expandedFileNames)] // remove duplicates
+      msg.numFiles = uniqueFileNames.length
+      msg.fileNames = uniqueFileNames
+      for (const fileName of uniqueFileNames) {
+        try { // Check if the data file can be read
+          await fsPromises.access(fileName, fs.constants.R_OK);
+        } catch (readInputFileErr) { // Can't open input file for reading, send CopyError
+          connection.sendCopyError(fileName, 0, '', "Unable to open input file for reading")
+          return;
+        }
+      }
+    } else { // check to make sure the readableStream is in fact a readableStream
+      if (!(this.copyStream instanceof stream.Readable)) {
+        connection.sendCopyError(this.copyStream, 0, '', "Cannot perform copy operation. Stream must be an instance of stream.Readable")
+        return
+      }
     }
     if (msg.rejectFile) {
       try { // Check if the rejections file can be written to, if specified
@@ -300,7 +329,7 @@ class Query extends EventEmitter {
   }
      
   handleLoadFile(msg, connection) {
-    connection.sendCopyDataStream(msg)
+    connection.sendCopyDataFiles(msg)
   }
 
   handleWriteFile(msg, connection) {
