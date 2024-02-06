@@ -114,7 +114,15 @@ class ConnectionParameters {
     this.backup_server_node = parseBackupServerNodes(val('backup_server_node', config))
     this.client_label = val('client_label', config, false)
     this.workload = val('workload', config, false)
+
+    // client auditing information
     this.client_os_hostname = os.hostname()
+    this.client_type = "Node.js Driver"
+    this.client_version = "1.1.1"
+    this.client_pid = process.pid.toString()
+    this.client_os = os.platform()
+    this.client_os_user_name = os.userInfo().username
+
     //NOTE: The client has only been tested to support 3.5, which was chosen in order to include SHA512 support
     this.protocol_version = (3 << 16 | 5) // 3.5 -> (major << 16 | minor) -> (3 << 16 | 5) -> 196613
 

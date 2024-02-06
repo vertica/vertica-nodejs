@@ -105,12 +105,17 @@ describe('vertica backup_server_node connection parameter', function() {
   })
 })
 
-describe('vertica client_os_hostname connection parameter', function() {
-  it('is automatically determined and sent in the startup packet', function() {
+describe('vertica-nodejs handling auditing connection properties', function() {
+  it('are provided automatically when establishing a connection', function() {
     const client = new vertica.Client()
     client.connect()
-    client.query("SELECT client_os_hostname FROM current_session", (err, res) => {
+    client.query("SELECT client_pid, client_type, client_version, client_os, client_os_user_name, client_os_hostname FROM CURRENT_SESSION", (err, res) => {
       if (err) assert(false)
+      assert.equal(res.rows[0].client_pid, process.pid)
+      assert.equal(res.rows[0].client_type, "Node.js Driver")
+      assert.equal(res.rows[0].client_version, "1.1.1")
+      assert.equal(res.rows[0].client_os, os.platform())
+      assert.equal(res.rows[0].client_os_user_name, os.userInfo().username)
       assert.equal(res.rows[0].client_os_hostname, os.hostname())
       client.end()
     })
@@ -131,3 +136,4 @@ describe('vertica workload connection parameter', function() {
     })
   })
 })
+
