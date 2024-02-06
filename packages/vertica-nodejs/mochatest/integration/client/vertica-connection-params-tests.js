@@ -13,7 +13,7 @@
 // limitations under the License.
 
 'use strict'
-const vertica = require('../../../lib')
+const vertica = require('../../../../vertica-nodejs')
 const assert = require('assert')
 
 var os = require('os')
@@ -113,7 +113,7 @@ describe('vertica-nodejs handling auditing connection properties', function() {
       if (err) assert(false)
       assert.equal(res.rows[0].client_pid, process.pid)
       assert.equal(res.rows[0].client_type, "Node.js Driver")
-      assert.equal(res.rows[0].client_version, "1.1.1")
+      assert.equal(res.rows[0].client_version, vertica.version)
       assert.equal(res.rows[0].client_os, os.platform())
       assert.equal(res.rows[0].client_os_user_name, os.userInfo().username)
       assert.equal(res.rows[0].client_os_hostname, os.hostname())
