@@ -511,7 +511,12 @@ class Client extends EventEmitter {
       user: params.user,
       database: params.database,
       protocol_version: params.protocol_version.toString(),
-      client_os_hostname: params.client_os_hostname
+      client_type: params.client_type,
+      client_version: params.client_version,
+      client_os: params.client_os,
+      client_os_user_name: params.client_os_user_name,
+      client_os_hostname: params.client_os_hostname,
+      client_pid: params.client_pid
     }
 
     if (params.replication) {
@@ -532,7 +537,6 @@ class Client extends EventEmitter {
     if (params.workload) {
       data.workload = params.workload
     }
-
 
     return data
   }

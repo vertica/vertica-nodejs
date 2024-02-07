@@ -19,6 +19,7 @@ var defaults = require('./defaults')
 var Connection = require('./connection')
 var Pool = require('v-pool')
 const { DatabaseError } = require('v-protocol')
+const packageJson = require('../package.json')
 
 const poolFactory = (Client) => {
   return class BoundPool extends Pool {
@@ -28,7 +29,7 @@ const poolFactory = (Client) => {
   }
 }
 
-var PG = function (clientConstructor) {
+var Vertica = function (clientConstructor) {
   this.defaults = defaults
   this.Client = clientConstructor
   this.Query = this.Client.Query
@@ -37,7 +38,8 @@ var PG = function (clientConstructor) {
   this.Connection = Connection
   this.types = require('pg-types')
   this.DatabaseError = DatabaseError
+  this.version = packageJson.version
 }
 
-module.exports = new PG(Client)
+module.exports = new Vertica(Client)
 

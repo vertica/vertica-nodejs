@@ -34,5 +34,8 @@
     "arrowParens": "always",
     "trailingComma": "es5",
     "singleQuote": true
+  },
+  "dependencies": {
+    "vertica-nodejs": "^1.1.1"
   }
 }
