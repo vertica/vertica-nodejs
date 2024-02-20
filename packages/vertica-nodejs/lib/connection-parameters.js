@@ -118,7 +118,7 @@ class ConnectionParameters {
     // client auditing information
     this.client_os_hostname = os.hostname()
     this.client_type = "Node.js Driver"
-    this.client_version = "1.1.1"
+    this.client_version = "1.1.2"
     this.client_pid = process.pid.toString()
     this.client_os = os.platform()
     this.client_os_user_name = os.userInfo().username

@@ -1,6 +1,6 @@
 {
   "name": "vertica-nodejs",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Vertica client - pure javascript & libpq with the same API",
   "keywords": [
     "database",
@@ -32,7 +32,7 @@
     "pg-types": "^2.1.0",
     "pgpass": "1.x",
     "v-connection-string": "1.1.0",
-    "v-pool": "1.1.1",
+    "v-pool": "1.1.2",
     "v-protocol": "1.1.0"
   },
   "devDependencies": {
