@@ -68,7 +68,7 @@ test('initializing from a config string', function () {
   test('when not including all values the defaults are used', function () {
     var client = new Client('postgres://host1')
     assert.equal(client.user, process.env['V_USER'] || process.env.USER)
-    assert.equal(client.password, process.env['V_PASSWORD'] || null)
+    assert.equal(client.password, process.env['V_PASSWORD'] || '')
     assert.equal(client.host, 'host1')
     assert.equal(client.port, process.env['V_PORT'] || 5433)
     assert.equal(client.database, process.env['V_DATABASE'] || '')
