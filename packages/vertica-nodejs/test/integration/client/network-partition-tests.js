@@ -11,11 +11,11 @@ var Server = function (response) {
   this.response = response
 }
 
-let port = 54321
+let port = 5433
 Server.prototype.start = function (cb) {
-  // this is our fake postgres server
+  // this is our fake vertica server
   // it responds with our specified response immediatley after receiving every buffer
-  // this is sufficient into convincing the client its connectet to a valid backend
+  // this is sufficient into convincing the client its connect to a valid backend
   // if we respond with a readyForQuery message
   this.server = net.createServer(
     function (socket) {
