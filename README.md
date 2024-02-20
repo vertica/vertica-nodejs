@@ -41,7 +41,7 @@ Ensure that the applicable environment variables are configured for connecting t
  - V_HOST: 'localhost'
  - V_PORT: 5433
  - V_USER: process.env.USER/USERNAME
- - V_PASSWORD: null
+ - V_PASSWORD: ''
  - V_DATABASE: ''
  - V_BACKUP_SERVER_NODE: ''
 

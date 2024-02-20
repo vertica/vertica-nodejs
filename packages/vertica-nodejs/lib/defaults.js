@@ -25,7 +25,7 @@ module.exports = {
   database: '',
 
   // database user's password
-  password: null,
+  password: '',
 
   // a Postgres connection string to be used instead of setting individual connection items
   // NOTE:  Setting this value will cause it to override any other value (such as database or user) defined
