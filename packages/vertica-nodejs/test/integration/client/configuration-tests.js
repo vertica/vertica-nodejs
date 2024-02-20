@@ -15,7 +15,7 @@ suite.test('default values are used in new clients', function () {
   assert.same(vertica.defaults, {
     user: process.env.USER,
     database: '',
-    password: null,
+    password: '',
     port: 5433,
     rows: 0,
     max: 10,
