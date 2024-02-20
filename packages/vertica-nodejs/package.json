@@ -27,7 +27,7 @@
   "main": "./lib",
   "dependencies": {
     "buffer-writer": "2.0.0",
-    "glob": "^10.3.10",
+    "glob": "^7.1.6",
     "packet-reader": "1.0.0",
     "pg-types": "^2.1.0",
     "pgpass": "1.x",
