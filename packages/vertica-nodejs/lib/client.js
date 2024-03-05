@@ -65,6 +65,7 @@ class Client extends EventEmitter {
         tls_config: this.connectionParameters.tls_config,
         tls_mode: this.connectionParameters.tls_mode,
         tls_trusted_certs: this.connectionParameters.tls_trusted_certs,
+        tls_host: this.connectionParameters.host,
         keepAlive: c.keepAlive || false,
         keepAliveInitialDelayMillis: c.keepAliveInitialDelayMillis || 0,
         encoding: this.connectionParameters.client_encoding || 'utf8',
