@@ -117,7 +117,7 @@ class ConnectionParameters {
 
     // client auditing information
     this.client_type = "Node.js Driver"
-    this.client_version = "1.1.2"
+    this.client_version = "1.1.3"
 
     try {
       this.client_os_hostname = os.hostname()
