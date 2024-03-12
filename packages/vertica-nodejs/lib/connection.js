@@ -50,6 +50,7 @@ class Connection extends EventEmitter {
       //this.tls_client_key = config.tls_client_key
       //this.tls_client_cert = config.tls_client_cert
       this.tls_trusted_certs = config.tls_trusted_certs
+      this.tls_host = config.tls_host
     }
     var self = this
     this.on('newListener', function (eventName) {
@@ -166,6 +167,7 @@ class Connection extends EventEmitter {
         else if (self.tls_mode === 'verify-full') { //verify that the name on the CA-signed server certificate matches it's hostname
           try {
             tls_options.rejectUnauthorized = true
+            tls_options.host = self.tls_host  // Hostname/IP to match certificate's altnames
             if (self.tls_trusted_certs) {
               tls_options.ca = fs.readFileSync(self.tls_trusted_certs).toString()
             }

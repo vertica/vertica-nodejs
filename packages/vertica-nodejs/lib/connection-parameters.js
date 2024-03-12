@@ -116,12 +116,32 @@ class ConnectionParameters {
     this.workload = val('workload', config, false)
 
     // client auditing information
-    this.client_os_hostname = os.hostname()
     this.client_type = "Node.js Driver"
-    this.client_version = "1.1.2"
-    this.client_pid = process.pid.toString()
-    this.client_os = os.platform()
-    this.client_os_user_name = os.userInfo().username
+    this.client_version = "1.1.3"
+
+    try {
+      this.client_os_hostname = os.hostname()
+    } catch (e) {
+      this.client_os_hostname = ""
+    }
+
+    try {
+      this.client_pid = process.pid.toString()
+    } catch (e) {
+      this.client_pid = "0"
+    }
+
+    try {
+      this.client_os = os.platform()
+    } catch (e) {
+      this.client_os = ""
+    }
+
+    try {
+      this.client_os_user_name = os.userInfo().username
+    } catch (e) {
+      this.client_os_user_name = ""
+    }
 
     //NOTE: The client has only been tested to support 3.5, which was chosen in order to include SHA512 support
     this.protocol_version = (3 << 16 | 5) // 3.5 -> (major << 16 | minor) -> (3 << 16 | 5) -> 196613
