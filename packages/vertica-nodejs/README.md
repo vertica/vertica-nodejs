@@ -245,7 +245,7 @@ The `tls_trusted_certs` connection property is an optional override of the trust
     client.connect()
 ```
 
-## Workload Connection Properties
+## Workload Connection Property
 The `workload` connection property is the name of the workload for the session. Valid values are workload names that already exist in a workload routing rule on the server. It will be set to the default if a workload name that doesn't exist is entered.
 
 ```javascript
@@ -254,7 +254,7 @@ The `workload` connection property is the name of the workload for the session. 
     client.connect()
 ```
 
-## Client Label Connection Properties
+## Client Label Connection Property
 The `client_label` connection property is a string that sets a label for the connection on the server. This value appears in the *client_label* column of the SESSIONS system table.
 
 ```javascript
