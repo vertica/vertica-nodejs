@@ -245,6 +245,24 @@ The `tls_trusted_certs` connection property is an optional override of the trust
     client.connect()
 ```
 
+## Workload Connection Property
+The `workload` connection property is the name of the workload for the session. Valid values are workload names that already exist in a workload routing rule on the server. It will be set to the default if a workload name that doesn't exist is entered.
+
+```javascript
+    const {Client} = require('vertica-nodejs')
+    var client = new Client({workload: 'analytics'})
+    client.connect()
+```
+
+## Client Label Connection Property
+The `client_label` connection property is a string that sets a label for the connection on the server. This value appears in the *client_label* column of the SESSIONS system table.
+
+```javascript
+    const {Client} = require('vertica-nodejs')
+    var client = new Client({client_label: 'xxxxx'})
+    client.connect()
+```
+
 ## Executing Queries and Accessing Results
 
 After establishing a connection in whatever way you choose, you can query your Vertica database. There are a number of ways to do this including simple queries, parameterized queries, and prepared statements. The results can be further modified by changing the rowMode, or using custom type parsers as you will see in the examples below. 
