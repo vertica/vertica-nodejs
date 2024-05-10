@@ -16,12 +16,12 @@
  * =============================================================================
  */
 
-import buffers from './testing/test-buffers'
-import BufferList from './testing/buffer-list'
-import { parse } from '.'
+import buffers from './test-buffers'
+import BufferList from './buffer-list'
+import { parse } from '../src'
 import assert from 'assert'
 import { PassThrough } from 'stream'
-import { BackendMessage } from './backend-messages'
+import { BackendMessage } from '../src/backend-messages'
 
 var authOkBuffer = buffers.authenticationOk()
 var paramStatusBuffer = buffers.parameterStatus('client_encoding', 'UTF8')

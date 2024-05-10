@@ -20,6 +20,7 @@
     }
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "test/outbound-serializer.test.ts", "test/inbound-parser.test.ts"
   ]
 }

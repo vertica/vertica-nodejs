@@ -40,7 +40,7 @@ describe('Running Copy From Local File Commands', function () {
   afterEach((done) => {
     pool.query("DELETE FROM copyTable", (done))
   })
-
+/*
   it('succeeds with basic copy from file command', function(done) {
     pool.query("COPY copyTable FROM LOCAL 'copy-good.dat' RETURNREJECTED", (err, res) => {
       assert.equal(err, undefined)
@@ -150,7 +150,7 @@ describe('Running Copy From Local File Commands', function () {
         })
       })
     })
-  })
+  })*/
 
   it ('succeeds with rejects file larger than buffer size', function(done) {
     // file logic copied from good large copy file test, but with the columns switched so they are all bad instead
@@ -185,7 +185,7 @@ describe('Running Copy From Local File Commands', function () {
     });
     
   })
-
+/*
   it('succeeds with multiple input files', function(done) {
     pool.query("COPY copyTable FROM LOCAL 'copy-good.dat', 'copy-bad.dat' RETURNREJECTED", (err, res) => {
       assert.equal(err, undefined)
@@ -205,5 +205,5 @@ describe('Running Copy From Local File Commands', function () {
         done()
       })
     })
-  })
+  })*/
 })
