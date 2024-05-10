@@ -21,7 +21,7 @@ update-npm:
 	@npm i npm --global
 
 bench:
-	@find benchmark -name "*-bench.js" | $(node-command)
+	@find test/benchmark -name "*bench.js" | $(node-command)
 
 test-unit:
 	@printf "\n***TESTING VERTICA-NODEJS UNIT TESTS***\n\n"

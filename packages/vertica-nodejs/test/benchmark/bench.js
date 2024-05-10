@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const vertica = require('./lib')
+const vertica = require('../../lib')
 
 const params = {
   text:
@@ -50,6 +50,9 @@ const bench = async (client, q, time) => {
 }
 
 const run = async () => {
+  console.log("Benchmarking currently does not work for vertica-nodejs and has not worked since being ported from node-postgres.")
+  console.log("In the future, consider fixing, or removing.")
+  /*
   const client = new vertica.Client()
   await client.connect()
   console.log('start')
@@ -96,6 +99,7 @@ const run = async () => {
 
   await client.end()
   await client.end()
+  */
 }
 
 run().catch((e) => console.error(e) || process.exit(-1))
