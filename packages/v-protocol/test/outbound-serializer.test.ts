@@ -17,8 +17,8 @@
  */
 
 import assert from 'assert'
-import { serialize } from './serializer'
-import BufferList from './testing/buffer-list'
+import { serialize } from '../src/serializer'
+import BufferList from './buffer-list'
 
 describe('serializer', () => {
   /*it('builds startup message', function () {
