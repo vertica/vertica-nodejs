@@ -16,11 +16,12 @@
     "typescript": "^4.0.3"
   },
   "scripts": {
-    "test": "node_modules/.bin/mocha dist/**/*.test.js",
+    "test": "tsc -p ./test/tsconfig.json; node_modules/.bin/mocha test/dist/test/*.test.js",
     "build": "tsc",
     "build:watch": "tsc --watch",
     "prepublish": "yarn build",
-    "pretest": "yarn build"
+    "pretest": "yarn build",
+    "clean": "rm -rf dist; rm -rf test/dist"
   },
   "repository": {
     "type": "git",
