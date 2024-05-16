@@ -27,6 +27,9 @@ module.exports = {
   // database user's password
   password: '',
 
+  // database user's OAuth access token
+  oauth_access_token: '',
+
   // a Postgres connection string to be used instead of setting individual connection items
   // NOTE:  Setting this value will cause it to override any other value (such as database or user) defined
   // in the defaults object.

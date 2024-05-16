@@ -40,6 +40,7 @@ export type MessageName =
   | 'authenticationMD5Password'
   | 'authenticationSHA512Password'
   | 'authenticationCleartextPassword'
+  | 'authenticationOAuthPassword'
   | 'error'
   | 'notice'
   | 'verifyFiles'

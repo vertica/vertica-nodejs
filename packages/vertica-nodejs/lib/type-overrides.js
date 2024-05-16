@@ -24,7 +24,8 @@ types.setTypeParser(VerticaType.Integer, types.getTypeParser(21, 'text'))
 types.setTypeParser(VerticaType.Float, types.getTypeParser(700, 'text'))
 types.setTypeParser(VerticaType.Numeric, types.getTypeParser(9, 'text'))
 types.setTypeParser(VerticaType.Varbinary, types.getTypeParser(9, 'text'))
-//types.setTypeParser(VerticaType.Uuid, types.getTypeParser(9, 'text')) //Uuid not introduced yet in the current protocol 3.5
+types.setTypeParser(VerticaType.Uuid, types.getTypeParser(2950, 'text'))
+
 function TypeOverrides(userTypes) {
   this._types = userTypes || types
   this.text = {}

@@ -27,6 +27,7 @@ export enum VerticaType {
   LongVarbinary = 116,
   Binary = 117,
   Numeric = 16,
+  Uuid = 20,
   IntervalYear = 114,
   IntervalYearToMonth = 114,
   IntervalMonth = 114,
