@@ -9,11 +9,11 @@ Non-blocking Vertica client for Node.js made with pure Javascript.
 ## Jump to
 1. [Features](#Features)
 2. [Contributing](#Contributing)
-3. [Vertica Data Types](#Vertica-Data-Types)
-4. [Support](#Support)
-5. [Troubleshooting and FAQ](#Troubleshooting-and-FAQ)
-6. [Installation](#Installation)
-7. [Post Installation Setup](#Post-Installation-Setup)
+3. [Installation](#Installation)
+4. [Post Installation Setup](#Post-Installation-Setup)
+5. [Vertica Data Types](#Vertica-Data-Types)
+6. [Support](#Support)
+7. [Troubleshooting and FAQ](#Troubleshooting-and-FAQ)
 8. [Usage Examples](#Usage-Examples)
     - [Establishing Connections](#Establishing-Connections)
     - [Executing Queries and Accessing Results](#Executing-Queries-and-Accessing-Results)
@@ -45,6 +45,7 @@ Ensure that the applicable environment variables are configured for connecting t
  - V_PORT: 5433
  - V_USER: process.env.USER/USERNAME
  - V_PASSWORD: ''
+ - V_OAUTH_ACCESS_TOKEN: ''
  - V_DATABASE: ''
  - V_BACKUP_SERVER_NODE: ''
 
@@ -222,6 +223,43 @@ Connection strings work the same way with connection pools
     })
 ```
 
+### Connection with OAuth Authentication
+Set `V_OAUTH_ACCESS_TOKEN` environment variable or use the `oauth_access_token` connection property to pass the OAuth access token to authenticate to Vertica server.
+```javascript
+    // with Config Object
+    const {Client} = require('vertica-nodejs')
+    var client = new Client({
+        host: 'localhost',
+        port: 5433,
+        database: 'db0',
+        oauth_access_token: 'xxx'})
+    client.connect()
+```
+
+```javascript
+    // with Connection String
+    const {Client} = require('vertica-nodejs')
+    const connectionString = 'vertica://:@localhost:5433/db0?oauth_access_token=xxx'
+    var client = new Client({ connectionString })
+    client.connect()
+```
+### Workload Connection Property
+The `workload` connection property is the name of the workload for the session. Valid values are workload names that already exist in a workload routing rule on the server. It will be set to the default if a workload name that doesn't exist is entered.
+
+```javascript
+    const {Client} = require('vertica-nodejs')
+    var client = new Client({workload: 'analytics'})
+    client.connect()
+```
+
+### Client Label Connection Property
+The `client_label` connection property is a string that sets a label for the connection on the server. This value appears in the *client_label* column of the SESSIONS system table.
+
+```javascript
+    const {Client} = require('vertica-nodejs')
+    var client = new Client({client_label: 'xxxxx'})
+    client.connect()
+```
 ## TLS
 
 ### TLS Modes
@@ -245,23 +283,6 @@ The `tls_trusted_certs` connection property is an optional override of the trust
     client.connect()
 ```
 
-## Workload Connection Property
-The `workload` connection property is the name of the workload for the session. Valid values are workload names that already exist in a workload routing rule on the server. It will be set to the default if a workload name that doesn't exist is entered.
-
-```javascript
-    const {Client} = require('vertica-nodejs')
-    var client = new Client({workload: 'analytics'})
-    client.connect()
-```
-
-## Client Label Connection Property
-The `client_label` connection property is a string that sets a label for the connection on the server. This value appears in the *client_label* column of the SESSIONS system table.
-
-```javascript
-    const {Client} = require('vertica-nodejs')
-    var client = new Client({client_label: 'xxxxx'})
-    client.connect()
-```
 
 ## Executing Queries and Accessing Results
 

@@ -14,6 +14,7 @@ The result set metadata currently just displays the Type ID for each column as a
 |               116 | Long Varbinary                   | LongVarbinary                           |
 |               117 | Binary                           | Binary                                  |
 |                16 | Numeric                          | Numeric                                 |
+|                20 | UUID                             | Uuid                                    |
 |               114 | Interval Year                    | IntervalYear                            |
 |               114 | Interval Year to Month           | IntervalYearToMonth                     |
 |               114 | Interval Month                   | IntervalMonth                           |
