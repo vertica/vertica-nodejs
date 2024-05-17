@@ -12,13 +12,6 @@ suite.test('valid connection completes promise', () => {
   })
 })
 
-suite.test('valid connection completes promise', () => {
-  const client = new vertica.Client()
-  return client.connect().then(() => {
-    return client.end().then(() => {})
-  })
-})
-
 suite.test('invalid connection rejects promise', (done) => {
   const client = new vertica.Client({ host: 'alksdjflaskdfj', port: 1234 })
   return client.connect().catch((e) => {
