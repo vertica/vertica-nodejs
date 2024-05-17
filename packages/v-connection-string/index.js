@@ -56,7 +56,10 @@ function parse(str) {
     config.database = result.query.db
     config.client_encoding = result.query.encoding
     return config
+  } else if (result.protocol !== 'vertica:') {
+    throw new Error("Invalid connection string. Only vertica:// scheme is supported.");
   }
+
   if (!config.host) {
     // Only set the host if there is no equivalent query param.
     config.host = result.hostname
