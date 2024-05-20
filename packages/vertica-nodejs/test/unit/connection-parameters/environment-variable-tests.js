@@ -60,7 +60,7 @@ suite.test('ConnectionParameters initialized from mix', function () {
 
 suite.test('connection string parsing', function () {
   clearEnv()
-  var string = 'postgres://brian:pw@boom:381/lala'
+  var string = 'vertica://brian:pw@boom:381/lala'
   var subject = new ConnectionParameters(string)
   assert.equal(subject.host, 'boom', 'string host')
   assert.equal(subject.user, 'brian', 'string user')
@@ -73,19 +73,19 @@ suite.test('connection string parsing - tls_mode', function () {
   // clear process.env
   clearEnv()
 
-  var string = 'postgres://brian:pw@boom:381/lala?tls_mode=require'
+  var string = 'vertica://brian:pw@boom:381/lala?tls_mode=require'
   var subject = new ConnectionParameters(string)
   assert.equal(subject.tls_mode, 'require')
 
-  string = 'postgres://brian:pw@boom:381/lala?tls_mode=disable'
+  string = 'vertica://brian:pw@boom:381/lala?tls_mode=disable'
   subject = new ConnectionParameters(string)
   assert.equal(subject.tls_mode, 'disable')
 
-  string = 'postgres://brian:pw@boom:381/lala'
+  string = 'vertica://brian:pw@boom:381/lala'
   subject = new ConnectionParameters(string)
   assert.equal(subject.tls_mode, 'disable')
 
-  string = 'postgres://brian:pw@boom:381/lala?tls_mode=verify-ca'
+  string = 'vertica://brian:pw@boom:381/lala?tls_mode=verify-ca'
   subject = new ConnectionParameters(string)
   assert.equal(subject.tls_mode, 'verify-ca')
 })

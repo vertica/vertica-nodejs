@@ -7,7 +7,9 @@ const dns = require('dns')
 
 // clear process.env
 for (var key in process.env) {
-  delete process.env[key]
+  if (key.startsWith('V_')) {
+      delete process.env[key]
+  }
 }
 
 const suite = new helper.Suite()
@@ -19,9 +21,10 @@ suite.test('ConnectionParameters construction', function () {
 })
 
 var compare = function (actual, expected, type) {
+  const expectedUser = (!expected.user && !expected.oauth_access_token) ? (process.platform === 'win32' ? process.env.USERNAME : process.env.USER) : expected.user
   const expectedDatabase = expected.database === undefined ? '' : expected.database
 
-  assert.equal(actual.user, expected.user, type + ' user')
+  assert.equal(actual.user, expectedUser, type + ' user')
   assert.equal(actual.database, expectedDatabase, type + ' database')
   assert.equal(actual.port, expected.port, type + ' port')
   assert.equal(actual.host, expected.host, type + ' host')
@@ -186,7 +189,7 @@ suite.test('password contains  < and/or >  characters', function () {
 suite.test('username or password contains weird characters', function () {
   var defaults = require('../../../lib/defaults')
   defaults.tls_mode = 'require'
-  var strang = 'pg://my f%irst name:is&%awesome!@localhost:9000'
+  var strang = 'vertica://my f%irst name:is&%awesome!@localhost:9000'
   var subject = new ConnectionParameters(strang)
   assert.equal(subject.user, 'my f%irst name')
   assert.equal(subject.password, 'is&%awesome!')
@@ -195,7 +198,7 @@ suite.test('username or password contains weird characters', function () {
 })
 
 suite.test('url is properly encoded', function () {
-  var encoded = 'pg://bi%25na%25%25ry%20:s%40f%23@localhost/%20u%2520rl'
+  var encoded = 'vertica://bi%25na%25%25ry%20:s%40f%23@localhost/%20u%2520rl'
   var subject = new ConnectionParameters(encoded)
   assert.equal(subject.user, 'bi%na%%ry ')
   assert.equal(subject.password, 's@f#')

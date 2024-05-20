@@ -30,7 +30,7 @@ describe('vertica client label connection parameter', function () {
     client_default.query('SELECT GET_CLIENT_LABEL()', (err, res) => {
       if (err){
         console.log(err)
-        assert(false)
+        done(err)
       } 
       assert.equal(res.rows[0]['GET_CLIENT_LABEL'], vertica.defaults.client_label)
       client_default.end()
@@ -46,7 +46,7 @@ describe('vertica client label connection parameter', function () {
     client_test.query('SELECT GET_CLIENT_LABEL()', (err, res) => {
       if (err){
         console.log(err)
-        assert(false)
+        done(err)
       } 
       assert.equal(res.rows[0]['GET_CLIENT_LABEL'], 'distinctLabel')
       client_test.end()
@@ -62,10 +62,10 @@ describe('vertica protocol_version connection parameter', function () {
   })
 
   it('provides a maximum value for the protocol version used by the server', function(done) {
-    const client = new vertica.Client({client_label: 'pvTest'}) // make easy to find session
+    const client = new vertica.Client()
     client.connect()
-    client.query("SELECT effective_protocol from sessions where client_label = 'pvTest'", (err, res) => {
-      if (err) assert(false)
+    client.query("SELECT effective_protocol FROM sessions WHERE session_id=(SELECT current_session())", (err, res) => {
+      if (err) done(err)
       var pv = res.rows[0]['effective_protocol'] // string of form "Major.minor"
       var int32pv = (parseInt(pv.split(".")[0]) << 16 | parseInt(pv.split(".")[1])) // int32 from (M << 16 | m)
       assert(int32pv <= client.protocol_version) // server isn't trying to talk in a protocol newer than we know
@@ -106,11 +106,11 @@ describe('vertica backup_server_node connection parameter', function() {
 })
 
 describe('vertica-nodejs handling auditing connection properties', function() {
-  it('are provided automatically when establishing a connection', function() {
+  it('are provided automatically when establishing a connection', function(done) {
     const client = new vertica.Client()
     client.connect()
     client.query("SELECT client_pid, client_type, client_version, client_os, client_os_user_name, client_os_hostname FROM CURRENT_SESSION", (err, res) => {
-      if (err) assert(false)
+      if (err) done(err)
       assert.equal(res.rows[0].client_pid, process.pid)
       assert.equal(res.rows[0].client_type, "Node.js Driver")
       assert.equal(res.rows[0].client_version, vertica.version)
@@ -118,21 +118,23 @@ describe('vertica-nodejs handling auditing connection properties', function() {
       assert.equal(res.rows[0].client_os_user_name, os.userInfo().username)
       assert.equal(res.rows[0].client_os_hostname, os.hostname())
       client.end()
+      done()
     })
   })
 })
 
 describe('vertica workload connection parameter', function() {
-  it('can be set and is sent in the startup packet', function() {
+  it('can be set and is sent in the startup packet', function(done) {
     const client = new vertica.Client({workload: 'testNodeWorkload'})
     client.connect()
     client.query(`SELECT contents FROM dc_client_server_messages 
                   WHERE session_id = current_session()
                   AND message_type = '^+'
                   AND contents like '%workload%'`, (err, res) => {
-      if (err) assert(false)
+      if (err) done(err)
       assert.equal(res.rows[0].contents, 'workload: testNodeWorkload')
       client.end()
+      done()
     })
   })
 })
