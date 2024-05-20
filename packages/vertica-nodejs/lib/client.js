@@ -328,7 +328,7 @@ class Client extends EventEmitter {
 
   _handleParameterStatus(msg) {
     const min_supported_version = (3 << 16 | 5)         // 3.5
-    const max_supported_version = this.protocol_version // for now we are enforcing 3.5
+    const max_supported_version = this.connectionParameters.protocol_version // requested protocol version
     switch(msg.parameterName) {
       // right now we only care about the protocol_version
       // if we want to have the parameterStatus message update any other connection properties, add them here
@@ -341,7 +341,7 @@ class Client extends EventEmitter {
           // error
           throw new Error("Unsupported Protocol Version returned by Server. Connection Disallowed.");
         }
-        this.connectionParameters.protocol_version = parseInt(msg.ParameterValue) // likely to be the same, meaning this has no affect
+        this.protocol_version = parseInt(msg.parameterValue) // effective protocol version
         break;
       default:
         // do nothing
@@ -505,7 +505,7 @@ class Client extends EventEmitter {
   }
 
   _handleVerifyFiles(msg) {
-    this.activeQuery.handleVerifyFiles(msg, this.connection)
+    this.activeQuery.handleVerifyFiles(msg, this.connection, this.protocol_version)
   }
 
   _handleEndOfBatchResponse() {
