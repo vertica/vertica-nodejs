@@ -16,13 +16,16 @@ var connect = function (callback) {
     con.startup({
       user: username,
       database: database,
-      protocol_version: (3 << 16 | 5),
+      protocol_version: (3 << 16 | 16),
     })
     con.once('authenticationCleartextPassword', function () {
       con.password(helper.args.password)
     })
     con.once('authenticationMD5Password', function (msg) {
       con.password(utils.postgresMd5PasswordHash(helper.args.user, helper.args.password, msg.salt))
+    })
+    con.once('authenticationSHA512Password', function (msg) {
+      con.password(utils.postgresSha512PasswordHash(helper.args.password, msg.salt, msg.userSalt))
     })
     con.once('readyForQuery', function () {
       con.query('create local temp table ids(id integer)')

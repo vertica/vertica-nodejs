@@ -162,7 +162,7 @@ suite.test('executing nested queries', function (done) {
 })
 
 suite.test('raises error if cannot connect', function () {
-  var connectionString = 'pg://sfalsdkf:asdf@localhost/ieieie'
+  var connectionString = 'vertica://sfalsdkf:asdf@localhost/ieieie'
   const pool = new vertica.Pool({ connectionString: connectionString })
   pool.connect(
     assert.calls(function (err, client, done) {
