@@ -20,6 +20,7 @@ const assert = require('assert')
 describe('OAuth authentication', function () {
   it('connect with an OAuth access token', function(done) {
     const access_token = process.env['VTEST_OAUTH_ACCESS_TOKEN']
+    console.log("access_token:", access_token, '\n',process.env)
     if (!access_token) this.skip()
     const client = new vertica.Client({oauth_access_token: access_token})
     client.connect()

@@ -140,4 +140,5 @@ jobs:
         run: |
           cd packages/vertica-nodejs
           export VTEST_OAUTH_ACCESS_TOKEN=`cat access_token.txt`
+          echo $VTEST_OAUTH_ACCESS_TOKEN
           yarn test
