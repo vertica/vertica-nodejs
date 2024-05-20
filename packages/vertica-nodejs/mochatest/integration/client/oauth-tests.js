@@ -23,12 +23,14 @@ describe('OAuth authentication', function () {
     console.log("access_token:", access_token, '\n',process.env)
     if (!access_token) this.skip()
     const client = new vertica.Client({oauth_access_token: access_token})
-    client.connect()
-    client.query("SELECT authentication_method FROM sessions WHERE session_id=(SELECT current_session())", (err, res) => {
-      if (err) done(err)
-      assert.equal(res.rows[0].authentication_method, 'OAuth')
-      client.end()
-      done()
+    client.connect(err => {
+      if (err) return done(err)
+      client.query("SELECT authentication_method FROM sessions WHERE session_id=(SELECT current_session())", (err, res) => {
+        if (err) return done(err)
+        assert.equal(res.rows[0].authentication_method, 'OAuth')
+        client.end()
+        done()
+      })
     })
   })
 })
