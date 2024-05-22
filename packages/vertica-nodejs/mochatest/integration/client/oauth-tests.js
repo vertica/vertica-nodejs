@@ -24,7 +24,7 @@ describe('OAuth authentication', function () {
     const client = new vertica.Client({oauth_access_token: access_token})
     client.connect(err => {
       if (err) return done(err)
-      client.query("SELECT authentication_method FROM sessions WHERE session_id=(SELECT current_session())", (err, res) => {
+      client.query("SELECT authentication_method FROM sessions WHERE session_id = current_session()", (err, res) => {
         if (err) return done(err)
         assert.equal(res.rows[0].authentication_method, 'OAuth')
         client.end()

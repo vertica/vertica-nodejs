@@ -155,7 +155,7 @@ class ConnectionParameters {
     }
 
     // The frontend sends a requested protocol version to the backend
-    this.protocol_version = (3 << 16 | 16)  // 3.5 -> (major << 16 | minor) -> (3 << 16 | 5) -> 196613
+    this.protocol_version = (3 << 16 | 16)  // 3.16 -> (major << 16 | minor) -> (3 << 16 | 16) -> 196624
 
     if (config.connectionTimeoutMillis === undefined) {
       this.connect_timeout = process.env.PGCONNECT_TIMEOUT || 0

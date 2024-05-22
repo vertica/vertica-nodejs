@@ -64,7 +64,7 @@ describe('vertica protocol_version connection parameter', function () {
   it('provides a maximum value for the protocol version used by the server', function(done) {
     const client = new vertica.Client()
     client.connect()
-    client.query("SELECT effective_protocol FROM sessions WHERE session_id=(SELECT current_session())", (err, res) => {
+    client.query("SELECT effective_protocol FROM sessions WHERE session_id = current_session()", (err, res) => {
       if (err) done(err)
       var pv = res.rows[0]['effective_protocol'] // string of form "Major.minor"
       var int32pv = (parseInt(pv.split(".")[0]) << 16 | parseInt(pv.split(".")[1])) // int32 from (M << 16 | m)
