@@ -337,7 +337,7 @@ class Query extends EventEmitter {
     if (msg.fileName.length === 0) { //using returnrejected, fileContents is an array of row numbers, not a string
       this._result._setRejectedRows(msg.fileContents)
     } else { // future enhancement, move file IO to util
-      fs.appendFile(msg.fileName, msg.fileContents, (err) => {
+      await fs.appendFile(msg.fileName, msg.fileContents, (err) => {
         if (err) {
           console.error('Error writing to file:', err);
         }
