@@ -175,8 +175,10 @@ describe('Running Copy From Local File Commands', function () {
     
         fs.stat('rejects-large.txt', (statErr, stats) => {
           assert.equal(statErr, null);
-          assert.equal(stats.size, 98894);
         });
+        var inputBuf = fs.readFileSync('large-copy-bad.dat');
+        var rejectBuf = fs.readFileSync('rejects-large.txt');
+        assert(inputBuf.equals(rejectBuf), 'content in rejected data file is not the same as the input file')
       } finally {
         fs.unlink('large-copy-bad.dat', () => {
           fs.unlink('rejects-large.txt', done)
