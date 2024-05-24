@@ -261,7 +261,8 @@ class Query extends EventEmitter {
     connection.sendCopyDataStream(this.copyStream)
   }
 
-  async handleVerifyFiles(msg, connection) {
+  async handleVerifyFiles(msg, connection, protocol_version) {
+    msg.protocol_version = protocol_version
     if (msg.numFiles !== 0) { // we are copying from file, not stdin
       let expandedFileNames = []
       for (const fileName of msg.files) {

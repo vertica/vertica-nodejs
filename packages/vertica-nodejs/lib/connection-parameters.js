@@ -72,7 +72,6 @@ class ConnectionParameters {
       config = Object.assign({}, config, parse(config.connectionString))
     }
 
-    this.user = val('user', config)
     this.database = val('database', config)
 
     if (this.database === undefined) {
@@ -90,6 +89,19 @@ class ConnectionParameters {
       writable: true,
       value: val('password', config),
     })
+    Object.defineProperty(this, 'oauth_access_token', {
+      configurable: true,
+      enumerable: false,
+      writable: true,
+      value: val('oauth_access_token', config),
+    })
+
+    // user is required for non-OAuth connections
+    this.user = val('user', config)
+    if (!this.user && !this.oauth_access_token) {
+      // TODO: log a notice to the user that the user property was taken from the environment once we fully support logging
+      this.user = process.platform === 'win32' ? process.env.USERNAME : process.env.USER
+    }
 
     this.binary = val('binary', config)
     this.options = val('options', config)
@@ -143,8 +155,8 @@ class ConnectionParameters {
       this.client_os_user_name = ""
     }
 
-    //NOTE: The client has only been tested to support 3.5, which was chosen in order to include SHA512 support
-    this.protocol_version = (3 << 16 | 5) // 3.5 -> (major << 16 | minor) -> (3 << 16 | 5) -> 196613
+    // The frontend sends a requested protocol version to the backend
+    this.protocol_version = (3 << 16 | 16)  // 3.16 -> (major << 16 | minor) -> (3 << 16 | 16) -> 196624
 
     if (config.connectionTimeoutMillis === undefined) {
       this.connect_timeout = process.env.PGCONNECT_TIMEOUT || 0

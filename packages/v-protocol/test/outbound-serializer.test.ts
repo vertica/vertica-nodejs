@@ -20,7 +20,7 @@ import assert from 'assert'
 import { serialize } from '../src/serializer'
 import BufferList from './buffer-list'
 
-describe('serializer', () => {
+describe('FrontendPacket', () => {
   /*it('builds startup message', function () {
     const actual = serialize.startup({
       user: 'brian',

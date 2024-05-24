@@ -203,8 +203,9 @@ var testForMessage = function (buffer: Buffer, expectedMessage: any) {
   })
 }
 
-var plainPasswordBuffer = buffers.authenticationCleartextPassword()
-var md5PasswordBuffer = buffers.authenticationMD5Password()
+var authCleartextBuffer = buffers.authenticationCleartextPassword()
+var authMD5Buffer = buffers.authenticationMD5Password()
+var authOAuthBuffer = buffers.authenticationOAuthPassword()
 
 var expectedPlainPasswordMessage = {
   name: 'authenticationCleartextPassword',
@@ -213,6 +214,10 @@ var expectedPlainPasswordMessage = {
 var expectedMD5PasswordMessage = {
   name: 'authenticationMD5Password',
   salt: Buffer.from([1, 2, 3, 4]),
+}
+
+var expectedOAuthPasswordMessage = {
+  name: 'authenticationOAuthPassword',
 }
 
 const parseBuffers = async (buffers: Buffer[]): Promise<BackendMessage[]> => {
@@ -226,10 +231,11 @@ const parseBuffers = async (buffers: Buffer[]): Promise<BackendMessage[]> => {
   return msgs
 }
 
-describe('PgPacketStream', function () {
+describe('BackendPacket', function () {
   testForMessage(authOkBuffer, expectedAuthenticationOkayMessage)
-  testForMessage(plainPasswordBuffer, expectedPlainPasswordMessage)
-  testForMessage(md5PasswordBuffer, expectedMD5PasswordMessage)
+  testForMessage(authCleartextBuffer, expectedPlainPasswordMessage)
+  testForMessage(authMD5Buffer, expectedMD5PasswordMessage)
+  testForMessage(authOAuthBuffer, expectedOAuthPasswordMessage)
   testForMessage(paramStatusBuffer, expectedParameterStatusMessage)
   testForMessage(backendKeyDataBuffer, expectedBackendKeyDataMessage)
   testForMessage(readyForQueryBuffer, expectedReadyForQueryMessage)

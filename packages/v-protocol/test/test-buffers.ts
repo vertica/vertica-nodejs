@@ -41,6 +41,10 @@ const buffers = {
       .join(true, 'R')
   },
 
+  authenticationOAuthPassword: function () {
+    return new BufferList().addInt32(12).join(true, 'R')
+  },
+
   parameterStatus: function (name: string, value: string) {
     return new BufferList().addCString(name).addCString(value).join(true, 'S')
   },

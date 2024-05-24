@@ -7,13 +7,15 @@ var suite = new helper.Suite()
 // clear process.env
 var realEnv = {}
 for (var key in process.env) {
-  realEnv[key] = process.env[key]
-  if (!key.indexOf('PG')) delete process.env[key]
+    if (key.startsWith('V_')) {
+        realEnv[key] = process.env[key]
+        delete process.env[key]
+    }
 }
 
 suite.test('default values are used in new clients', function () {
   assert.same(vertica.defaults, {
-    user: process.env.USER,
+    user: '',
     database: '',
     password: '',
     port: 5433,

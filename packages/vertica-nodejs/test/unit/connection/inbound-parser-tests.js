@@ -1,5 +1,11 @@
 'use strict'
 require('./test-helper')
+/*
+ * TODO:
+ * This is very similar to packages/v-protocol/test/inbound-parser.test.ts,
+ * see testForMessage function in both files.
+ * Do we really need this test?
+ */
 const BufferList = require('../../buffer-list')
 var Connection = require('../../../lib/connection')
 var buffers = require('../../test-buffers')

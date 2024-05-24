@@ -38,7 +38,7 @@ test('client settings', function () {
 test('initializing from a config string', function () {
   test('uses connectionString property', function () {
     var client = new Client({
-      connectionString: 'postgres://brian:pass@host1:333/databasename',
+      connectionString: 'vertica://brian:pass@host1:333/databasename',
     })
     assert.equal(client.user, 'brian')
     assert.equal(client.password, 'pass')
@@ -48,7 +48,7 @@ test('initializing from a config string', function () {
   })
 
   test('uses the correct values from the config string', function () {
-    var client = new Client('postgres://brian:pass@host1:333/databasename')
+    var client = new Client('vertica://brian:pass@host1:333/databasename')
     assert.equal(client.user, 'brian')
     assert.equal(client.password, 'pass')
     assert.equal(client.host, 'host1')
@@ -57,7 +57,7 @@ test('initializing from a config string', function () {
   })
 
   test('uses the correct values from the config string with space in password', function () {
-    var client = new Client('postgres://brian:pass word@host1:333/databasename')
+    var client = new Client('vertica://brian:pass word@host1:333/databasename')
     assert.equal(client.user, 'brian')
     assert.equal(client.password, 'pass word')
     assert.equal(client.host, 'host1')
@@ -66,7 +66,7 @@ test('initializing from a config string', function () {
   })
 
   test('when not including all values the defaults are used', function () {
-    var client = new Client('postgres://host1')
+    var client = new Client('vertica://host1')
     assert.equal(client.user, process.env['V_USER'] || process.env.USER)
     assert.equal(client.password, process.env['V_PASSWORD'] || '')
     assert.equal(client.host, 'host1')
@@ -93,7 +93,7 @@ test('initializing from a config string', function () {
     process.env['V_HOST'] = 'utHost1'
     process.env['V_PORT'] = 5464
 
-    var client = new Client('postgres://host1')
+    var client = new Client('vertica://host1')
 
     assert.equal(client.user, process.env['V_USER'])
     assert.equal(client.password, process.env['V_PASSWORD'])

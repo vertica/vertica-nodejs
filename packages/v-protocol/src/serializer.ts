@@ -286,7 +286,11 @@ function getFileSize(filePath: string): number {
 
 //numFiles: number, fileNames: string[], fileLengths: number[]
 const verifiedFiles = (config: genericConfig): Buffer => {
-  writer.addInt16(config.numFiles) // In 3.15 this will be 'writer.addInt32(config.numFiles)
+  if (config.protocol_version < (3 << 16 | 15)) {
+    writer.addInt16(config.numFiles)
+  } else {
+    writer.addInt32(config.numFiles)
+  }
   for(let i = 0; i < config.numFiles; i++) {
     writer.addCString(config.fileNames[i])
     writer.addInt32(0)

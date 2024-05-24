@@ -45,6 +45,12 @@ class Client extends EventEmitter {
       writable: true,
       value: this.connectionParameters.password,
     })
+    Object.defineProperty(this, 'oauth_access_token', {
+      configurable: true,
+      enumerable: false,
+      writable: true,
+      value: this.connectionParameters.oauth_access_token,
+    })
 
     this.protocol_version = this.connectionParameters.protocol_version;
 
@@ -262,6 +268,7 @@ class Client extends EventEmitter {
     // password request handling
     con.on('authenticationMD5Password', this._handleAuthMD5Password.bind(this))
     con.on('authenticationSHA512Password', this._handleAuthSHA512Password.bind(this))
+    con.on('authenticationOAuthPassword', this._handleOAuthPassword.bind(this))
     con.on('backendKeyData', this._handleBackendKeyData.bind(this))
     con.on('error', this._handleErrorEvent.bind(this))
     con.on('errorMessage', this._handleErrorMessage.bind(this))
@@ -321,7 +328,7 @@ class Client extends EventEmitter {
 
   _handleParameterStatus(msg) {
     const min_supported_version = (3 << 16 | 5)         // 3.5
-    const max_supported_version = this.protocol_version // for now we are enforcing 3.5
+    const max_supported_version = this.connectionParameters.protocol_version // requested protocol version
     switch(msg.parameterName) {
       // right now we only care about the protocol_version
       // if we want to have the parameterStatus message update any other connection properties, add them here
@@ -334,7 +341,7 @@ class Client extends EventEmitter {
           // error
           throw new Error("Unsupported Protocol Version returned by Server. Connection Disallowed.");
         }
-        this.connectionParameters.protocol_version = parseInt(msg.ParameterValue) // likely to be the same, meaning this has no affect
+        this.protocol_version = parseInt(msg.parameterValue) // effective protocol version
         break;
       default:
         // do nothing
@@ -364,6 +371,10 @@ class Client extends EventEmitter {
       const hashedPassword = utils.postgresSha512PasswordHash(this.password, msg.salt, msg.userSalt)
       this.connection.password(hashedPassword)
     })
+  }
+
+  _handleOAuthPassword(msg) {
+    this.connection.password(this.oauth_access_token)
   }
 
   _handleBackendKeyData(msg) {
@@ -494,7 +505,7 @@ class Client extends EventEmitter {
   }
 
   _handleVerifyFiles(msg) {
-    this.activeQuery.handleVerifyFiles(msg, this.connection)
+    this.activeQuery.handleVerifyFiles(msg, this.connection, this.protocol_version)
   }
 
   _handleEndOfBatchResponse() {
@@ -517,7 +528,9 @@ class Client extends EventEmitter {
       client_os: params.client_os,
       client_os_user_name: params.client_os_user_name,
       client_os_hostname: params.client_os_hostname,
-      client_pid: params.client_pid
+      client_pid: params.client_pid,
+      binary_data_protocol: '0',  // Defaults to text format '0'
+      protocol_compat: 'VER',
     }
 
     if (params.replication) {
@@ -537,6 +550,11 @@ class Client extends EventEmitter {
     }
     if (params.workload) {
       data.workload = params.workload
+    }
+    if (params.oauth_access_token) {
+      data.auth_category = 'OAuth'
+    } else if (params.password) {
+      data.auth_category = 'User'
     }
 
     return data

@@ -419,6 +419,9 @@ export class Parser {
           return new AuthenticationMD5Password(length, salt)
         }
         break
+      case 12: // AuthenticationOAuthPassword
+        message.name = 'authenticationOAuthPassword'
+        break
       case 65536: // AuthenticationHashPassword
       case 66048: // AuthenticationHashSHA512Password
         if(message.length === 32) {
