@@ -99,6 +99,7 @@ class ConnectionParameters {
     // user is required for non-OAuth connections
     this.user = val('user', config)
     if (!this.user && !this.oauth_access_token) {
+      // TODO: log a notice to the user that the user property was taken from the environment once we fully support logging
       this.user = process.platform === 'win32' ? process.env.USERNAME : process.env.USER
     }
 
