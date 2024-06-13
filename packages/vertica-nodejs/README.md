@@ -4,7 +4,7 @@
 [![NPM version](https://img.shields.io/npm/v/vertica-nodejs?color=blue)](https://www.npmjs.com/package/vertica-nodejs)
 [![NPM downloads](https://img.shields.io/npm/dm/vertica-nodejs)](https://www.npmjs.com/package/vertica-nodejs)
 
-Non-blocking Vertica client for Node.js made with pure Javascript.
+Non-blocking Vertica client for Node.js made with pure Javascript. This client has been tested with Vertica 24.2.0 and Node 12/14/16/18/20.
 
 ## Jump to
 1. [Features](#Features)
