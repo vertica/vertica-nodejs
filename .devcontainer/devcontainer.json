@@ -1,8 +1,8 @@
 // If you want to run as a non-root user in the container, see .devcontainer/docker-compose.yml.
 {
-	"name": "Node.js 12 & Vertica",
+	"name": "Node.js 20 & Vertica",
 	"dockerComposeFile": "docker-compose.yml",
-	"service": "web",
+	"service": "nodejs",
 	"workspaceFolder": "/workspace",
 
 	// Use 'settings' to set *default* container specific settings.json values on container create. 
