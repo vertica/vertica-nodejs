@@ -105,7 +105,7 @@ suite.test('ConnectionParameters initializing from config and config.connectionS
     tls_mode: 'disable',
   })
 
-  assert.equal(subject1.tls_mode, 'disable')
+  assert.equal(subject1.tls_mode, 'prefer')
   assert.equal(subject2.tls_mode, 'require')
   assert.equal(subject3.tls_mode, 'require')
   assert.equal(subject4.tls_mode, 'require')
