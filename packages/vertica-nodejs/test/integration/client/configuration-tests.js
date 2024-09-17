@@ -24,7 +24,7 @@ suite.test('default values are used in new clients', function () {
     binary: false,
     idleTimeoutMillis: 30000,
     client_encoding: '',
-    tls_mode: 'disable',
+    tls_mode: 'prefer',
     parseInputDatesAsUTC: false,
   })
 
