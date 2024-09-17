@@ -70,7 +70,7 @@ suite.test('vertica tls - prefer mode', function () {
       console.log(err)
       assert(false)
     }
-    //Verify is client is using a TLS connection
+    //Verify if client is using a TLS connection
     client.query("SELECT mode FROM tls_configurations where name = 'server' LIMIT 1", (err, res) => {
       if (err) {
         console.log(err)
