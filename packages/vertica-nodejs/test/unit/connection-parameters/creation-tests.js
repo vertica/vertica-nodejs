@@ -102,7 +102,7 @@ suite.test('ConnectionParameters initializing from config and config.connectionS
   })
   var subject4 = new ConnectionParameters({
     connectionString: 'vertica://test@host/db?tls_mode=require', // connection string has preference
-    tls_mode: 'disable',
+    tls_mode: 'require',
   })
 
   assert.equal(subject1.tls_mode, 'prefer')

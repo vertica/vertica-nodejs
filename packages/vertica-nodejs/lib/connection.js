@@ -47,8 +47,8 @@ class Connection extends EventEmitter {
 
     if (this.tls_config === undefined) {
       this.tls_mode = config.tls_mode || 'prefer'
-      //this.tls_client_key = config.tls_client_key
-      //this.tls_client_cert = config.tls_client_cert
+      this.tls_client_key = config.tls_client_key
+      this.tls_client_cert = config.tls_client_cert
       this.tls_trusted_certs = config.tls_trusted_certs
       this.tls_host = config.tls_host
     }
@@ -129,6 +129,24 @@ class Connection extends EventEmitter {
         // certificate is signed by the CA (default or provided).
         
         if (self.tls_mode === 'require') { // basic TLS connection, does not verify CA certificate
+          tls_options.rejectUnauthorized = false
+          tls_options.checkServerIdentity = (host , cert) => undefined
+          if (self.tls_trusted_certs) {
+            tls_options.ca = fs.readFileSync(self.tls_trusted_certs).toString()
+          }
+          /*if (self.tls_client_cert) {// the client won't know whether or not this is required, depends on server mode
+            tls_options.cert = fs.readFileSync(self.tls_client_cert).toString()
+          }
+          if (self.tls_client_key) {
+            tls_options.key = fs.readFileSync(self.tls_client_key).toString()
+          }*/
+          try {
+            self.stream = tls.connect(tls_options);
+          } catch (err) {
+            return self.emit('error', err)
+          }
+        }
+        else if (self.tls_mode === 'prefer') { // basic TLS connection, does not verify CA certificate
           tls_options.rejectUnauthorized = false
           tls_options.checkServerIdentity = (host , cert) => undefined
           if (self.tls_trusted_certs) {

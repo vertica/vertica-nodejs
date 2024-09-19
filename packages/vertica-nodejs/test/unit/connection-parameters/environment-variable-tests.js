@@ -90,7 +90,7 @@ suite.test('connection string parsing - tls_mode', function () {
   assert.equal(subject.tls_mode, 'verify-ca')
 })
 
-suite.test('tls mode is disable by default', function () {
+suite.test('tls mode is prefer by default', function () {
   clearEnv()
   var subject = new ConnectionParameters()
   assert.equal(subject.tls_mode, 'prefer')
