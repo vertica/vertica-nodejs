@@ -90,7 +90,7 @@ class Connection extends EventEmitter {
 
 
     // only try to connect with tls if we are set up to handle it
-    if (self.tls_config === undefined && self.tls_mode === 'prefer') {
+    if (self.tls_config === undefined && self.tls_mode === 'disable') {
       return this.attachListeners(this.stream)
     }
 

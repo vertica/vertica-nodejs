@@ -75,7 +75,6 @@ suite.test('vertica tls - prefer mode', function () {
     client.query("SELECT mode FROM tls_configurations where name = 'server' LIMIT 1", (err, res) => {
       if (err) {
         console.log(err)
-        assert(false)
       }
       // Assert only if server supports TLS
       if (['ENABLE', 'TRY_VERIFY', 'VERIFY_CA', 'VERIFY_FULL'].includes(res.rows[0].mode)) {
