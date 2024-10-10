@@ -19,6 +19,7 @@ var fs = require('fs')
 var EventEmitter = require('events').EventEmitter
 
 const { parse, serialize } = require('v-protocol')
+const { error } = require('console')
 
 const flushBuffer = serialize.flush()
 const syncBuffer = serialize.sync()
@@ -102,7 +103,6 @@ class Connection extends EventEmitter {
         case 'N': // Server does not support TLS connections
           if (self.tls_mode == 'prefer') {
             self.attachListeners(self.stream)
-            
             self.emit('sslconnect')
             return
           }

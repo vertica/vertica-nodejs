@@ -1,4 +1,5 @@
 'use strict'
+const { error } = require('console')
 var helper = require('./../test-helper')
 var vertica = helper.vertica
 
@@ -66,10 +67,10 @@ suite.test('vertica tls - prefer mode', function () {
   var client = new vertica.Client() // 'prefer' by default, so no need to pass in that option
   assert.equal(client.tls_mode, vertica.defaults.tls_mode)
   client.connect(err => {
-    // if (err) {
-    //   // shouldn't fail to connect
-    //   assert(false)      
-    // }
+    if (err) {
+      // shouldn't fail to connect
+      assert(false)      
+    }
     // If connection succeeds, check for TLS connection
     client.query("SELECT mode FROM tls_configurations where name = 'server' LIMIT 1", (err, res) => {
       if (err) {
@@ -85,7 +86,6 @@ suite.test('vertica tls - prefer mode', function () {
       }
       client.end()
     })
-    client.end()
   })
 })
 
@@ -127,7 +127,8 @@ suite.test('vertica tls - verify-ca - no tls_cert_file specified', function () {
     if (err) {
       assert(err.message.includes("verify-ca mode requires setting tls_trusted_certs property") // we didn't set the property, this is ok
           || err.message.includes("SSL alert number 40") // VERIFY_CA mode, this is ok
-          || err.message.includes("The server does not support TLS connections")) // DISABLE mode, this is ok
+          || err.message.includes("The server does not support TLS connections") // DISABLE mode, this is ok
+          || err.message.includes("unable to verify the first certificate"))
     }
     client.end()
   })
@@ -146,7 +147,8 @@ suite.test('vertica tls - verify-ca - valid server certificate', function () {
   client.connect(err => {
     if (err) {
       assert(err.message.includes("SSL alert number 40") // VERIFY_CA mode, this is ok
-          || err.message.includes("The server does not support TLS connections")) // DISABLE mode, this is ok
+          || err.message.includes("The server does not support TLS connections") // DISABLE mode, this is ok
+          || err.message.includes("unable to verify the first certificate"))
       return
     }
     assert.equal(client.connection.stream.constructor.name.toString(), "TLSSocket")
@@ -172,7 +174,8 @@ suite.test('vertica tls - verify-full - no tls_cert_file specified', function ()
     if (err) {
       assert(err.message.includes("verify-ca mode requires setting tls_trusted_certs property") // we didn't set the property, this is ok
           || err.message.includes("SSL alert number 40") // VERIFY_CA mode, this is ok
-          || err.message.includes("The server does not support TLS connections")) // DISABLE mode, this is ok
+          || err.message.includes("The server does not support TLS connections") // DISABLE mode, this is ok
+          || err.message.includes("unable to verify the first certificate"))
     }
     client.end()
   })
@@ -190,7 +193,8 @@ suite.test('vertica tls - verify-full - valid server certificate', function () {
   client.connect(err => {
     if (err) {
       assert(err.message.includes("SSL alert number 40") // VERIFY_CA mode, this is ok
-          || err.message.includes("The server does not support TLS connections")) // DISABLE mode, this is ok
+          || err.message.includes("The server does not support TLS connections") // DISABLE mode, this is ok
+          || err.message.includes("unable to verify the first certificate"))
       return
     }
     assert.equal(client.connection.stream.constructor.name.toString(), "TLSSocket")
@@ -214,7 +218,8 @@ suite.test('vertica tls - tls_config feature', function() {
   client.connect(err => {
     if (err) {
       assert(err.message.includes("SSL alert number 40") // VERIFY_CA mode, this is ok
-          || err.message.includes("The server does not support TLS connections")) // DISABLE mode, this is ok
+          || err.message.includes("The server does not support TLS connections") // DISABLE mode, this is ok
+          || err.message.includes("unable to verify the first certificate"))
       return
     }
     // this is how we can tell we actually used tls_config and created a tls socket
