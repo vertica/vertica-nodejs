@@ -66,15 +66,15 @@ suite.test('vertica tls - prefer mode', function () {
   var client = new vertica.Client() // 'prefer' by default, so no need to pass in that option
   assert.equal(client.tls_mode, vertica.defaults.tls_mode)
   client.connect(err => {
-    if (err) {
-      // shouldn't fail to connect
-      assert(err.message.includes("The server does not support TLS connections")) // DISABLE mode, this is ok
-      return
-    }
+    // if (err) {
+    //   // shouldn't fail to connect
+    //   assert(false)      
+    // }
     // If connection succeeds, check for TLS connection
     client.query("SELECT mode FROM tls_configurations where name = 'server' LIMIT 1", (err, res) => {
       if (err) {
         console.log(err)
+        assert(false)
       }
       // Assert only if server supports TLS
       if (['ENABLE', 'TRY_VERIFY', 'VERIFY_CA', 'VERIFY_FULL'].includes(res.rows[0].mode)) {
@@ -85,6 +85,7 @@ suite.test('vertica tls - prefer mode', function () {
       }
       client.end()
     })
+    client.end()
   })
 })
 
