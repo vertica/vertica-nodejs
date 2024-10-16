@@ -9,6 +9,7 @@ require('./test-helper')
 const BufferList = require('../../buffer-list')
 var Connection = require('../../../lib/connection')
 var buffers = require('../../test-buffers')
+const { tls_mode } = require('../../../lib/defaults')
 var PARSE = function (buffer) {
   return new Parser(buffer).parse()
 }
@@ -121,6 +122,7 @@ var testForMessage = function (buffer, expectedMessage) {
     var stream = new MemoryStream()
     var client = new Connection({
       stream: stream,
+      tls_mode: 'disable'
     })
     client.connect()
 
@@ -379,6 +381,7 @@ test('split buffer, single message parsing', function () {
   var stream = new MemoryStream()
   var client = new Connection({
     stream: stream,
+    tls_mode: 'disable'
   })
   client.connect()
   var message = null
@@ -437,6 +440,7 @@ test('split buffer, multiple message parsing', function () {
   var stream = new MemoryStream()
   var client = new Connection({
     stream: stream,
+    tls_mode: 'disable'
   })
   client.connect()
   client.on('message', function (msg) {
