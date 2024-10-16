@@ -9,7 +9,7 @@ const helper = require('../test-helper')
 
 const suite = new helper.Suite()
 
-/*suite.test('bad tls credentials do not cause crash', (done) => {
+suite.test('bad tls credentials do not cause crash', (done) => {
   const config = {
     //tls_client_cert: 'invalid_value',
     //tls_client_key: 'invalid_value',
@@ -24,4 +24,4 @@ const suite = new helper.Suite()
     client.end()
     done()
   })
-})*/
+})
