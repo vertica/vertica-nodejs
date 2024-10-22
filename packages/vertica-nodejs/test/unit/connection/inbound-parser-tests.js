@@ -9,7 +9,6 @@ require('./test-helper')
 const BufferList = require('../../buffer-list')
 var Connection = require('../../../lib/connection')
 var buffers = require('../../test-buffers')
-const { tls_mode } = require('../../../lib/defaults')
 var PARSE = function (buffer) {
   return new Parser(buffer).parse()
 }
