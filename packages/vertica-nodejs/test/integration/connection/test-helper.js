@@ -6,7 +6,7 @@ var utils = require('../../../lib/utils')
 var connect = function (callback) {
   var username = helper.args.user
   var database = helper.args.database
-  var con = new Connection({ stream: new net.Stream() })
+  var con = new Connection({ stream: new net.Stream(), tls_mode: 'disable' })
   con.on('error', function (error) {
     console.log(error)
     throw new Error('Connection error')

@@ -83,17 +83,17 @@ suite.test('connection string parsing - tls_mode', function () {
 
   string = 'vertica://brian:pw@boom:381/lala'
   subject = new ConnectionParameters(string)
-  assert.equal(subject.tls_mode, 'disable')
+  assert.equal(subject.tls_mode, 'prefer')
 
   string = 'vertica://brian:pw@boom:381/lala?tls_mode=verify-ca'
   subject = new ConnectionParameters(string)
   assert.equal(subject.tls_mode, 'verify-ca')
 })
 
-suite.test('tls mode is disable by default', function () {
+suite.test('tls mode is prefer by default', function () {
   clearEnv()
   var subject = new ConnectionParameters()
-  assert.equal(subject.tls_mode, 'disable')
+  assert.equal(subject.tls_mode, 'prefer')
 })
 
 // restore process.env

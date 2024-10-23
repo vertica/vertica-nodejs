@@ -1,3 +1,7 @@
+//Should we remove this file as its a redundant test for TLS mode?
+//All TLS test suites for various TLS modes can be found at vertica-nodejs/test/integration/connection/tls-tests.js
+
+
 'use strict'
 
 const vertica = require('../../../lib')

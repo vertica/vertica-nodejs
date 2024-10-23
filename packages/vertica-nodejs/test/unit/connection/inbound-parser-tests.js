@@ -121,6 +121,7 @@ var testForMessage = function (buffer, expectedMessage) {
     var stream = new MemoryStream()
     var client = new Connection({
       stream: stream,
+      tls_mode: 'disable'
     })
     client.connect()
 
@@ -379,6 +380,7 @@ test('split buffer, single message parsing', function () {
   var stream = new MemoryStream()
   var client = new Connection({
     stream: stream,
+    tls_mode: 'disable'
   })
   client.connect()
   var message = null
@@ -437,6 +439,7 @@ test('split buffer, multiple message parsing', function () {
   var stream = new MemoryStream()
   var client = new Connection({
     stream: stream,
+    tls_mode: 'disable'
   })
   client.connect()
   client.on('message', function (msg) {

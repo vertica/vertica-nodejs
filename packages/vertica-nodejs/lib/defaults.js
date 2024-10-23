@@ -55,7 +55,7 @@ module.exports = {
   // from the pool and destroyed
   idleTimeoutMillis: 30000,
   client_encoding: '',
-  tls_mode: 'disable',
+  tls_mode: 'prefer',
   tls_key_file: undefined,
   tls_cert_file: undefined,
   options: undefined,

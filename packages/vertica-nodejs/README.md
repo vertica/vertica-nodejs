@@ -266,11 +266,11 @@ The `client_label` connection property is a string that sets a label for the con
 
 Current TLS Support in vertica-nodejs is limited to server modes that does not require the client to present a certificate. mTLS will be supported in a future version of vertica-nodejs. 
 
-Valid values for the `tls_mode` connection property are `disable`, `require` which will ensure the connection is encrypted, `verify-ca` which ensures the connection is encrypted and the client trusts the server certificate, and `verify-full` which ensures the connection is encrypted, the client trusts the server certificate, and the server hostname has been verified to match the provided server certificate. 
+Valid values for the `tls_mode` connection property are `disable`, `prefer`, `require` which will ensure the connection is encrypted, `verify-ca` which ensures the connection is encrypted and the client trusts the server certificate, and `verify-full` which ensures the connection is encrypted, the client trusts the server certificate, and the server hostname has been verified to match the provided server certificate. 
 
 ### TLS Connection Properties
 
-The `tls_mode` connection property is a string that determines the mode of tls the client will attempt to use. By default it is `disable`. Other valid values are described in the above section.
+The `tls_mode` connection property is a string that determines the mode of tls the client will attempt to use. By default it is `prefer`. Other valid values are described in the above section.
 
 The `tls_trusted_certs` connection property is an optional override of the trusted CA certificates. `tls_trusted_certs` is a path to the .pem file being used to override defaults. The default is based on the node.js tls module which defaults to well-known CAs curated by Mozilla.
 

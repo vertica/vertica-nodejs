@@ -19,6 +19,7 @@ var fs = require('fs')
 var EventEmitter = require('events').EventEmitter
 
 const { parse, serialize } = require('v-protocol')
+const { error } = require('console')
 
 const flushBuffer = serialize.flush()
 const syncBuffer = serialize.sync()
@@ -46,9 +47,9 @@ class Connection extends EventEmitter {
     this.tls_config = config.tls_config
 
     if (this.tls_config === undefined) {
-      this.tls_mode = config.tls_mode || 'disable'
-      //this.tls_client_key = config.tls_client_key
-      //this.tls_client_cert = config.tls_client_cert
+      this.tls_mode = config.tls_mode || 'prefer'
+      // this.tls_client_key = config.tls_client_key
+      // this.tls_client_cert = config.tls_client_cert
       this.tls_trusted_certs = config.tls_trusted_certs
       this.tls_host = config.tls_host
     }
@@ -100,8 +101,15 @@ class Connection extends EventEmitter {
         case 'S': // Server supports TLS connections, continue with a secure connection
           break
         case 'N': // Server does not support TLS connections
-          self.stream.end()
-          return self.emit('error', new Error('The server does not support TLS connections'))
+          if (self.tls_mode == 'prefer') {
+            self.attachListeners(self.stream)
+            self.emit('sslconnect')
+            return
+          }
+          else {
+            self.stream.end()
+            return self.emit('error', new Error('The server does not support TLS connections'))
+          }
         default:
           // Any other response byte, including 'E' (ErrorResponse) indicating a server error
           self.stream.end()
@@ -128,7 +136,7 @@ class Connection extends EventEmitter {
         // With an undefined checkServerIdentity function, we are still checking to see that the server
         // certificate is signed by the CA (default or provided).
         
-        if (self.tls_mode === 'require') { // basic TLS connection, does not verify CA certificate
+        if (self.tls_mode === 'require' || self.tls_mode === 'prefer') { // basic TLS connection, does not verify CA certificate
           tls_options.rejectUnauthorized = false
           tls_options.checkServerIdentity = (host , cert) => undefined
           if (self.tls_trusted_certs) {

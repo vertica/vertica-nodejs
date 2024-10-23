@@ -41,9 +41,9 @@ function parse(str) {
     }
   }
 
-  // if the tls mode specified in the connection string is an invalid option, use the default - disable.
-  if (config.tls_mode && !['require', 'verify-ca', 'verify-full'].includes(config.tls_mode)) {
-    config.tls_mode = 'disable'
+  // if the tls mode specified in the connection string is an invalid option, use the default - prefer.
+  if (config.tls_mode && !['disable', 'require', 'verify-ca', 'verify-full'].includes(config.tls_mode)) {
+    config.tls_mode = 'prefer'
   }
   
   var auth = (result.auth || ':').split(':')

@@ -12,7 +12,7 @@ test('client settings', function () {
     assert.equal(client.user, pguser)
     assert.equal(client.database, pgdatabase)
     assert.equal(client.port, pgport)
-    assert.equal(client.tls_mode, 'disable')
+    assert.equal(client.tls_mode, 'prefer')
   })
 
   test('custom', function () {

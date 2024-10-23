@@ -247,9 +247,9 @@ describe('parse', function () {
   })
 
   it('configuration parameter tls_mode=no-verify', function () {
-    var connectionString = 'vertica:///?tls_mode=no-verify' // not a supported tls_mode, should instead default to disable
+    var connectionString = 'vertica:///?tls_mode=no-verify' // not a supported tls_mode, should instead default to prefer
     var subject = parse(connectionString)
-    subject.tls_mode.should.eql('disable')
+    subject.tls_mode.should.eql('prefer')
   })
 
   it('configuration parameter tls_mode=verify-ca', function () {

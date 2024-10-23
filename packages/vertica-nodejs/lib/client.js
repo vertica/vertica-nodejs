@@ -81,7 +81,7 @@ class Client extends EventEmitter {
     this.processID = null
     this.secretKey = null
     this.tls_config = this.connectionParameters.tls_config
-    this.tls_mode = this.connectionParameters.tls_mode || 'disable'
+    this.tls_mode = this.connectionParameters.tls_mode || 'prefer'
     this.tls_trusted_certs = this.connectionParameters.tls_trusted_certs
     this._connectionTimeoutMillis = c.connectionTimeoutMillis || 0
     this.workload = this.connectionParameters.workload
