@@ -5,7 +5,7 @@
 [![NPM downloads](https://img.shields.io/npm/dm/vertica-nodejs)](https://www.npmjs.com/package/vertica-nodejs)
 [![test status](https://github.com/vertica/vertica-nodejs/actions/workflows/ci.yml/badge.svg)](https://github.com/vertica/vertica-nodejs/actions/workflows/ci.yml)
 
-Non-blocking Vertica client for Node.js made with pure Javascript. This client has been tested with Vertica 24.3.0 and Node 12/14/16/18/20.
+Non-blocking Vertica client for Node.js made with pure Javascript. This client has been tested with Vertica 24.4.0 and Node 12/14/16/18/20.
 
 ## Documentation
 
