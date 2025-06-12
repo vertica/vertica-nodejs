@@ -144,7 +144,7 @@ class ConnectionParameters {
     }
 
     try {
-      this.client_os = os.platform()
+      this.client_os = [os.type(), os.release(), os.machine()].join(' ')
     } catch (e) {
       this.client_os = ""
     }

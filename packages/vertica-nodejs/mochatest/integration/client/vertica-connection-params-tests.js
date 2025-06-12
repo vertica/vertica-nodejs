@@ -31,12 +31,12 @@ describe('vertica client label connection parameter', function () {
       if (err){
         console.log(err)
         done(err)
-      } 
+      }
       assert.equal(res.rows[0]['GET_CLIENT_LABEL'], vertica.defaults.client_label)
       client_default.end()
       done()
     })
-  })    
+  })
 
   it('can be specified and used in a client connection', function(done) {
     // assert creating a client connection with specified label will persist
@@ -47,7 +47,7 @@ describe('vertica client label connection parameter', function () {
       if (err){
         console.log(err)
         done(err)
-      } 
+      }
       assert.equal(res.rows[0]['GET_CLIENT_LABEL'], 'distinctLabel')
       client_test.end()
       done()
@@ -114,7 +114,7 @@ describe('vertica-nodejs handling auditing connection properties', function() {
       assert.equal(res.rows[0].client_pid, process.pid)
       assert.equal(res.rows[0].client_type, "Node.js Driver")
       assert.equal(res.rows[0].client_version, vertica.version)
-      assert.equal(res.rows[0].client_os, os.platform())
+      assert.equal(res.rows[0].client_os, [os.type(), os.release(), os.machine()].join(' '))
       assert.equal(res.rows[0].client_os_user_name, os.userInfo().username)
       assert.equal(res.rows[0].client_os_hostname, os.hostname())
       client.end()
@@ -127,7 +127,7 @@ describe('vertica workload connection parameter', function() {
   it('can be set and is sent in the startup packet', function(done) {
     const client = new vertica.Client({workload: 'testNodeWorkload'})
     client.connect()
-    client.query(`SELECT contents FROM dc_client_server_messages 
+    client.query(`SELECT contents FROM dc_client_server_messages
                   WHERE session_id = current_session()
                   AND message_type = '^+'
                   AND contents like '%workload%'`, (err, res) => {
