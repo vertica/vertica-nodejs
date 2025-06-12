@@ -110,11 +110,25 @@ describe('vertica-nodejs handling auditing connection properties', function() {
     const client = new vertica.Client()
     client.connect()
     client.query("SELECT client_pid, client_type, client_version, client_os, client_os_user_name, client_os_hostname FROM CURRENT_SESSION", (err, res) => {
+      var client_os
+      try {
+        client_os = [os.type(), os.release(), os.machine()].join(' ')
+      } catch (e) {
+        if (e instanceof TypeError) {
+          try {
+            client_os = [os.type(), os.release(), os.arch()].join(' ')
+          } catch (ex) {
+            client_os = ''
+          }
+        } else {
+          client_os = ''
+        }
+      }
       if (err) done(err)
       assert.equal(res.rows[0].client_pid, process.pid)
       assert.equal(res.rows[0].client_type, "Node.js Driver")
       assert.equal(res.rows[0].client_version, vertica.version)
-      assert.equal(res.rows[0].client_os, [os.type(), os.release(), os.machine()].join(' '))
+      assert.equal(res.rows[0].client_os, client_os)
       assert.equal(res.rows[0].client_os_user_name, os.userInfo().username)
       assert.equal(res.rows[0].client_os_hostname, os.hostname())
       client.end()
