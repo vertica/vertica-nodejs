@@ -17,7 +17,7 @@
 const { VerticaType } = require('v-protocol')
 var types = require('pg-types')
 
-// this is a 'temporary' solution allowing us to continue to use pg-types as long as we can to avoid another large
+// this is a 'temporary' solution allowing us to continue to use pg-types as long as we can to avoid another large 
 // package implementation while we get close to the 1.0 release
 types.setTypeParser(VerticaType.Boolean, types.getTypeParser(16, 'text'))
 types.setTypeParser(VerticaType.Integer, types.getTypeParser(20, 'text'))
