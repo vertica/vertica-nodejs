@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  V_HOST: localhost
+  V_HOST: 127.0.0.1
   V_PORT: 5433
   V_USER: dbadmin
   V_DATABASE: vdb
@@ -44,7 +44,7 @@ jobs:
         uses: helm/kind-action@v1.10.0
         with:
           cluster_name: vertica-ci
-          wait: true
+          wait: 180s
 
       - name: Setup Helm
         uses: azure/setup-helm@v4
@@ -114,8 +114,7 @@ jobs:
           helm upgrade --install keycloak bitnami/keycloak \
             --namespace vertica \
             --set auth.adminUser=admin \
-            --set auth.adminPassword=admin \
-            --set proxy=reencrypt
+            --set auth.adminPassword=admin
           kubectl wait --for=condition=Ready pod -n vertica -l app.kubernetes.io/name=keycloak --timeout=600s
           kubectl get svc -n vertica keycloak
 
@@ -161,7 +160,7 @@ jobs:
         run: |
           echo "Waiting for Keycloak to accept connections..." && sleep 5
           curl --retry 10 --retry-delay 3 --retry-all-errors \
-            --location --request POST http://localhost:8080/realms/${KC_REALM}/protocol/openid-connect/token \
+            --location --request POST http://127.0.0.1:8080/realms/${KC_REALM}/protocol/openid-connect/token \
             --header 'Content-Type: application/x-www-form-urlencoded' \
             --data-urlencode "username=${KC_USER}" \
             --data-urlencode "password=${KC_PASSWORD}" \
@@ -172,25 +171,21 @@ jobs:
           test -s access_token.txt && echo "Token captured" || (echo "Token missing"; exit 1)
 
       - name: test-v-connection-string
-        if: always()
         run: |
           cd packages/v-connection-string
           yarn test
 
       - name: test-v-pool
-        if: always()
         run: |
           cd packages/v-pool
           yarn test
 
       - name: test-v-protocol
-        if: always()
         run: |
           cd packages/v-protocol
           yarn test
 
       - name: test-vertica-nodejs
-        if: always()
         run: |
           export VTEST_OAUTH_ACCESS_TOKEN="$(cat ${GITHUB_WORKSPACE}/access_token.txt)"
           cd packages/vertica-nodejs
