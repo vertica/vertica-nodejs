@@ -140,9 +140,13 @@ jobs:
 
       - name: Create communal bucket in MinIO
         run: |
-          # Use minio client inside cluster to create bucket
-          kubectl run -n vertica mc --image=minio/mc:latest --restart=Never --attach=true --rm -- \
-            sh -c "mc alias set local http://minio.vertica.svc.cluster.local:9000 minio minio123 && mc mb -p local/communal || true && mc ls local"
+          # Create communal bucket using env alias to avoid needing shell
+          kubectl run -n vertica mc-mb --image=minio/mc:latest --restart=Never \
+            --env MC_HOST_local=http://minio:minio123@minio.vertica.svc.cluster.local:9000 \
+            --attach=true --rm -- mc mb -p local/communal || true
+          kubectl run -n vertica mc-ls --image=minio/mc:latest --restart=Never \
+            --env MC_HOST_local=http://minio:minio123@minio.vertica.svc.cluster.local:9000 \
+            --attach=true --rm -- mc ls local
 
       - name: Create communal credentials secret
         run: |
