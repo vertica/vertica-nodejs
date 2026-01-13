@@ -55,6 +55,7 @@ jobs:
         run: |
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo add vertica-charts https://vertica.github.io/charts
+          helm repo add jetstack https://charts.jetstack.io
           helm repo update
 
       - name: Create namespace
@@ -155,10 +156,25 @@ jobs:
             --from-literal=accessKeyID=minio \
             --from-literal=secretAccessKey=minio123
 
+      - name: Install cert-manager (for operator webhooks)
+        run: |
+          kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.4/cert-manager.crds.yaml
+          helm upgrade --install cert-manager jetstack/cert-manager -n cert-manager --create-namespace --set installCRDs=false
+          kubectl wait --for=condition=Available deployment -l app=cert-manager -n cert-manager --timeout=600s || true
+          kubectl get pods -n cert-manager
+
       - name: Install Vertica Operator
         run: |
           helm upgrade --install vertica-operator vertica-charts/verticadb-operator -n vertica --create-namespace
-          kubectl rollout status deploy/verticadb-operator-controller-manager -n vertica --timeout=600s || true
+          kubectl wait --for=condition=Available deployment/verticadb-operator-controller-manager -n vertica --timeout=600s || true
+          # Wait for webhook service endpoints to be ready
+          echo "Waiting for verticadb-operator-webhook-service endpoints..."
+          for i in {1..60}; do
+            EP=$(kubectl get endpoints verticadb-operator-webhook-service -n vertica -o jsonpath='{.subsets[0].addresses[0].ip}' 2>/dev/null || true)
+            if [ -n "$EP" ]; then echo "Webhook endpoints ready: $EP"; break; fi
+            echo "...waiting"; sleep 5;
+          done
+          kubectl get svc -n vertica verticadb-operator-webhook-service || true
           kubectl get pods -n vertica
 
       - name: Deploy VerticaDB
