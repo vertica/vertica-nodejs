@@ -188,6 +188,7 @@ jobs:
           spec:
             image: opentext/vertica-k8s:latest
             dbName: vdb
+            kSafety: 0
             communal:
               path: s3://communal
               credentialSecret: communal-creds
