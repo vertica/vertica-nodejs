@@ -63,24 +63,86 @@ jobs:
 
       - name: Install MinIO (communal storage)
         run: |
-          helm upgrade --install minio bitnami/minio \
-            --namespace vertica \
-            --set auth.rootUser=minio \
-            --set auth.rootPassword=minio123 \
-            --set defaultBuckets=communal \
-            --set persistence.enabled=false \
-            --set console.enabled=false \
-            --set resourcesPreset=none
-          # Wait for any MinIO pod to be Ready (label provided by the chart)
-          if ! kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=minio -n vertica --timeout=900s; then
+          cat <<'EOF' | kubectl apply -f -
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: minio
+            namespace: vertica
+            labels:
+              app: minio
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: minio
+            template:
+              metadata:
+                labels:
+                  app: minio
+              spec:
+                containers:
+                  - name: minio
+                    image: minio/minio:latest
+                    args: ["server","/data","--address=:9000"]
+                    env:
+                      - name: MINIO_ROOT_USER
+                        value: minio
+                      - name: MINIO_ROOT_PASSWORD
+                        value: minio123
+                    ports:
+                      - containerPort: 9000
+                        name: api
+                    readinessProbe:
+                      httpGet:
+                        path: /minio/health/ready
+                        port: 9000
+                      initialDelaySeconds: 5
+                      periodSeconds: 5
+                    livenessProbe:
+                      httpGet:
+                        path: /minio/health/live
+                        port: 9000
+                      initialDelaySeconds: 10
+                      periodSeconds: 10
+                    volumeMounts:
+                      - name: data
+                        mountPath: /data
+                volumes:
+                  - name: data
+                    emptyDir: {}
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: minio
+            namespace: vertica
+            labels:
+              app: minio
+          spec:
+            selector:
+              app: minio
+            ports:
+              - protocol: TCP
+                port: 9000
+                targetPort: 9000
+          EOF
+
+          # Wait for MinIO to be ready
+          if ! kubectl wait --for=condition=Ready pod -l app=minio -n vertica --timeout=900s; then
             echo 'MinIO failed to become Ready. Dumping diagnostics...'
-            kubectl get pods -n vertica -l app.kubernetes.io/name=minio -o wide || true
-            kubectl describe pods -n vertica -l app.kubernetes.io/name=minio || true
-            kubectl logs -n vertica $(kubectl get pods -n vertica -l app.kubernetes.io/name=minio -o jsonpath='{.items[0].metadata.name}') || true
-            kubectl get pvc -n vertica || true
+            kubectl get pods -n vertica -l app=minio -o wide || true
+            kubectl describe pods -n vertica -l app=minio || true
+            kubectl logs -n vertica $(kubectl get pods -n vertica -l app=minio -o jsonpath='{.items[0].metadata.name}') || true
             exit 1
           fi
           kubectl get svc -n vertica minio
+
+      - name: Create communal bucket in MinIO
+        run: |
+          # Use minio client inside cluster to create bucket
+          kubectl run -n vertica mc --image=minio/mc:latest --restart=Never --attach=true --rm -- \
+            sh -c "mc alias set local http://minio.vertica.svc.cluster.local:9000 minio minio123 && mc mb -p local/communal || true && mc ls local"
 
       - name: Create communal credentials secret
         run: |
