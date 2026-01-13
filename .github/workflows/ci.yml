@@ -1,20 +1,17 @@
 name: CI
 
-on: 
-  # Triggers the workflow on push or pull request events but only for the main branch
+on:
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 env:
   V_HOST: localhost
   V_PORT: 5433
   V_USER: dbadmin
-  V_DATABASE: VMart
+  V_DATABASE: vdb
   KC_REALM: test
   KC_USER: oauth_user
   KC_PASSWORD: password
@@ -26,117 +23,175 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        #os: [ubuntu-latest, windows-latest, macos-latest]
-        # let's make it a little bit simple for now
-        # current minimal version will be 12.
-        # TODO: investigate the multipe version matrix with single Vertica instance
         node: ['12', '14', '16', '18', '20']
         os: [ubuntu-latest]
     name: Node.js ${{ matrix.node }} (${{ matrix.os }})
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
-      
-      - name: Setup node
+
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
           cache: yarn
 
-      - name: build
-        run: yarn 
-
-      - name: boostrap
-        run: yarn lerna bootstrap
-
-      - name: Set up a Keycloak docker container
-        timeout-minutes: 5
+      - name: Install dependencies
         run: |
-          docker network create -d bridge my-network
-          docker run -d -p 8080:8080 \
-            --name keycloak --network my-network \
-            -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin \
-            quay.io/keycloak/keycloak:23.0.4 start-dev
-          docker container ls
-        
-      - name: Setup Vertica server docker container
-        timeout-minutes: 15
-        run: |          
-          docker run -d -p 5433:5433 -p 5444:5444 \
-            --mount type=volume,source=vertica-data,target=/data \
-            --name vertica_ce --network my-network \
-            opentext/vertica-ce:24.4.0-0
-          echo "Vertica startup ..."
-          until docker exec vertica_ce test -f /data/vertica/VMart/agent_start.out; do \
-            echo "..."; \
-            sleep 3; \
-          done;
-          echo "Vertica is up"
-          docker exec -u dbadmin vertica_ce /opt/vertica/bin/vsql -c "\l"
-          docker exec -u dbadmin vertica_ce /opt/vertica/bin/vsql -c "select version()"
+          yarn
+          yarn lerna bootstrap
 
-      - name: Configure Keycloak
+      - name: Create KinD cluster
+        uses: helm/kind-action@v1.10.0
+        with:
+          cluster_name: vertica-ci
+          wait: true
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add Helm repos
         run: |
-          echo "Wait for keycloak ready ..."
-          bash -c 'while true; do curl -s localhost:8080 &>/dev/null; ret=$?; [[ $ret -eq 0 ]] && break; echo "..."; sleep 3; done'
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo add vertica-charts https://vertica.github.io/charts
+          helm repo update
 
-          docker exec -i keycloak /bin/bash <<EOF
-            /opt/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin --password admin
-            /opt/keycloak/bin/kcadm.sh create realms -s realm=${KC_REALM} -s enabled=true
-            /opt/keycloak/bin/kcadm.sh update realms/${KC_REALM} -s accessTokenLifespan=3600
-            /opt/keycloak/bin/kcadm.sh get realms/${KC_REALM}
-            /opt/keycloak/bin/kcadm.sh create users -r ${KC_REALM} -s username=${KC_USER} -s enabled=true
-            /opt/keycloak/bin/kcadm.sh set-password -r ${KC_REALM} --username ${KC_USER} --new-password ${KC_PASSWORD}
-            /opt/keycloak/bin/kcadm.sh get users -r ${KC_REALM}
-            /opt/keycloak/bin/kcadm.sh create clients -r ${KC_REALM} -s clientId=${KC_CLIENT_ID} -s enabled=true \
-              -s 'redirectUris=["/*"]' -s 'webOrigins=["/*"]' -s secret=${KC_CLIENT_SECRET} -s directAccessGrantsEnabled=true -o
+      - name: Create namespace
+        run: |
+          kubectl create namespace vertica || true
+
+      - name: Install MinIO (communal storage)
+        run: |
+          helm upgrade --install minio bitnami/minio \
+            --namespace vertica \
+            --set auth.rootUser=minio \
+            --set auth.rootPassword=minio123 \
+            --set defaultBuckets=communal
+          kubectl rollout status statefulset/minio -n vertica --timeout=300s
+          kubectl get svc -n vertica minio
+
+      - name: Create communal credentials secret
+        run: |
+          kubectl delete secret -n vertica communal-creds --ignore-not-found
+          kubectl create secret generic communal-creds -n vertica \
+            --from-literal=accessKeyID=minio \
+            --from-literal=secretAccessKey=minio123
+
+      - name: Install Vertica Operator
+        run: |
+          helm upgrade --install vertica-operator vertica-charts/verticadb-operator -n vertica --create-namespace
+          kubectl rollout status deploy/verticadb-operator-controller-manager -n vertica --timeout=600s || true
+          kubectl get pods -n vertica
+
+      - name: Deploy VerticaDB
+        run: |
+          cat <<'EOF' | kubectl apply -f -
+          apiVersion: vertica.com/v1
+          kind: VerticaDB
+          metadata:
+            name: verticadb-sample
+            namespace: vertica
+          spec:
+            image: opentext/vertica-k8s:latest
+            dbName: vdb
+            communal:
+              path: s3://communal
+              credentialSecret: communal-creds
+              endpoint: http://minio.vertica.svc.cluster.local:9000
+              includeAwsAuth: false
+              s3Region: us-east-1
+            subclusters:
+              - name: defaultsubcluster
+                size: 1
           EOF
+          # Wait for Vertica server pod to be Ready
+          kubectl wait --for=condition=Ready pod -n vertica -l app.kubernetes.io/component=server --timeout=900s
+          kubectl get pods -n vertica -o wide
 
-          # Retrieving an Access Token
-          curl --location --request POST http://`hostname`:8080/realms/${KC_REALM}/protocol/openid-connect/token \
-              --header 'Content-Type: application/x-www-form-urlencoded' \
-              --data-urlencode "username=${KC_USER}" \
-              --data-urlencode "password=${KC_PASSWORD}" \
-              --data-urlencode "client_id=${KC_CLIENT_ID}" \
-              --data-urlencode "client_secret=${KC_CLIENT_SECRET}" \
-              --data-urlencode 'grant_type=password' -o oauth.json
+      - name: Install Keycloak
+        run: |
+          helm upgrade --install keycloak bitnami/keycloak \
+            --namespace vertica \
+            --set auth.adminUser=admin \
+            --set auth.adminPassword=admin \
+            --set proxy=reencrypt
+          kubectl wait --for=condition=Ready pod -n vertica -l app.kubernetes.io/name=keycloak --timeout=600s
+          kubectl get svc -n vertica keycloak
+
+      - name: Configure Keycloak realm, client, and user
+        run: |
+          KC_POD=$(kubectl get pods -n vertica -l app.kubernetes.io/name=keycloak -o jsonpath='{.items[0].metadata.name}')
+          kubectl exec -n vertica "$KC_POD" -- bash -lc \
+            "/opt/bitnami/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin --password admin && \
+             /opt/bitnami/keycloak/bin/kcadm.sh create realms -s realm=${KC_REALM} -s enabled=true && \
+             /opt/bitnami/keycloak/bin/kcadm.sh update realms/${KC_REALM} -s accessTokenLifespan=3600 && \
+             /opt/bitnami/keycloak/bin/kcadm.sh create users -r ${KC_REALM} -s username=${KC_USER} -s enabled=true && \
+             /opt/bitnami/keycloak/bin/kcadm.sh set-password -r ${KC_REALM} --username ${KC_USER} --new-password ${KC_PASSWORD} && \
+             /opt/bitnami/keycloak/bin/kcadm.sh create clients -r ${KC_REALM} -s clientId=${KC_CLIENT_ID} -s enabled=true -s 'redirectUris=["/*"]' -s 'webOrigins=["/*"]' -s secret=${KC_CLIENT_SECRET} -s directAccessGrantsEnabled=true -o"
+
+      - name: Port-forward services (Vertica 5433 and Keycloak 8080)
+        run: |
+          # Port-forward Vertica service to localhost:5433
+          nohup kubectl port-forward -n vertica svc/verticadb-sample-defaultsubcluster 5433:5433 >/tmp/pf-vertica.log 2>&1 &
+          # Port-forward Keycloak service to localhost:8080
+          nohup kubectl port-forward -n vertica svc/keycloak 8080:80 >/tmp/pf-keycloak.log 2>&1 &
+          sleep 5
+          echo "PF logs:" && tail -n +1 /tmp/pf-*.log || true
+
+      - name: Configure Vertica OAuth and create user
+        run: |
+          V_POD=$(kubectl get pods -n vertica -l app.kubernetes.io/component=server -o jsonpath='{.items[0].metadata.name}')
+          DISCOVERY_URL="http://keycloak.vertica.svc.cluster.local/realms/${KC_REALM}/.well-known/openid-configuration"
+          INTROSPECT_URL="http://keycloak.vertica.svc.cluster.local/realms/${KC_REALM}/protocol/openid-connect/token/introspect"
+          kubectl exec -n vertica "$V_POD" -- bash -lc \
+            "/opt/vertica/bin/vsql -c \"CREATE AUTHENTICATION v_oauth METHOD 'oauth' HOST '0.0.0.0/0';\" && \
+             /opt/vertica/bin/vsql -c \"ALTER AUTHENTICATION v_oauth SET client_id='${KC_CLIENT_ID}';\" && \
+             /opt/vertica/bin/vsql -c \"ALTER AUTHENTICATION v_oauth SET client_secret='${KC_CLIENT_SECRET}';\" && \
+             /opt/vertica/bin/vsql -c \"ALTER AUTHENTICATION v_oauth SET discovery_url='${DISCOVERY_URL}';\" && \
+             /opt/vertica/bin/vsql -c \"ALTER AUTHENTICATION v_oauth SET introspect_url='${INTROSPECT_URL}';\" && \
+             /opt/vertica/bin/vsql -c \"CREATE USER ${KC_USER};\" && \
+             /opt/vertica/bin/vsql -c \"GRANT AUTHENTICATION v_oauth TO ${KC_USER};\" && \
+             /opt/vertica/bin/vsql -c \"GRANT ALL ON SCHEMA PUBLIC TO ${KC_USER};\" && \
+             /opt/vertica/bin/vsql -c \"CREATE AUTHENTICATION v_dbadmin_hash METHOD 'hash' HOST '0.0.0.0/0';\" && \
+             /opt/vertica/bin/vsql -c \"ALTER AUTHENTICATION v_dbadmin_hash PRIORITY 10000;\" && \
+             /opt/vertica/bin/vsql -c \"GRANT AUTHENTICATION v_dbadmin_hash TO dbadmin;\""
+
+      - name: Retrieve OAuth access token
+        run: |
+          echo "Waiting for Keycloak to accept connections..." && sleep 5
+          curl --retry 10 --retry-delay 3 --retry-all-errors \
+            --location --request POST http://localhost:8080/realms/${KC_REALM}/protocol/openid-connect/token \
+            --header 'Content-Type: application/x-www-form-urlencoded' \
+            --data-urlencode "username=${KC_USER}" \
+            --data-urlencode "password=${KC_PASSWORD}" \
+            --data-urlencode "client_id=${KC_CLIENT_ID}" \
+            --data-urlencode "client_secret=${KC_CLIENT_SECRET}" \
+            --data-urlencode 'grant_type=password' -o oauth.json
           cat oauth.json | python3 -c 'import json,sys;obj=json.load(sys.stdin);print(obj["access_token"])' > access_token.txt
-
-          docker exec -u dbadmin vertica_ce /opt/vertica/bin/vsql -c "CREATE AUTHENTICATION v_oauth METHOD 'oauth' HOST '0.0.0.0/0';"
-          docker exec -u dbadmin vertica_ce /opt/vertica/bin/vsql -c "ALTER AUTHENTICATION v_oauth SET client_id = '${KC_CLIENT_ID}';"
-          docker exec -u dbadmin vertica_ce /opt/vertica/bin/vsql -c "ALTER AUTHENTICATION v_oauth SET client_secret = '${KC_CLIENT_SECRET}';"
-          docker exec -u dbadmin vertica_ce /opt/vertica/bin/vsql -c "ALTER AUTHENTICATION v_oauth SET discovery_url = 'http://`hostname`:8080/realms/${KC_REALM}/.well-known/openid-configuration';"
-          docker exec -u dbadmin vertica_ce /opt/vertica/bin/vsql -c "ALTER AUTHENTICATION v_oauth SET introspect_url = 'http://`hostname`:8080/realms/${KC_REALM}/protocol/openid-connect/token/introspect';"
-          docker exec -u dbadmin vertica_ce /opt/vertica/bin/vsql -c "SELECT * FROM client_auth WHERE auth_name='v_oauth';"
-          docker exec -u dbadmin vertica_ce /opt/vertica/bin/vsql -c "CREATE USER ${KC_USER};"
-          docker exec -u dbadmin vertica_ce /opt/vertica/bin/vsql -c "GRANT AUTHENTICATION v_oauth TO ${KC_USER};"
-          docker exec -u dbadmin vertica_ce /opt/vertica/bin/vsql -c "GRANT ALL ON SCHEMA PUBLIC TO ${KC_USER};"
-          # A dbadmin-specific authentication record (connect remotely) is needed after setting up an OAuth user
-          docker exec -u dbadmin vertica_ce /opt/vertica/bin/vsql -c "CREATE AUTHENTICATION v_dbadmin_hash METHOD 'hash' HOST '0.0.0.0/0';"
-          docker exec -u dbadmin vertica_ce /opt/vertica/bin/vsql -c "ALTER AUTHENTICATION v_dbadmin_hash PRIORITY 10000;"
-          docker exec -u dbadmin vertica_ce /opt/vertica/bin/vsql -c "GRANT AUTHENTICATION v_dbadmin_hash TO dbadmin;"
+          test -s access_token.txt && echo "Token captured" || (echo "Token missing"; exit 1)
 
       - name: test-v-connection-string
         if: always()
         run: |
           cd packages/v-connection-string
           yarn test
-          
+
       - name: test-v-pool
         if: always()
         run: |
           cd packages/v-pool
           yarn test
-          
+
       - name: test-v-protocol
         if: always()
         run: |
           cd packages/v-protocol
           yarn test
-          
+
       - name: test-vertica-nodejs
         if: always()
         run: |
-          export VTEST_OAUTH_ACCESS_TOKEN=`cat access_token.txt`
+          export VTEST_OAUTH_ACCESS_TOKEN="$(cat ${GITHUB_WORKSPACE}/access_token.txt)"
           cd packages/vertica-nodejs
           yarn test
