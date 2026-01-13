@@ -176,8 +176,6 @@ jobs:
               path: s3://communal
               credentialSecret: communal-creds
               endpoint: http://minio.vertica.svc.cluster.local:9000
-              includeAwsAuth: false
-              s3Region: us-east-1
             subclusters:
               - name: defaultsubcluster
                 size: 1
