@@ -67,8 +67,10 @@ jobs:
             --namespace vertica \
             --set auth.rootUser=minio \
             --set auth.rootPassword=minio123 \
-            --set defaultBuckets=communal
-          kubectl rollout status statefulset/minio -n vertica --timeout=300s
+            --set defaultBuckets=communal \
+            --wait --timeout 10m0s
+          # Wait for any MinIO pod to be Ready (label provided by the chart)
+          kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=minio -n vertica --timeout=600s
           kubectl get svc -n vertica minio
 
       - name: Create communal credentials secret
