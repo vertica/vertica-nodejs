@@ -258,25 +258,74 @@ jobs:
           fi
           kubectl get pods -n vertica -o wide || true
 
-      - name: Install Keycloak
+      - name: Install Keycloak (official image)
         run: |
-          helm upgrade --install keycloak bitnami/keycloak \
-            --namespace vertica \
-            --set auth.adminUser=admin \
-            --set auth.adminPassword=admin
-          kubectl wait --for=condition=Ready pod -n vertica -l app.kubernetes.io/name=keycloak --timeout=600s
+          cat <<'EOF' | kubectl apply -f -
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: keycloak
+            namespace: vertica
+            labels:
+              app: keycloak
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: keycloak
+            template:
+              metadata:
+                labels:
+                  app: keycloak
+              spec:
+                containers:
+                  - name: keycloak
+                    image: quay.io/keycloak/keycloak:26.0
+                    args: ["start-dev","--http-enabled=true","--http-port=8080","--hostname-strict=false"]
+                    env:
+                      - name: KEYCLOAK_ADMIN
+                        value: admin
+                      - name: KEYCLOAK_ADMIN_PASSWORD
+                        value: admin
+                    ports:
+                      - containerPort: 8080
+                        name: http
+                    readinessProbe:
+                      httpGet:
+                        path: /
+                        port: 8080
+                      initialDelaySeconds: 10
+                      periodSeconds: 5
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: keycloak
+            namespace: vertica
+            labels:
+              app: keycloak
+          spec:
+            selector:
+              app: keycloak
+            ports:
+              - name: http
+                protocol: TCP
+                port: 8080
+                targetPort: 8080
+          EOF
+          kubectl wait --for=condition=Ready pod -n vertica -l app=keycloak --timeout=600s
           kubectl get svc -n vertica keycloak
 
       - name: Configure Keycloak realm, client, and user
         run: |
-          KC_POD=$(kubectl get pods -n vertica -l app.kubernetes.io/name=keycloak -o jsonpath='{.items[0].metadata.name}')
+          KC_POD=$(kubectl get pods -n vertica -l app=keycloak -o jsonpath='{.items[0].metadata.name}')
           kubectl exec -n vertica "$KC_POD" -- bash -lc \
-            "/opt/bitnami/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin --password admin && \
-             /opt/bitnami/keycloak/bin/kcadm.sh create realms -s realm=${KC_REALM} -s enabled=true && \
-             /opt/bitnami/keycloak/bin/kcadm.sh update realms/${KC_REALM} -s accessTokenLifespan=3600 && \
-             /opt/bitnami/keycloak/bin/kcadm.sh create users -r ${KC_REALM} -s username=${KC_USER} -s enabled=true && \
-             /opt/bitnami/keycloak/bin/kcadm.sh set-password -r ${KC_REALM} --username ${KC_USER} --new-password ${KC_PASSWORD} && \
-             /opt/bitnami/keycloak/bin/kcadm.sh create clients -r ${KC_REALM} -s clientId=${KC_CLIENT_ID} -s enabled=true -s 'redirectUris=["/*"]' -s 'webOrigins=["/*"]' -s secret=${KC_CLIENT_SECRET} -s directAccessGrantsEnabled=true -o"
+            "/opt/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin --password admin && \
+             /opt/keycloak/bin/kcadm.sh create realms -s realm=${KC_REALM} -s enabled=true && \
+             /opt/keycloak/bin/kcadm.sh update realms/${KC_REALM} -s accessTokenLifespan=3600 && \
+             /opt/keycloak/bin/kcadm.sh create users -r ${KC_REALM} -s username=${KC_USER} -s enabled=true && \
+             /opt/keycloak/bin/kcadm.sh set-password -r ${KC_REALM} --username ${KC_USER} --new-password ${KC_PASSWORD} && \
+             /opt/keycloak/bin/kcadm.sh create clients -r ${KC_REALM} -s clientId=${KC_CLIENT_ID} -s enabled=true -s 'redirectUris=["/*"]' -s 'webOrigins=["/*"]' -s secret=${KC_CLIENT_SECRET} -s directAccessGrantsEnabled=true -o"
 
       - name: Port-forward services (Vertica 5433 and Keycloak 8080)
         run: |
@@ -291,7 +340,7 @@ jobs:
             echo "No Vertica pod found for port-forward"; exit 1;
           fi
           # Port-forward Keycloak service to localhost:8080
-          nohup kubectl port-forward -n vertica svc/keycloak 8080:80 >/tmp/pf-keycloak.log 2>&1 &
+          nohup kubectl port-forward -n vertica svc/keycloak 8080:8080 >/tmp/pf-keycloak.log 2>&1 &
           sleep 5
           echo "PF logs:" && tail -n +1 /tmp/pf-*.log || true
 
@@ -303,8 +352,8 @@ jobs:
             kubectl get pods -n vertica -o wide;
             exit 1;
           fi
-          DISCOVERY_URL="http://keycloak.vertica.svc.cluster.local/realms/${KC_REALM}/.well-known/openid-configuration"
-          INTROSPECT_URL="http://keycloak.vertica.svc.cluster.local/realms/${KC_REALM}/protocol/openid-connect/token/introspect"
+          DISCOVERY_URL="http://keycloak.vertica.svc.cluster.local:8080/realms/${KC_REALM}/.well-known/openid-configuration"
+          INTROSPECT_URL="http://keycloak.vertica.svc.cluster.local:8080/realms/${KC_REALM}/protocol/openid-connect/token/introspect"
           kubectl exec -n vertica "$V_POD" -- bash -lc \
             "/opt/vertica/bin/vsql -c \"CREATE AUTHENTICATION v_oauth METHOD 'oauth' HOST '0.0.0.0/0';\" && \
              /opt/vertica/bin/vsql -c \"ALTER AUTHENTICATION v_oauth SET client_id='${KC_CLIENT_ID}';\" && \
