@@ -319,13 +319,29 @@ jobs:
       - name: Configure Keycloak realm, client, and user
         run: |
           KC_POD=$(kubectl get pods -n vertica -l app=keycloak -o jsonpath='{.items[0].metadata.name}')
-          kubectl exec -n vertica "$KC_POD" -- bash -lc \
-            "/opt/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin --password admin && \
-             /opt/keycloak/bin/kcadm.sh create realms -s realm=${KC_REALM} -s enabled=true && \
-             /opt/keycloak/bin/kcadm.sh update realms/${KC_REALM} -s accessTokenLifespan=3600 && \
-             /opt/keycloak/bin/kcadm.sh create users -r ${KC_REALM} -s username=${KC_USER} -s enabled=true && \
-             /opt/keycloak/bin/kcadm.sh set-password -r ${KC_REALM} --username ${KC_USER} --new-password ${KC_PASSWORD} && \
-             /opt/keycloak/bin/kcadm.sh create clients -r ${KC_REALM} -s clientId=${KC_CLIENT_ID} -s enabled=true -s 'redirectUris=["/*"]' -s 'webOrigins=["/*"]' -s secret=${KC_CLIENT_SECRET} -s directAccessGrantsEnabled=true -o"
+          kubectl exec -n vertica "$KC_POD" -- bash -lc '
+            set -euo pipefail
+            KC=/opt/keycloak/bin/kcadm.sh
+            # Wait for admin API to be ready
+            for i in {1..60}; do
+              if $KC config credentials --server http://localhost:8080 --realm master --user admin --password admin >/dev/null 2>&1; then
+                break
+              fi
+              echo "...waiting for Keycloak admin API"; sleep 3;
+            done
+            # Idempotent realm, user, client setup
+            $KC create realms -s realm='${KC_REALM}' -s enabled=true || true
+            $KC update realms/${KC_REALM} -s accessTokenLifespan=3600 || true
+            $KC create users -r ${KC_REALM} -s username='${KC_USER}' -s enabled=true || true
+            $KC set-password -r ${KC_REALM} --username ${KC_USER} --new-password ${KC_PASSWORD} --temporary=false || true
+            # Create confidential client for password grant
+            $KC create clients -r ${KC_REALM} \
+              -s clientId='${KC_CLIENT_ID}' -s enabled=true \
+              -s protocol=openid-connect -s publicClient=false \
+              -s secret='${KC_CLIENT_SECRET}' \
+              -s directAccessGrantsEnabled=true || true
+            echo "Keycloak realm and client configured"
+          '
 
       - name: Port-forward services (Vertica 5433 and Keycloak 8080)
         run: |
