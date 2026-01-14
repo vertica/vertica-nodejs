@@ -188,14 +188,13 @@ jobs:
           spec:
             image: opentext/vertica-k8s:latest
             dbName: vdb
-            kSafety: 0
             communal:
               path: s3://communal
               credentialSecret: communal-creds
               endpoint: http://minio.vertica.svc.cluster.local:9000
             subclusters:
               - name: defaultsubcluster
-                size: 1
+                size: 3
           EOF
           # Wait for Vertica server pod to be Ready
           kubectl wait --for=condition=Ready pod -n vertica -l app.kubernetes.io/component=server --timeout=900s
