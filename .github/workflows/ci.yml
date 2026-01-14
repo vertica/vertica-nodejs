@@ -211,10 +211,29 @@ jobs:
               - name: defaultsubcluster
                 size: 3
           EOF
-          # Wait for Vertica StatefulSet rollout and pods readiness
+          # Wait for StatefulSet to be created by the operator
+          echo "Waiting for Vertica StatefulSet to be created..."
+          for i in {1..60}; do
+            if kubectl get statefulset -n vertica verticadb-sample-defaultsubcluster >/dev/null 2>&1; then
+              break
+            fi
+            echo "...waiting for StatefulSet"; sleep 5;
+          done
           if kubectl get statefulset -n vertica verticadb-sample-defaultsubcluster >/dev/null 2>&1; then
             kubectl rollout status statefulset/verticadb-sample-defaultsubcluster -n vertica --timeout=1200s || true
+          else
+            echo "StatefulSet was not created. Dumping diagnostics..."
+            kubectl get verticadb -n vertica verticadb-sample -o yaml || true
+            kubectl logs -n vertica deployment/verticadb-operator-controller-manager || true
           fi
+
+          # Wait for pods to be created before checking readiness
+          echo "Waiting for Vertica pods to be created..."
+          for i in {1..60}; do
+            CNT=$(kubectl get pods -n vertica -l vertica.com/subcluster-name=defaultsubcluster -o jsonpath='{.items[*].metadata.name}' | wc -w)
+            if [ "$CNT" -ge 1 ]; then break; fi
+            echo "...waiting for pods"; sleep 5;
+          done
           echo "Waiting for Vertica pods to become Ready (2/2)..."
           if ! kubectl wait --for=condition=Ready pod -l vertica.com/subcluster-name=defaultsubcluster -n vertica --timeout=1200s; then
             echo "Vertica pods did not become Ready. Dumping diagnostics..."
