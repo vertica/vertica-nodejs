@@ -376,18 +376,28 @@ jobs:
           fi
           DISCOVERY_URL="http://keycloak.vertica.svc.cluster.local:8080/realms/${KC_REALM}/.well-known/openid-configuration"
           INTROSPECT_URL="http://keycloak.vertica.svc.cluster.local:8080/realms/${KC_REALM}/protocol/openid-connect/token/introspect"
-          kubectl exec -n vertica "$V_POD" -- bash -lc \
-            "/opt/vertica/bin/vsql -c \"CREATE AUTHENTICATION v_oauth METHOD 'oauth' HOST '0.0.0.0/0';\" && \
-             /opt/vertica/bin/vsql -c \"ALTER AUTHENTICATION v_oauth SET client_id='${KC_CLIENT_ID}';\" && \
-             /opt/vertica/bin/vsql -c \"ALTER AUTHENTICATION v_oauth SET client_secret='${KC_CLIENT_SECRET}';\" && \
-             /opt/vertica/bin/vsql -c \"ALTER AUTHENTICATION v_oauth SET discovery_url='${DISCOVERY_URL}';\" && \
-             /opt/vertica/bin/vsql -c \"ALTER AUTHENTICATION v_oauth SET introspect_url='${INTROSPECT_URL}';\" && \
-             /opt/vertica/bin/vsql -c \"CREATE USER ${KC_USER};\" && \
-             /opt/vertica/bin/vsql -c \"GRANT AUTHENTICATION v_oauth TO ${KC_USER};\" && \
-             /opt/vertica/bin/vsql -c \"GRANT ALL ON SCHEMA PUBLIC TO ${KC_USER};\" && \
-             /opt/vertica/bin/vsql -c \"CREATE AUTHENTICATION v_dbadmin_hash METHOD 'hash' HOST '0.0.0.0/0';\" && \
-             /opt/vertica/bin/vsql -c \"ALTER AUTHENTICATION v_dbadmin_hash PRIORITY 10000;\" && \
-             /opt/vertica/bin/vsql -c \"GRANT AUTHENTICATION v_dbadmin_hash TO dbadmin;\""
+          kubectl exec -n vertica -c server "$V_POD" -- bash -lc '
+            set -euo pipefail
+            VSQL="/opt/vertica/bin/vsql -h 127.0.0.1 -p 5433 -U dbadmin -d vdb"
+            # Wait for Vertica to accept connections
+            for i in {1..120}; do
+              if $VSQL -c "select 1" >/dev/null 2>&1; then
+                echo "Vertica is accepting connections"; break;
+              fi
+              echo "...waiting for Vertica to accept connections"; sleep 5;
+            done
+            $VSQL -c "CREATE AUTHENTICATION v_oauth METHOD 'oauth' HOST '0.0.0.0/0';" || true
+            $VSQL -c "ALTER AUTHENTICATION v_oauth SET client_id='${KC_CLIENT_ID}';"
+            $VSQL -c "ALTER AUTHENTICATION v_oauth SET client_secret='${KC_CLIENT_SECRET}';"
+            $VSQL -c "ALTER AUTHENTICATION v_oauth SET discovery_url='${DISCOVERY_URL}';"
+            $VSQL -c "ALTER AUTHENTICATION v_oauth SET introspect_url='${INTROSPECT_URL}';"
+            $VSQL -c "CREATE USER ${KC_USER};" || true
+            $VSQL -c "GRANT AUTHENTICATION v_oauth TO ${KC_USER};"
+            $VSQL -c "GRANT ALL ON SCHEMA PUBLIC TO ${KC_USER};"
+            $VSQL -c "CREATE AUTHENTICATION v_dbadmin_hash METHOD 'hash' HOST '0.0.0.0/0';" || true
+            $VSQL -c "ALTER AUTHENTICATION v_dbadmin_hash PRIORITY 10000;"
+            $VSQL -c "GRANT AUTHENTICATION v_dbadmin_hash TO dbadmin;"
+          '
 
       - name: Retrieve OAuth access token
         run: |
