@@ -114,7 +114,7 @@ describe('vertica-nodejs handling auditing connection properties', function() {
       assert.equal(res.rows[0].client_pid, process.pid)
       assert.equal(res.rows[0].client_type, "Node.js Driver")
       assert.equal(res.rows[0].client_version, vertica.version)
-      assert.equal(res.rows[0].client_os, os.platform())
+      assert.equal(res.rows[0].client_os, `${os.type()} ${os.release()} ${os.arch()}`)
       assert.equal(res.rows[0].client_os_user_name, os.userInfo().username)
       assert.equal(res.rows[0].client_os_hostname, os.hostname())
       client.end()
