@@ -319,7 +319,13 @@ jobs:
       - name: Configure Keycloak realm, client, and user
         run: |
           KC_POD=$(kubectl get pods -n vertica -l app=keycloak -o jsonpath='{.items[0].metadata.name}')
-          kubectl exec -n vertica "$KC_POD" -- bash -lc '
+          kubectl exec -n vertica "$KC_POD" -- env \
+            KC_REALM="${KC_REALM}" \
+            KC_USER="${KC_USER}" \
+            KC_PASSWORD="${KC_PASSWORD}" \
+            KC_CLIENT_ID="${KC_CLIENT_ID}" \
+            KC_CLIENT_SECRET="${KC_CLIENT_SECRET}" \
+            bash -lc '
             set -euo pipefail
             KC=/opt/keycloak/bin/kcadm.sh
             # Wait for admin API to be ready
@@ -330,15 +336,15 @@ jobs:
               echo "...waiting for Keycloak admin API"; sleep 3;
             done
             # Idempotent realm, user, client setup
-            $KC create realms -s realm='${KC_REALM}' -s enabled=true || true
+            $KC create realms -s realm="${KC_REALM}" -s enabled=true || true
             $KC update realms/${KC_REALM} -s accessTokenLifespan=3600 || true
-            $KC create users -r ${KC_REALM} -s username='${KC_USER}' -s enabled=true || true
-            $KC set-password -r ${KC_REALM} --username ${KC_USER} --new-password ${KC_PASSWORD} --temporary=false || true
+            $KC create users -r ${KC_REALM} -s username="${KC_USER}" -s enabled=true || true
+            $KC set-password -r ${KC_REALM} --username "${KC_USER}" --new-password "${KC_PASSWORD}" --temporary=false || true
             # Create confidential client for password grant
             $KC create clients -r ${KC_REALM} \
-              -s clientId='${KC_CLIENT_ID}' -s enabled=true \
+              -s clientId="${KC_CLIENT_ID}" -s enabled=true \
               -s protocol=openid-connect -s publicClient=false \
-              -s secret='${KC_CLIENT_SECRET}' \
+              -s secret="${KC_CLIENT_SECRET}" \
               -s directAccessGrantsEnabled=true || true
             echo "Keycloak realm and client configured"
           '
