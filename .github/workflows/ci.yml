@@ -196,9 +196,24 @@ jobs:
               - name: defaultsubcluster
                 size: 3
           EOF
-          # Wait for Vertica server pod to be Ready
-          kubectl wait --for=condition=Ready pod -n vertica -l app.kubernetes.io/component=server --timeout=900s
-          kubectl get pods -n vertica -o wide
+          # Wait for Vertica StatefulSet or service endpoints to become ready
+          if kubectl get statefulset -n vertica verticadb-sample-defaultsubcluster >/dev/null 2>&1; then
+            kubectl rollout status statefulset/verticadb-sample-defaultsubcluster -n vertica --timeout=900s || true
+          fi
+          echo "Waiting for Vertica service endpoints..."
+          for i in {1..180}; do
+            EP=$(kubectl get endpoints verticadb-sample-defaultsubcluster -n vertica -o jsonpath='{.subsets[0].addresses[0].ip}' 2>/dev/null || true)
+            if [ -n "$EP" ]; then echo "Vertica endpoints ready: $EP"; break; fi
+            echo "...waiting"; sleep 5;
+          done
+          if [ -z "$EP" ]; then
+            echo "Vertica endpoints did not become ready";
+            kubectl describe svc verticadb-sample-defaultsubcluster -n vertica || true;
+            kubectl get endpoints verticadb-sample-defaultsubcluster -n vertica -o yaml || true;
+            kubectl get pods -n vertica -o wide || true;
+            exit 1;
+          fi
+          kubectl get pods -n vertica -o wide || true
 
       - name: Install Keycloak
         run: |
@@ -231,7 +246,12 @@ jobs:
 
       - name: Configure Vertica OAuth and create user
         run: |
-          V_POD=$(kubectl get pods -n vertica -l app.kubernetes.io/component=server -o jsonpath='{.items[0].metadata.name}')
+          V_POD=$(kubectl get pods -n vertica -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep '^verticadb-sample-defaultsubcluster-' | head -n1)
+          if [ -z "$V_POD" ]; then
+            echo "Failed to locate Vertica server pod";
+            kubectl get pods -n vertica -o wide;
+            exit 1;
+          fi
           DISCOVERY_URL="http://keycloak.vertica.svc.cluster.local/realms/${KC_REALM}/.well-known/openid-configuration"
           INTROSPECT_URL="http://keycloak.vertica.svc.cluster.local/realms/${KC_REALM}/protocol/openid-connect/token/introspect"
           kubectl exec -n vertica "$V_POD" -- bash -lc \
