@@ -37,7 +37,22 @@ jobs:
 
       - name: Install dependencies
         run: |
-          yarn
+          set -e
+          echo "Configuring Yarn registry fallback to npmjs.org"
+          yarn config set registry https://registry.npmjs.org
+          ATTEMPTS=3
+          for i in $(seq 1 $ATTEMPTS); do
+            echo "yarn install attempt $i/$ATTEMPTS"
+            if yarn install --frozen-lockfile --network-timeout 300000; then
+              break
+            fi
+            if [ "$i" -eq "$ATTEMPTS" ]; then
+              echo "yarn install failed after $ATTEMPTS attempts";
+              exit 1
+            fi
+            echo "yarn install failed; retrying after short delay..."
+            sleep 5
+          done
           yarn lerna bootstrap
 
       - name: Create KinD cluster
