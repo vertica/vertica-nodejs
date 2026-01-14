@@ -235,11 +235,11 @@ jobs:
             echo "...waiting for pods"; sleep 5;
           done
           echo "Waiting for Vertica pods to become Ready (2/2)..."
-          if ! kubectl wait --for=condition=Ready pod -l vertica.com/subcluster-name=defaultsubcluster -n vertica --timeout=1200s; then
+          if ! kubectl wait --for=condition=Ready pod -l app.kubernetes.io/instance=verticadb-sample -n vertica --timeout=1200s; then
             echo "Vertica pods did not become Ready. Dumping diagnostics..."
             kubectl get pods -n vertica -o wide || true
-            kubectl describe pods -n vertica -l vertica.com/subcluster-name=defaultsubcluster || true
-            for P in $(kubectl get pods -n vertica -l vertica.com/subcluster-name=defaultsubcluster -o jsonpath='{.items[*].metadata.name}'); do
+            kubectl describe pods -n vertica -l app.kubernetes.io/instance=verticadb-sample || true
+            for P in $(kubectl get pods -n vertica -l app.kubernetes.io/instance=verticadb-sample -o jsonpath='{.items[*].metadata.name}'); do
               echo "--- logs: $P (server)"; kubectl logs -n vertica "$P" -c server || true;
               echo "--- logs: $P (startup)"; kubectl logs -n vertica "$P" -c startup || true;
             done
@@ -251,11 +251,10 @@ jobs:
             echo "...waiting"; sleep 5;
           done
           if [ -z "$EP" ]; then
-            echo "Vertica endpoints did not become ready";
+            echo "Vertica endpoints did not become ready; will port-forward directly to a pod";
             kubectl describe svc verticadb-sample-defaultsubcluster -n vertica || true;
             kubectl get endpoints verticadb-sample-defaultsubcluster -n vertica -o yaml || true;
             kubectl get pods -n vertica -o wide || true;
-            exit 1;
           fi
           kubectl get pods -n vertica -o wide || true
 
@@ -281,8 +280,16 @@ jobs:
 
       - name: Port-forward services (Vertica 5433 and Keycloak 8080)
         run: |
-          # Port-forward Vertica service to localhost:5433
-          nohup kubectl port-forward -n vertica svc/verticadb-sample-defaultsubcluster 5433:5433 >/tmp/pf-vertica.log 2>&1 &
+          # Port-forward Vertica pod (fallback if service endpoints empty)
+          V_POD=$(kubectl get pods -n vertica -l app.kubernetes.io/instance=verticadb-sample -o jsonpath='{.items[0].metadata.name}')
+          if [ -z "$V_POD" ]; then
+            V_POD=$(kubectl get pods -n vertica -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep '^verticadb-sample-defaultsubcluster-' | head -n1)
+          fi
+          if [ -n "$V_POD" ]; then
+            nohup kubectl port-forward -n vertica pod/$V_POD 5433:5433 >/tmp/pf-vertica.log 2>&1 &
+          else
+            echo "No Vertica pod found for port-forward"; exit 1;
+          fi
           # Port-forward Keycloak service to localhost:8080
           nohup kubectl port-forward -n vertica svc/keycloak 8080:80 >/tmp/pf-keycloak.log 2>&1 &
           sleep 5
