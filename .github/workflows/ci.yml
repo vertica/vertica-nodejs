@@ -211,9 +211,19 @@ jobs:
               - name: defaultsubcluster
                 size: 3
           EOF
-          # Wait for Vertica StatefulSet or service endpoints to become ready
+          # Wait for Vertica StatefulSet rollout and pods readiness
           if kubectl get statefulset -n vertica verticadb-sample-defaultsubcluster >/dev/null 2>&1; then
-            kubectl rollout status statefulset/verticadb-sample-defaultsubcluster -n vertica --timeout=900s || true
+            kubectl rollout status statefulset/verticadb-sample-defaultsubcluster -n vertica --timeout=1200s || true
+          fi
+          echo "Waiting for Vertica pods to become Ready (2/2)..."
+          if ! kubectl wait --for=condition=Ready pod -l vertica.com/subcluster-name=defaultsubcluster -n vertica --timeout=1200s; then
+            echo "Vertica pods did not become Ready. Dumping diagnostics..."
+            kubectl get pods -n vertica -o wide || true
+            kubectl describe pods -n vertica -l vertica.com/subcluster-name=defaultsubcluster || true
+            for P in $(kubectl get pods -n vertica -l vertica.com/subcluster-name=defaultsubcluster -o jsonpath='{.items[*].metadata.name}'); do
+              echo "--- logs: $P (server)"; kubectl logs -n vertica "$P" -c server || true;
+              echo "--- logs: $P (startup)"; kubectl logs -n vertica "$P" -c startup || true;
+            done
           fi
           echo "Waiting for Vertica service endpoints..."
           for i in {1..180}; do
