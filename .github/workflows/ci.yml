@@ -194,7 +194,6 @@ jobs:
           kubectl get pods -n vertica
 
       - name: Create Vertica license secret
-        if: ${{ secrets.VERTICA_LICENSE != '' || secrets.VERTICA_LICENSE_B64 != '' }}
         run: |
           set -euo pipefail
           kubectl delete secret -n vertica ${V_LICENSE_SECRET} --ignore-not-found
