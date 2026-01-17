@@ -12,6 +12,7 @@ env:
   V_PORT: 5433
   V_USER: dbadmin
   V_DATABASE: vdb
+  V_LICENSE_SECRET: vertica-license
   KC_REALM: test
   KC_USER: oauth_user
   KC_PASSWORD: password
@@ -144,7 +145,7 @@ jobs:
                 targetPort: 9000
           EOF
 
-          # Wait for MinIO to be ready state
+          # Wait for MinIO to be ready
           if ! kubectl wait --for=condition=Ready pod -l app=minio -n vertica --timeout=900s; then
             echo 'MinIO failed to become Ready. Dumping diagnostics...'
             kubectl get pods -n vertica -l app=minio -o wide || true
@@ -192,6 +193,24 @@ jobs:
           kubectl get svc -n vertica verticadb-operator-webhook-service || true
           kubectl get pods -n vertica
 
+      - name: Create Vertica license secret
+        if: ${{ secrets.VERTICA_LICENSE != '' || secrets.VERTICA_LICENSE_B64 != '' }}
+        run: |
+          set -euo pipefail
+          kubectl delete secret -n vertica ${V_LICENSE_SECRET} --ignore-not-found
+          LIC_FILE=/tmp/vertica.license
+          if [ -n "${{ secrets.VERTICA_LICENSE }}" ]; then
+            # Plain-text license content
+            printf "%s" "${{ secrets.VERTICA_LICENSE }}" > "$LIC_FILE"
+          elif [ -n "${{ secrets.VERTICA_LICENSE_B64 }}" ]; then
+            # Base64-encoded license content
+            printf "%s" "${{ secrets.VERTICA_LICENSE_B64 }}" | base64 -d > "$LIC_FILE"
+          else
+            echo "No Vertica license secret provided"; exit 1;
+          fi
+          test -s "$LIC_FILE" || (echo "License file is empty"; exit 1)
+          kubectl create secret generic ${V_LICENSE_SECRET} -n vertica --from-file=license="$LIC_FILE"
+
       - name: Deploy VerticaDB
         run: |
           cat <<'EOF' | kubectl apply -f -
@@ -203,6 +222,7 @@ jobs:
           spec:
             image: opentext/vertica-k8s:latest
             dbName: vdb
+            licenseSecret: vertica-license
             communal:
               path: s3://communal
               credentialSecret: communal-creds
