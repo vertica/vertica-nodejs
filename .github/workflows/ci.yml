@@ -144,7 +144,7 @@ jobs:
                 targetPort: 9000
           EOF
 
-          # Wait for MinIO to be ready
+          # Wait for MinIO to be ready state
           if ! kubectl wait --for=condition=Ready pod -l app=minio -n vertica --timeout=900s; then
             echo 'MinIO failed to become Ready. Dumping diagnostics...'
             kubectl get pods -n vertica -l app=minio -o wide || true
