@@ -460,6 +460,7 @@ jobs:
           yarn test
 
       - name: test-v-pool
+        if: steps.license.outputs.has_license == 'true'
         run: |
           cd packages/v-pool
           yarn test
