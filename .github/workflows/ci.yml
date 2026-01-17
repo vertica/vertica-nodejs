@@ -73,8 +73,7 @@ jobs:
       - name: Setup Helm
         if: steps.license.outputs.has_license == 'true'
         uses: azure/setup-helm@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+
 
       - name: Add Helm repos
         if: steps.license.outputs.has_license == 'true'
