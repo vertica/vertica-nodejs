@@ -144,9 +144,17 @@ class ConnectionParameters {
     }
 
     try {
-      this.client_os = os.platform()
+      this.client_os = [os.type(), os.release(), os.machine()].join(' ')
     } catch (e) {
-      this.client_os = ""
+      if (e instanceof TypeError) {
+        try {
+          this.client_os = [os.type(), os.release(), os.arch()].join(' ')
+        } catch (ex) {
+          this.client_os = ""
+        }
+      } else {
+        this.client_os = ""
+      }
     }
 
     try {
