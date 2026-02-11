@@ -15,6 +15,7 @@ env:
   V_PORT: 15433
   V_USER: dbadmin
   V_DATABASE: vdb
+  V_TLS_MODE: disable
   NODE_OPTIONS: --unhandled-rejections=warn
   TEST_TIMEOUT: 30000
   KC_REALM: test
@@ -502,7 +503,9 @@ jobs:
           echo "=== test-unit ==="
           make test-unit || { echo "FAILED: test-unit (exit $?)"; FAIL=1; }
           echo "=== test-integration ==="
+          unset V_TLS_MODE  # let tls-tests.js use the driver default ('prefer')
           make test-integration || { echo "FAILED: test-integration (exit $?)"; FAIL=1; }
+          export V_TLS_MODE=disable  # restore for any subsequent commands
 
           kill $PF_V $PF_K 2>/dev/null || true
           if [ "$FAIL" -ne 0 ]; then
