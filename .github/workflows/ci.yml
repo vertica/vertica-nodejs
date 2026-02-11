@@ -11,10 +11,12 @@ on:
   workflow_dispatch:
 
 env:
-  V_HOST: localhost
+  V_HOST: 127.0.0.1
   V_PORT: 5433
   V_USER: dbadmin
+  V_PASSWORD: ''
   V_DATABASE: vdb
+  V_TLS_MODE: disable
   KC_REALM: test
   KC_USER: oauth_user
   KC_PASSWORD: password
@@ -438,8 +440,12 @@ jobs:
           PF_PID=$!
           for i in {1..12}; do nc -zv 127.0.0.1 5433 2>/dev/null && break; sleep 5; done
           nc -zv 127.0.0.1 5433 || { echo "ERROR: Vertica port-forward not ready"; exit 1; }
+          # Verify DB connectivity through port-forward before running tests
+          for i in {1..5}; do
+            node -e "const c = new (require('vertica-nodejs').Client)(); c.connect().then(() => c.query('SELECT 1')).then(() => { console.log('DB OK'); c.end(); }).catch(e => { console.error(e.message); process.exit(1); })" && break || sleep 3
+          done
           cd packages/v-pool
-          yarn test
+          npx mocha --timeout 30000
           kill $PF_PID 2>/dev/null || true
 
       - name: test-v-protocol
@@ -465,9 +471,13 @@ jobs:
           done
           nc -zv 127.0.0.1 5433 || { echo "ERROR: Vertica port-forward not ready"; exit 1; }
           nc -zv 127.0.0.1 8080 || { echo "ERROR: Keycloak port-forward not ready"; exit 1; }
+          # Verify DB connectivity through port-forward before running tests
+          for i in {1..5}; do
+            node -e "const c = new (require('vertica-nodejs').Client)(); c.connect().then(() => c.query('SELECT 1')).then(() => { console.log('DB OK'); c.end(); }).catch(e => { console.error(e.message); process.exit(1); })" && break || sleep 3
+          done
           export VTEST_OAUTH_ACCESS_TOKEN=$(cat ${GITHUB_WORKSPACE}/access_token.txt 2>/dev/null || echo "")
           cd packages/vertica-nodejs
-          yarn test
+          make -k test-all
           kill $PF_V $PF_K 2>/dev/null || true
 
       - name: test-vertica-nodejs (unit only, no license)
