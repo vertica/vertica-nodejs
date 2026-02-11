@@ -333,21 +333,29 @@ jobs:
         run: |
           NS=my-verticadb-operator
           POD=verticadb-sample-defaultsubcluster-0
-          kubectl -n ${NS} exec ${POD} -c server -- bash -c "
-            /opt/vertica/bin/vsql -U dbadmin -c \"
-              CREATE AUTHENTICATION v_oauth METHOD 'oauth' HOST '0.0.0.0/0';
-              ALTER AUTHENTICATION v_oauth SET client_id = '${KC_CLIENT_ID}';
-              ALTER AUTHENTICATION v_oauth SET client_secret = '${KC_CLIENT_SECRET}';
-              ALTER AUTHENTICATION v_oauth SET discovery_url = 'http://keycloak.keycloak.svc.cluster.local:8080/realms/${KC_REALM}/.well-known/openid-configuration';
-              ALTER AUTHENTICATION v_oauth SET introspect_url = 'http://keycloak.keycloak.svc.cluster.local:8080/realms/${KC_REALM}/protocol/openid-connect/token/introspect';
-              CREATE USER ${KC_USER};
-              GRANT AUTHENTICATION v_oauth TO ${KC_USER};
-              GRANT ALL ON SCHEMA PUBLIC TO ${KC_USER};
-              CREATE AUTHENTICATION v_dbadmin_hash METHOD 'hash' HOST '0.0.0.0/0';
-              ALTER AUTHENTICATION v_dbadmin_hash PRIORITY 10000;
-              GRANT AUTHENTICATION v_dbadmin_hash TO dbadmin;
-            \"
-          "
+          VSQL="kubectl -n ${NS} exec ${POD} -c server -- /opt/vertica/bin/vsql -U dbadmin"
+          # Wait for vsql connectivity
+          echo "Waiting for Vertica to accept vsql connections..."
+          for i in {1..60}; do
+            if $VSQL -c "SELECT 1" >/dev/null 2>&1; then
+              echo "Vertica is accepting connections"; break;
+            fi
+            echo "...waiting ($i)"; sleep 5;
+          done
+          DISC_URL="http://keycloak.keycloak.svc.cluster.local:8080/realms/${KC_REALM}/.well-known/openid-configuration"
+          INTR_URL="http://keycloak.keycloak.svc.cluster.local:8080/realms/${KC_REALM}/protocol/openid-connect/token/introspect"
+          $VSQL -c "CREATE AUTHENTICATION v_oauth METHOD 'oauth' HOST '0.0.0.0/0';" || true
+          $VSQL -c "ALTER AUTHENTICATION v_oauth SET client_id = '${KC_CLIENT_ID}';"
+          $VSQL -c "ALTER AUTHENTICATION v_oauth SET client_secret = '${KC_CLIENT_SECRET}';"
+          $VSQL -c "ALTER AUTHENTICATION v_oauth SET discovery_url = '${DISC_URL}';"
+          $VSQL -c "ALTER AUTHENTICATION v_oauth SET introspect_url = '${INTR_URL}';"
+          $VSQL -c "CREATE USER ${KC_USER};" || true
+          $VSQL -c "GRANT AUTHENTICATION v_oauth TO ${KC_USER};"
+          $VSQL -c "GRANT ALL ON SCHEMA PUBLIC TO ${KC_USER};"
+          $VSQL -c "CREATE AUTHENTICATION v_dbadmin_hash METHOD 'hash' HOST '0.0.0.0/0';" || true
+          $VSQL -c "ALTER AUTHENTICATION v_dbadmin_hash PRIORITY 10000;"
+          $VSQL -c "GRANT AUTHENTICATION v_dbadmin_hash TO dbadmin;"
+          echo "Vertica authentication configured successfully"
 
       # ---------------------------
       # Port forwarding for local tests
@@ -357,12 +365,20 @@ jobs:
         run: |
           NS=my-verticadb-operator
           # Port-forward Vertica (5433)
-          kubectl -n ${NS} port-forward svc/verticadb-sample-defaultsubcluster 5433:5433 &
+          nohup kubectl -n ${NS} port-forward svc/verticadb-sample-defaultsubcluster 5433:5433 > /tmp/pf-vertica.log 2>&1 &
+          echo $! > /tmp/pf-vertica.pid
           # Port-forward Keycloak (8080)
-          kubectl -n keycloak port-forward svc/keycloak 8080:8080 &
+          nohup kubectl -n keycloak port-forward svc/keycloak 8080:8080 > /tmp/pf-keycloak.log 2>&1 &
+          echo $! > /tmp/pf-keycloak.pid
           # Wait for port-forwards to be ready
           sleep 5
           # Verify connectivity
+          for i in {1..12}; do
+            if nc -zv localhost 5433 2>/dev/null && nc -zv localhost 8080 2>/dev/null; then
+              echo "Both port-forwards are ready"; break;
+            fi
+            echo "Waiting for port-forwards..."; sleep 5;
+          done
           nc -zv localhost 5433 || echo "Warning: Vertica port-forward not ready"
           nc -zv localhost 8080 || echo "Warning: Keycloak port-forward not ready"
 
