@@ -14,9 +14,7 @@ env:
   V_HOST: 127.0.0.1
   V_PORT: 15433
   V_USER: dbadmin
-  V_PASSWORD: ''
   V_DATABASE: vdb
-  V_TLS_MODE: disable
   NODE_OPTIONS: --unhandled-rejections=warn
   TEST_TIMEOUT: 30000
   KC_REALM: test
