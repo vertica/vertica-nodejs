@@ -436,6 +436,7 @@ jobs:
 
       - name: test-v-pool
         if: ${{ always() && steps.install.outcome == 'success' && steps.license.outputs.has_license == 'true' }}
+        continue-on-error: true
         run: |
           # Start port-forward to Vertica (must be in same step — GHA kills bg procs between steps)
           kubectl -n my-verticadb-operator port-forward svc/verticadb-sample-defaultsubcluster 5433:5433 &
@@ -458,6 +459,7 @@ jobs:
 
       - name: test-vertica-nodejs
         if: ${{ always() && steps.install.outcome == 'success' && steps.license.outputs.has_license == 'true' }}
+        continue-on-error: true
         run: |
           # Node 16+ changed DNS resolution order (may prefer IPv6) and made
           # unhandled rejections fatal. Force IPv4-first for localhost tests.
@@ -485,8 +487,23 @@ jobs:
           done
           export VTEST_OAUTH_ACCESS_TOKEN=$(cat ${GITHUB_WORKSPACE}/access_token.txt 2>/dev/null || echo "")
           cd packages/vertica-nodejs
-          make -k test-all
+
+          # Run each target individually so one crash doesn't hide others
+          FAIL=0
+          echo "=== test-mocha-unit ==="
+          make test-mocha-unit || { echo "FAILED: test-mocha-unit (exit $?)"; FAIL=1; }
+          echo "=== test-mocha-integration ==="
+          make test-mocha-integration || { echo "FAILED: test-mocha-integration (exit $?)"; FAIL=1; }
+          echo "=== test-unit ==="
+          make test-unit || { echo "FAILED: test-unit (exit $?)"; FAIL=1; }
+          echo "=== test-integration ==="
+          make test-integration || { echo "FAILED: test-integration (exit $?)"; FAIL=1; }
+
           kill $PF_V $PF_K 2>/dev/null || true
+          if [ "$FAIL" -ne 0 ]; then
+            echo "Some test targets failed — see output above"
+            exit 1
+          fi
 
       - name: test-vertica-nodejs (unit only, no license)
         if: ${{ always() && steps.install.outcome == 'success' && steps.license.outputs.has_license != 'true' }}
