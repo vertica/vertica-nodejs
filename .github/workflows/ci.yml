@@ -25,6 +25,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         node:
           - '12'
@@ -46,27 +47,38 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: yarn
 
-      - name: build
-        run: yarn
+      - name: Install dependencies
+        id: install
+        run: |
+          set -e
+          yarn
+          yarn lerna bootstrap
 
-      - name: bootstrap
-        run: yarn lerna bootstrap
+      - name: Check Vertica license secrets
+        id: license
+        run: |
+          HAS=false
+          if [ -n "${{ secrets.VERTICA_LICENSE }}" ] || [ -n "${{ secrets.VERTICA_LICENSE_B64 }}" ]; then HAS=true; fi
+          echo "has_license=$HAS" >> $GITHUB_OUTPUT
 
       # ---------------------------
       # Kubernetes (KinD) + Helm setup
       # ---------------------------
       - name: Set up Kubernetes (KinD)
+        if: steps.license.outputs.has_license == 'true'
         uses: helm/kind-action@v1.8.0
         with:
           cluster_name: vertica-ci
           node_image: kindest/node:v1.29.0
 
       - name: Set up Helm
+        if: steps.license.outputs.has_license == 'true'
         uses: azure/setup-helm@v3
         with:
           version: "3.11.3"
 
       - name: Add Helm repositories
+        if: steps.license.outputs.has_license == 'true'
         run: |
           helm repo add vertica-charts https://vertica.github.io/charts
           helm repo add bitnami https://charts.bitnami.com/bitnami || true
@@ -76,6 +88,7 @@ jobs:
       # MinIO Setup
       # ---------------------------
       - name: Install MinIO
+        if: steps.license.outputs.has_license == 'true'
         run: |
           kubectl create ns minio
           cat <<'EOF' > minio.yaml
@@ -130,6 +143,7 @@ jobs:
           kubectl get svc -n minio || true
 
       - name: Ensure MinIO bucket exists
+        if: steps.license.outputs.has_license == 'true'
         run: |
           kubectl run mc-client --rm -i --restart=Never \
             --image=minio/mc:latest \
@@ -141,6 +155,7 @@ jobs:
             "
 
       - name: Create MinIO Secret
+        if: steps.license.outputs.has_license == 'true'
         run: |
           kubectl create ns my-verticadb-operator
           kubectl delete secret communal-creds -n my-verticadb-operator --ignore-not-found
@@ -154,6 +169,7 @@ jobs:
       # Vertica Operator + DB Deployment
       # ---------------------------
       - name: Install Vertica Operator
+        if: steps.license.outputs.has_license == 'true'
         run: |
           cat <<'EOF' > operator-values.yaml
           installCRDs: true
@@ -168,7 +184,26 @@ jobs:
             -n my-verticadb-operator -f operator-values.yaml --wait --timeout 10m
           kubectl -n my-verticadb-operator get pods -o wide || true
 
+      - name: Create Vertica license secret
+        if: steps.license.outputs.has_license == 'true'
+        run: |
+          set -euo pipefail
+          NS=my-verticadb-operator
+          kubectl delete secret -n ${NS} vertica-license --ignore-not-found
+          LIC_FILE=/tmp/vertica.license
+          if [ -n "${{ secrets.VERTICA_LICENSE }}" ]; then
+            printf "%s" "${{ secrets.VERTICA_LICENSE }}" > "$LIC_FILE"
+          elif [ -n "${{ secrets.VERTICA_LICENSE_B64 }}" ]; then
+            printf "%s" "${{ secrets.VERTICA_LICENSE_B64 }}" | base64 -d > "$LIC_FILE"
+          else
+            echo "No Vertica license secret provided"; exit 1;
+          fi
+          test -s "$LIC_FILE" || (echo "License file is empty"; exit 1)
+          kubectl create secret generic vertica-license -n ${NS} --from-file=license="$LIC_FILE"
+          echo "Vertica license secret created successfully"
+
       - name: Deploy VerticaDB
+        if: steps.license.outputs.has_license == 'true'
         run: |
           cat <<'EOF' | kubectl apply -f -
           apiVersion: vertica.com/v1
@@ -181,6 +216,7 @@ jobs:
           spec:
             image: opentext/vertica-k8s:latest
             dbName: vdb
+            licenseSecret: vertica-license
             initPolicy: Create
             communal:
               path: s3://vertica-fleeting/vertica-nodejs/
@@ -196,6 +232,7 @@ jobs:
           EOF
 
       - name: Wait for Vertica readiness
+        if: steps.license.outputs.has_license == 'true'
         timeout-minutes: 10
         run: |
           NS=my-verticadb-operator
@@ -210,6 +247,7 @@ jobs:
       # Keycloak + OAuth setup
       # ---------------------------
       - name: Deploy Keycloak
+        if: steps.license.outputs.has_license == 'true'
         run: |
           kubectl create ns keycloak
           cat <<'EOF' | kubectl apply -f -
@@ -261,11 +299,13 @@ jobs:
           EOF
 
       - name: Wait for Keycloak readiness
+        if: steps.license.outputs.has_license == 'true'
         run: |
           kubectl -n keycloak rollout status deploy/keycloak --timeout=2m
           kubectl -n keycloak get pods -o wide
 
       - name: Configure Keycloak realm, client, and user
+        if: steps.license.outputs.has_license == 'true'
         run: |
           kubectl -n keycloak exec deploy/keycloak -- \
             /opt/keycloak/bin/kcadm.sh config credentials \
@@ -289,6 +329,7 @@ jobs:
             --username ${KC_USER} --new-password ${KC_PASSWORD}
 
       - name: Configure Vertica Authentication
+        if: steps.license.outputs.has_license == 'true'
         run: |
           NS=my-verticadb-operator
           POD=verticadb-sample-defaultsubcluster-0
@@ -312,6 +353,7 @@ jobs:
       # Port forwarding for local tests
       # ---------------------------
       - name: Set up port forwarding
+        if: steps.license.outputs.has_license == 'true'
         run: |
           NS=my-verticadb-operator
           # Port-forward Vertica (5433)
@@ -328,6 +370,7 @@ jobs:
       # Retrieve OAuth access token
       # ---------------------------
       - name: Retrieve OAuth access token
+        if: steps.license.outputs.has_license == 'true'
         run: |
           TOKEN=""
           for i in {1..10}; do
@@ -368,31 +411,47 @@ jobs:
       # Test steps
       # ---------------------------
       - name: test-v-connection-string
+        if: ${{ always() && steps.install.outcome == 'success' }}
         run: |
           cd packages/v-connection-string
           yarn test
 
       - name: test-v-pool
+        if: ${{ always() && steps.install.outcome == 'success' && steps.license.outputs.has_license == 'true' }}
         run: |
           cd packages/v-pool
           yarn test
 
       - name: test-v-protocol
+        if: ${{ always() && steps.install.outcome == 'success' }}
         run: |
           cd packages/v-protocol
           yarn test
 
       - name: test-vertica-nodejs
+        if: ${{ always() && steps.install.outcome == 'success' && steps.license.outputs.has_license == 'true' }}
         run: |
           export VTEST_OAUTH_ACCESS_TOKEN=$(cat access_token.txt 2>/dev/null || echo "")
           cd packages/vertica-nodejs
           yarn test
 
+      - name: test-vertica-nodejs (unit only, no license)
+        if: ${{ always() && steps.install.outcome == 'success' && steps.license.outputs.has_license != 'true' }}
+        run: |
+          cd packages/vertica-nodejs
+          make test-unit
+          make test-mocha-unit
+
+      - name: Skip DB tests (no license secret)
+        if: steps.license.outputs.has_license != 'true'
+        run: |
+          echo "No Vertica license secret provided — skipping VerticaDB, Keycloak, v-pool, and vertica-nodejs integration tests."
+
       # ---------------------------
       # Cleanup
       # ---------------------------
       - name: Cleanup Kubernetes resources
-        if: always()
+        if: ${{ always() && steps.license.outputs.has_license == 'true' }}
         run: |
           echo "Starting cleanup..."
 
@@ -413,7 +472,7 @@ jobs:
           echo "Kubernetes resources cleanup done."
 
       - name: Delete KinD cluster
-        if: always()
+        if: ${{ always() && steps.license.outputs.has_license == 'true' }}
         run: |
           echo "Deleting KinD cluster..."
           kind delete cluster --name vertica-ci || true
