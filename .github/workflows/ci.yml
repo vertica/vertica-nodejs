@@ -12,7 +12,7 @@ on:
 
 env:
   V_HOST: 127.0.0.1
-  V_PORT: 5433
+  V_PORT: 15433
   V_USER: dbadmin
   V_PASSWORD: ''
   V_DATABASE: vdb
@@ -368,8 +368,8 @@ jobs:
         if: steps.license.outputs.has_license == 'true'
         run: |
           NS=my-verticadb-operator
-          # Port-forward Vertica (5433)
-          kubectl -n ${NS} port-forward svc/verticadb-sample-defaultsubcluster 5433:5433 &
+          # Port-forward Vertica (15433 to avoid conflict with mock servers on 5433-5435)
+          kubectl -n ${NS} port-forward svc/verticadb-sample-defaultsubcluster 15433:5433 &
           PF_V_PID=$!
           # Port-forward Keycloak (8080)
           kubectl -n keycloak port-forward svc/keycloak 8080:8080 &
@@ -378,12 +378,12 @@ jobs:
           echo "Waiting for port-forwards..."
           for i in {1..24}; do
             V_OK=false; K_OK=false
-            nc -zv 127.0.0.1 5433 2>/dev/null && V_OK=true
+            nc -zv 127.0.0.1 15433 2>/dev/null && V_OK=true
             nc -zv 127.0.0.1 8080 2>/dev/null && K_OK=true
             if $V_OK && $K_OK; then echo "Both port-forwards ready"; break; fi
             echo "  ...V=$V_OK K=$K_OK ($i)"; sleep 5;
           done
-          nc -zv 127.0.0.1 5433 || { echo "ERROR: Vertica port-forward not ready"; exit 1; }
+          nc -zv 127.0.0.1 15433 || { echo "ERROR: Vertica port-forward not ready"; exit 1; }
           nc -zv 127.0.0.1 8080 || { echo "ERROR: Keycloak port-forward not ready"; exit 1; }
 
           # Retrieve OAuth access token
@@ -439,13 +439,13 @@ jobs:
         continue-on-error: true
         run: |
           # Kill any leftover port-forward processes from previous steps
-          pkill -f 'port-forward.*5433' 2>/dev/null || true
+          pkill -f 'port-forward.*15433' 2>/dev/null || true
           sleep 2
-          # Start port-forward to Vertica (must be in same step — GHA kills bg procs between steps)
-          kubectl -n my-verticadb-operator port-forward svc/verticadb-sample-defaultsubcluster 5433:5433 &
+          # Start port-forward to Vertica on 15433 (avoids conflict with mock servers on 5433-5435)
+          kubectl -n my-verticadb-operator port-forward svc/verticadb-sample-defaultsubcluster 15433:5433 &
           PF_PID=$!
-          for i in {1..12}; do nc -zv 127.0.0.1 5433 2>/dev/null && break; sleep 5; done
-          nc -zv 127.0.0.1 5433 || { echo "ERROR: Vertica port-forward not ready"; exit 1; }
+          for i in {1..12}; do nc -zv 127.0.0.1 15433 2>/dev/null && break; sleep 5; done
+          nc -zv 127.0.0.1 15433 || { echo "ERROR: Vertica port-forward not ready"; exit 1; }
           # Verify DB connectivity through port-forward before running tests
           for i in {1..5}; do
             node -e "const c = new (require('vertica-nodejs').Client)(); c.connect().then(() => c.query('SELECT 1')).then(() => { console.log('DB OK'); c.end(); }).catch(e => { console.error(e.message); process.exit(1); })" && break || sleep 3
@@ -471,22 +471,22 @@ jobs:
             export NODE_OPTIONS="${NODE_OPTIONS:-} --dns-result-order=ipv4first"
           fi
           # Kill any leftover port-forward processes from previous steps
-          pkill -f 'port-forward.*5433' 2>/dev/null || true
+          pkill -f 'port-forward.*15433' 2>/dev/null || true
           pkill -f 'port-forward.*8080' 2>/dev/null || true
           sleep 2
-          # Start port-forwards (must be in same step — GHA kills bg procs between steps)
-          kubectl -n my-verticadb-operator port-forward svc/verticadb-sample-defaultsubcluster 5433:5433 &
+          # Start port-forwards (15433 avoids conflict with mock servers on 5433-5435)
+          kubectl -n my-verticadb-operator port-forward svc/verticadb-sample-defaultsubcluster 15433:5433 &
           PF_V=$!
           kubectl -n keycloak port-forward svc/keycloak 8080:8080 &
           PF_K=$!
           for i in {1..12}; do
             V_OK=false; K_OK=false
-            nc -zv 127.0.0.1 5433 2>/dev/null && V_OK=true
+            nc -zv 127.0.0.1 15433 2>/dev/null && V_OK=true
             nc -zv 127.0.0.1 8080 2>/dev/null && K_OK=true
             if $V_OK && $K_OK; then break; fi
             sleep 5
           done
-          nc -zv 127.0.0.1 5433 || { echo "ERROR: Vertica port-forward not ready"; exit 1; }
+          nc -zv 127.0.0.1 15433 || { echo "ERROR: Vertica port-forward not ready"; exit 1; }
           nc -zv 127.0.0.1 8080 || { echo "ERROR: Keycloak port-forward not ready"; exit 1; }
           # Verify DB connectivity through port-forward before running tests
           for i in {1..5}; do
