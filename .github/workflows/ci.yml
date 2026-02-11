@@ -358,41 +358,36 @@ jobs:
           echo "Vertica authentication configured successfully"
 
       # ---------------------------
-      # Port forwarding for local tests
+      # Port forwarding + OAuth token (single step to keep processes alive)
       # ---------------------------
-      - name: Set up port forwarding
+      - name: Set up port forwarding and retrieve OAuth token
         if: steps.license.outputs.has_license == 'true'
         run: |
           NS=my-verticadb-operator
           # Port-forward Vertica (5433)
-          nohup kubectl -n ${NS} port-forward svc/verticadb-sample-defaultsubcluster 5433:5433 > /tmp/pf-vertica.log 2>&1 &
-          echo $! > /tmp/pf-vertica.pid
+          kubectl -n ${NS} port-forward svc/verticadb-sample-defaultsubcluster 5433:5433 &
+          PF_V_PID=$!
           # Port-forward Keycloak (8080)
-          nohup kubectl -n keycloak port-forward svc/keycloak 8080:8080 > /tmp/pf-keycloak.log 2>&1 &
-          echo $! > /tmp/pf-keycloak.pid
+          kubectl -n keycloak port-forward svc/keycloak 8080:8080 &
+          PF_K_PID=$!
           # Wait for port-forwards to be ready
-          sleep 5
-          # Verify connectivity
-          for i in {1..12}; do
-            if nc -zv localhost 5433 2>/dev/null && nc -zv localhost 8080 2>/dev/null; then
-              echo "Both port-forwards are ready"; break;
-            fi
-            echo "Waiting for port-forwards..."; sleep 5;
+          echo "Waiting for port-forwards..."
+          for i in {1..24}; do
+            V_OK=false; K_OK=false
+            nc -zv 127.0.0.1 5433 2>/dev/null && V_OK=true
+            nc -zv 127.0.0.1 8080 2>/dev/null && K_OK=true
+            if $V_OK && $K_OK; then echo "Both port-forwards ready"; break; fi
+            echo "  ...V=$V_OK K=$K_OK ($i)"; sleep 5;
           done
-          nc -zv localhost 5433 || echo "Warning: Vertica port-forward not ready"
-          nc -zv localhost 8080 || echo "Warning: Keycloak port-forward not ready"
+          nc -zv 127.0.0.1 5433 || { echo "ERROR: Vertica port-forward not ready"; exit 1; }
+          nc -zv 127.0.0.1 8080 || { echo "ERROR: Keycloak port-forward not ready"; exit 1; }
 
-      # ---------------------------
-      # Retrieve OAuth access token
-      # ---------------------------
-      - name: Retrieve OAuth access token
-        if: steps.license.outputs.has_license == 'true'
-        run: |
+          # Retrieve OAuth access token
           TOKEN=""
           for i in {1..10}; do
-            echo "Attempt $i..."
+            echo "Token attempt $i..."
             RAW=$(curl -s -X POST \
-              "http://localhost:8080/realms/${KC_REALM}/protocol/openid-connect/token" \
+              "http://127.0.0.1:8080/realms/${KC_REALM}/protocol/openid-connect/token" \
               -d "client_id=${KC_CLIENT_ID}" \
               -d "username=${KC_USER}" \
               -d "password=${KC_PASSWORD}" \
@@ -410,18 +405,21 @@ jobs:
 
             if [ -n "$TOKEN" ] && [ "$TOKEN" != "null" ] && [ "$TOKEN" != "" ]; then
               echo "Access token retrieved successfully (length: ${#TOKEN})"
-              echo "$TOKEN" > access_token.txt
+              echo "$TOKEN" > ${GITHUB_WORKSPACE}/access_token.txt
               break
             fi
 
-            echo "Token fetch failed, Keycloak may not be ready yet."
+            echo "Token fetch failed, retrying..."
             sleep 5
-
-            if [ "$i" -eq 10 ]; then
-              echo "Failed to fetch access token after multiple retries."
-              exit 1
-            fi
           done
+          if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+            echo "Failed to fetch access token after retries."
+            exit 1
+          fi
+
+          # Port-forwards will be killed when this step exits.
+          # That's fine — each DB test step starts its own port-forwards.
+          echo "Token saved to ${GITHUB_WORKSPACE}/access_token.txt"
 
       # ---------------------------
       # Test steps
@@ -435,8 +433,14 @@ jobs:
       - name: test-v-pool
         if: ${{ always() && steps.install.outcome == 'success' && steps.license.outputs.has_license == 'true' }}
         run: |
+          # Start port-forward to Vertica (must be in same step — GHA kills bg procs between steps)
+          kubectl -n my-verticadb-operator port-forward svc/verticadb-sample-defaultsubcluster 5433:5433 &
+          PF_PID=$!
+          for i in {1..12}; do nc -zv 127.0.0.1 5433 2>/dev/null && break; sleep 5; done
+          nc -zv 127.0.0.1 5433 || { echo "ERROR: Vertica port-forward not ready"; exit 1; }
           cd packages/v-pool
           yarn test
+          kill $PF_PID 2>/dev/null || true
 
       - name: test-v-protocol
         if: ${{ always() && steps.install.outcome == 'success' }}
@@ -447,9 +451,24 @@ jobs:
       - name: test-vertica-nodejs
         if: ${{ always() && steps.install.outcome == 'success' && steps.license.outputs.has_license == 'true' }}
         run: |
-          export VTEST_OAUTH_ACCESS_TOKEN=$(cat access_token.txt 2>/dev/null || echo "")
+          # Start port-forwards (must be in same step — GHA kills bg procs between steps)
+          kubectl -n my-verticadb-operator port-forward svc/verticadb-sample-defaultsubcluster 5433:5433 &
+          PF_V=$!
+          kubectl -n keycloak port-forward svc/keycloak 8080:8080 &
+          PF_K=$!
+          for i in {1..12}; do
+            V_OK=false; K_OK=false
+            nc -zv 127.0.0.1 5433 2>/dev/null && V_OK=true
+            nc -zv 127.0.0.1 8080 2>/dev/null && K_OK=true
+            if $V_OK && $K_OK; then break; fi
+            sleep 5
+          done
+          nc -zv 127.0.0.1 5433 || { echo "ERROR: Vertica port-forward not ready"; exit 1; }
+          nc -zv 127.0.0.1 8080 || { echo "ERROR: Keycloak port-forward not ready"; exit 1; }
+          export VTEST_OAUTH_ACCESS_TOKEN=$(cat ${GITHUB_WORKSPACE}/access_token.txt 2>/dev/null || echo "")
           cd packages/vertica-nodejs
           yarn test
+          kill $PF_V $PF_K 2>/dev/null || true
 
       - name: test-vertica-nodejs (unit only, no license)
         if: ${{ always() && steps.install.outcome == 'success' && steps.license.outputs.has_license != 'true' }}
