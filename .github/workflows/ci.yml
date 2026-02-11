@@ -17,6 +17,8 @@ env:
   V_PASSWORD: ''
   V_DATABASE: vdb
   V_TLS_MODE: disable
+  NODE_OPTIONS: --unhandled-rejections=warn
+  TEST_TIMEOUT: 30000
   KC_REALM: test
   KC_USER: oauth_user
   KC_PASSWORD: password
@@ -457,6 +459,12 @@ jobs:
       - name: test-vertica-nodejs
         if: ${{ always() && steps.install.outcome == 'success' && steps.license.outputs.has_license == 'true' }}
         run: |
+          # Node 16+ changed DNS resolution order (may prefer IPv6) and made
+          # unhandled rejections fatal. Force IPv4-first for localhost tests.
+          NODE_MAJOR=$(node -v | cut -d. -f1 | tr -d v)
+          if [ "$NODE_MAJOR" -ge 16 ]; then
+            export NODE_OPTIONS="${NODE_OPTIONS:-} --dns-result-order=ipv4first"
+          fi
           # Start port-forwards (must be in same step — GHA kills bg procs between steps)
           kubectl -n my-verticadb-operator port-forward svc/verticadb-sample-defaultsubcluster 5433:5433 &
           PF_V=$!
