@@ -438,6 +438,9 @@ jobs:
         if: ${{ always() && steps.install.outcome == 'success' && steps.license.outputs.has_license == 'true' }}
         continue-on-error: true
         run: |
+          # Kill any leftover port-forward processes from previous steps
+          pkill -f 'port-forward.*5433' 2>/dev/null || true
+          sleep 2
           # Start port-forward to Vertica (must be in same step — GHA kills bg procs between steps)
           kubectl -n my-verticadb-operator port-forward svc/verticadb-sample-defaultsubcluster 5433:5433 &
           PF_PID=$!
@@ -467,6 +470,10 @@ jobs:
           if [ "$NODE_MAJOR" -ge 16 ]; then
             export NODE_OPTIONS="${NODE_OPTIONS:-} --dns-result-order=ipv4first"
           fi
+          # Kill any leftover port-forward processes from previous steps
+          pkill -f 'port-forward.*5433' 2>/dev/null || true
+          pkill -f 'port-forward.*8080' 2>/dev/null || true
+          sleep 2
           # Start port-forwards (must be in same step — GHA kills bg procs between steps)
           kubectl -n my-verticadb-operator port-forward svc/verticadb-sample-defaultsubcluster 5433:5433 &
           PF_V=$!
