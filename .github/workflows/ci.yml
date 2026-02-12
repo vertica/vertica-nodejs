@@ -530,18 +530,8 @@ jobs:
           echo "=== test-unit ==="
           make test-unit || { echo "FAILED: test-unit (exit $?)"; FAIL=1; }
           echo "=== test-integration ==="
-          # Run each integration test file individually with port-forward health
-          # checks between files. TLS handshake tests crash kubectl port-forward,
-          # so we must restart it before the next file.
-          INT_FAIL=0
-          for f in $(find test/integration -name "*-tests.js" | sort); do
-            ensure_pf
-            echo "--- $f ---"
-            node "$f" || { echo "FAILED: $f"; INT_FAIL=1; }
-          done
-          if [ "$INT_FAIL" -ne 0 ]; then
-            echo "FAILED: test-integration"; FAIL=1
-          fi
+          ensure_pf
+          make test-integration || { echo "FAILED: test-integration (exit $?)"; FAIL=1; }
 
           kill $PF_V $PF_K 2>/dev/null || true
           if [ "$FAIL" -ne 0 ]; then
