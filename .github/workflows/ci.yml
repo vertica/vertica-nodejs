@@ -500,15 +500,37 @@ jobs:
           # assert the default tls_mode value.
           unset V_TLS_MODE
 
+          # Helper: ensure port-forward is alive, restart if dead
+          ensure_pf() {
+            if ! nc -zv 127.0.0.1 15433 2>/dev/null; then
+              echo "Port-forward to Vertica died — restarting..."
+              pkill -f 'port-forward.*15433' 2>/dev/null || true
+              sleep 1
+              kubectl -n my-verticadb-operator port-forward svc/verticadb-sample-defaultsubcluster 15433:5433 &
+              PF_V=$!
+              for i in {1..12}; do nc -zv 127.0.0.1 15433 2>/dev/null && break; sleep 3; done
+            fi
+            if ! nc -zv 127.0.0.1 8080 2>/dev/null; then
+              echo "Port-forward to Keycloak died — restarting..."
+              pkill -f 'port-forward.*8080' 2>/dev/null || true
+              sleep 1
+              kubectl -n keycloak port-forward svc/keycloak 8080:8080 &
+              PF_K=$!
+              for i in {1..12}; do nc -zv 127.0.0.1 8080 2>/dev/null && break; sleep 3; done
+            fi
+          }
+
           # Run each target individually so one crash doesn't hide others
           FAIL=0
           echo "=== test-mocha-unit ==="
           make test-mocha-unit || { echo "FAILED: test-mocha-unit (exit $?)"; FAIL=1; }
           echo "=== test-mocha-integration ==="
+          ensure_pf
           make test-mocha-integration || { echo "FAILED: test-mocha-integration (exit $?)"; FAIL=1; }
           echo "=== test-unit ==="
           make test-unit || { echo "FAILED: test-unit (exit $?)"; FAIL=1; }
           echo "=== test-integration ==="
+          ensure_pf
           make test-integration || { echo "FAILED: test-integration (exit $?)"; FAIL=1; }
 
           kill $PF_V $PF_K 2>/dev/null || true
