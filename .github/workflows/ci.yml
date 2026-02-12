@@ -368,10 +368,10 @@ jobs:
         run: |
           NS=my-verticadb-operator
           # Port-forward Vertica (15433 to avoid conflict with mock servers on 5433-5435)
-          kubectl -n ${NS} port-forward svc/verticadb-sample-defaultsubcluster 15433:5433 &
+          kubectl -n ${NS} port-forward --address 127.0.0.1 svc/verticadb-sample-defaultsubcluster 15433:5433 &
           PF_V_PID=$!
           # Port-forward Keycloak (8080)
-          kubectl -n keycloak port-forward svc/keycloak 8080:8080 &
+          kubectl -n keycloak port-forward --address 127.0.0.1 svc/keycloak 8080:8080 &
           PF_K_PID=$!
           # Wait for port-forwards to be ready
           echo "Waiting for port-forwards..."
@@ -441,7 +441,7 @@ jobs:
           pkill -f 'port-forward.*15433' 2>/dev/null || true
           sleep 2
           # Start port-forward to Vertica on 15433 (avoids conflict with mock servers on 5433-5435)
-          kubectl -n my-verticadb-operator port-forward svc/verticadb-sample-defaultsubcluster 15433:5433 &
+          kubectl -n my-verticadb-operator port-forward --address 127.0.0.1 svc/verticadb-sample-defaultsubcluster 15433:5433 &
           PF_PID=$!
           for i in {1..12}; do nc -zv 127.0.0.1 15433 2>/dev/null && break; sleep 5; done
           nc -zv 127.0.0.1 15433 || { echo "ERROR: Vertica port-forward not ready"; exit 1; }
@@ -474,9 +474,9 @@ jobs:
           pkill -f 'port-forward.*8080' 2>/dev/null || true
           sleep 2
           # Start port-forwards (15433 avoids conflict with mock servers on 5433-5435)
-          kubectl -n my-verticadb-operator port-forward svc/verticadb-sample-defaultsubcluster 15433:5433 &
+          kubectl -n my-verticadb-operator port-forward --address 127.0.0.1 svc/verticadb-sample-defaultsubcluster 15433:5433 &
           PF_V=$!
-          kubectl -n keycloak port-forward svc/keycloak 8080:8080 &
+          kubectl -n keycloak port-forward --address 127.0.0.1 svc/keycloak 8080:8080 &
           PF_K=$!
           for i in {1..12}; do
             V_OK=false; K_OK=false
@@ -506,7 +506,7 @@ jobs:
               echo "Port-forward to Vertica died — restarting..."
               pkill -f 'port-forward.*15433' 2>/dev/null || true
               sleep 1
-              kubectl -n my-verticadb-operator port-forward svc/verticadb-sample-defaultsubcluster 15433:5433 &
+              kubectl -n my-verticadb-operator port-forward --address 127.0.0.1 svc/verticadb-sample-defaultsubcluster 15433:5433 &
               PF_V=$!
               for i in {1..12}; do nc -zv 127.0.0.1 15433 2>/dev/null && break; sleep 3; done
             fi
@@ -514,7 +514,7 @@ jobs:
               echo "Port-forward to Keycloak died — restarting..."
               pkill -f 'port-forward.*8080' 2>/dev/null || true
               sleep 1
-              kubectl -n keycloak port-forward svc/keycloak 8080:8080 &
+              kubectl -n keycloak port-forward --address 127.0.0.1 svc/keycloak 8080:8080 &
               PF_K=$!
               for i in {1..12}; do nc -zv 127.0.0.1 8080 2>/dev/null && break; sleep 3; done
             fi

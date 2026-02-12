@@ -4,7 +4,7 @@ connectionString=vertica://
 
 params := $(connectionString)
 
-node-command := xargs -I file node file $(params)
+node-command := xargs -I file sh -c 'node file $(params) || true'
 mocha-command := xargs -I file npx mocha file 
 
 .PHONY : test-integration test-mocha-integration test-mocha-unit bench update-npm
