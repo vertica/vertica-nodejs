@@ -5,7 +5,7 @@ connectionString=vertica://
 params := $(connectionString)
 
 node-command := xargs -I file node file $(params)
-mocha-command := xargs -I file mocha file 
+mocha-command := xargs -I file npx mocha file 
 
 .PHONY : test-integration test-mocha-integration test-mocha-unit bench update-npm
 
@@ -33,8 +33,8 @@ test-integration:
 
 test-mocha-integration:
 	@printf "\n***TESTING VERTICA-NODEJS MOCHA INTEGRATION TESTS***\n\n"
-	@find mochatest/integration -name "*-tests.js" | $(mocha-command)
+	@if [ -d mochatest/integration ]; then find mochatest/integration -name "*-tests.js" | $(mocha-command); else echo "mochatest/integration not found — skipping"; fi
 
 test-mocha-unit:
 	@printf "\n***TESTING VERTICA-NODEJS MOCHA UNIT TESTS***\n\n"
-	@find mochatest/unit -name "*-tests.js" | $(mocha-command)
+	@if [ -d mochatest/unit ]; then find mochatest/unit -name "*-tests.js" | $(mocha-command); else echo "mochatest/unit not found — skipping"; fi
