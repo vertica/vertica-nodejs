@@ -1,20 +1,23 @@
-name: CI
+name: Vertica CI
 
 on:
+  # Triggers the workflow on push or pull request events but only for the main branch
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 env:
   V_HOST: 127.0.0.1
   V_PORT: 15433
-  V_TLS_MODE: disable
-  NODE_OPTIONS: --unhandled-rejections=warn
   V_USER: dbadmin
   V_DATABASE: vdb
-  V_LICENSE_SECRET: vertica-license
+  V_TLS_MODE: disable
+  NODE_OPTIONS: --unhandled-rejections=warn
+  TEST_TIMEOUT: 30000
   KC_REALM: test
   KC_USER: oauth_user
   KC_PASSWORD: password
@@ -27,36 +30,31 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['12', '14', '16', '18', '20']
-        os: [ubuntu-latest]
-    name: Node.js ${{ matrix.node }} (${{ matrix.os }})
+        node:
+          - '12'
+          - '14'
+          - '16'
+          - '18'
+          - '20'
+    name: Node.js ${{ matrix.node }}
     steps:
-      - uses: actions/checkout@v4
+      # ---------------------------
+      # Checkout and setup
+      # ---------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup node
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
           cache: yarn
 
       - name: Install dependencies
+        id: install
         run: |
           set -e
-          echo "Configuring Yarn registry fallback to npmjs.org"
-          yarn config set registry https://registry.npmjs.org
-          ATTEMPTS=3
-          for i in $(seq 1 $ATTEMPTS); do
-            echo "yarn install attempt $i/$ATTEMPTS"
-            if yarn install --frozen-lockfile --network-timeout 300000; then
-              break
-            fi
-            if [ "$i" -eq "$ATTEMPTS" ]; then
-              echo "yarn install failed after $ATTEMPTS attempts";
-              exit 1
-            fi
-            echo "yarn install failed; retrying after short delay..."
-            sleep 5
-          done
+          yarn
           yarn lerna bootstrap
 
       - name: Check Vertica license secrets
@@ -66,42 +64,42 @@ jobs:
           if [ -n "${{ secrets.VERTICA_LICENSE }}" ] || [ -n "${{ secrets.VERTICA_LICENSE_B64 }}" ]; then HAS=true; fi
           echo "has_license=$HAS" >> $GITHUB_OUTPUT
 
-      - name: Create KinD cluster
+      # ---------------------------
+      # Kubernetes (KinD) + Helm setup
+      # ---------------------------
+      - name: Set up Kubernetes (KinD)
         if: steps.license.outputs.has_license == 'true'
-        uses: helm/kind-action@v1.10.0
+        uses: helm/kind-action@v1.8.0
         with:
           cluster_name: vertica-ci
-          wait: 180s
+          node_image: kindest/node:v1.29.0
 
-      - name: Setup Helm
+      - name: Set up Helm
         if: steps.license.outputs.has_license == 'true'
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v3
+        with:
+          version: "3.11.3"
 
-
-      - name: Add Helm repos
+      - name: Add Helm repositories
         if: steps.license.outputs.has_license == 'true'
         run: |
-          helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo add vertica-charts https://vertica.github.io/charts
-          helm repo add jetstack https://charts.jetstack.io
+          helm repo add bitnami https://charts.bitnami.com/bitnami || true
           helm repo update
 
-      - name: Create namespace
+      # ---------------------------
+      # MinIO Setup
+      # ---------------------------
+      - name: Install MinIO
         if: steps.license.outputs.has_license == 'true'
         run: |
-          kubectl create namespace vertica || true
-
-      - name: Install MinIO (communal storage)
-        if: steps.license.outputs.has_license == 'true'
-        run: |
-          cat <<'EOF' | kubectl apply -f -
+          kubectl create ns minio
+          cat <<'EOF' > minio.yaml
           apiVersion: apps/v1
           kind: Deployment
           metadata:
             name: minio
-            namespace: vertica
-            labels:
-              app: minio
+            namespace: minio
           spec:
             replicas: 1
             selector:
@@ -113,121 +111,99 @@ jobs:
                   app: minio
               spec:
                 containers:
-                  - name: minio
-                    image: minio/minio:latest
-                    args: ["server","/data","--address=:9000"]
-                    env:
-                      - name: MINIO_ROOT_USER
-                        value: minio
-                      - name: MINIO_ROOT_PASSWORD
-                        value: minio123
-                    ports:
-                      - containerPort: 9000
-                        name: api
-                    readinessProbe:
-                      httpGet:
-                        path: /minio/health/ready
-                        port: 9000
-                      initialDelaySeconds: 5
-                      periodSeconds: 5
-                    livenessProbe:
-                      httpGet:
-                        path: /minio/health/live
-                        port: 9000
-                      initialDelaySeconds: 10
-                      periodSeconds: 10
-                    volumeMounts:
-                      - name: data
-                        mountPath: /data
-                volumes:
+                - name: minio
+                  image: minio/minio:latest
+                  args: ["server", "/data"]
+                  env:
+                  - name: MINIO_ROOT_USER
+                    value: "minioadmin"
+                  - name: MINIO_ROOT_PASSWORD
+                    value: "minioadmin"
+                  ports:
+                  - containerPort: 9000
+                  volumeMounts:
                   - name: data
-                    emptyDir: {}
+                    mountPath: /data
+                volumes:
+                - name: data
+                  emptyDir: {}
           ---
           apiVersion: v1
           kind: Service
           metadata:
             name: minio
-            namespace: vertica
-            labels:
-              app: minio
+            namespace: minio
           spec:
             selector:
               app: minio
             ports:
-              - protocol: TCP
-                port: 9000
-                targetPort: 9000
+            - port: 9000
+              targetPort: 9000
           EOF
+          kubectl apply -f minio.yaml
+          kubectl -n minio rollout status deployment/minio --timeout=2m
+          kubectl get pods -n minio -o wide || true
+          kubectl get svc -n minio || true
 
-          # Wait for MinIO to be ready
-          if ! kubectl wait --for=condition=Ready pod -l app=minio -n vertica --timeout=900s; then
-            echo 'MinIO failed to become Ready. Dumping diagnostics...'
-            kubectl get pods -n vertica -l app=minio -o wide || true
-            kubectl describe pods -n vertica -l app=minio || true
-            kubectl logs -n vertica $(kubectl get pods -n vertica -l app=minio -o jsonpath='{.items[0].metadata.name}') || true
-            exit 1
-          fi
-          kubectl get svc -n vertica minio
-
-      - name: Create communal bucket in MinIO
+      - name: Ensure MinIO bucket exists
         if: steps.license.outputs.has_license == 'true'
         run: |
-          # Create communal bucket using env alias to avoid needing shell
-          kubectl run -n vertica mc-mb --image=minio/mc:latest --restart=Never \
-            --env MC_HOST_local=http://minio:minio123@minio.vertica.svc.cluster.local:9000 \
-            --attach=true --rm -- mc mb -p local/communal || true
-          kubectl run -n vertica mc-ls --image=minio/mc:latest --restart=Never \
-            --env MC_HOST_local=http://minio:minio123@minio.vertica.svc.cluster.local:9000 \
-            --attach=true --rm -- mc ls local
+          kubectl run mc-client --rm -i --restart=Never \
+            --image=minio/mc:latest \
+            -n minio \
+            --command -- bash -c "
+              mc alias set localminio http://minio.minio.svc.cluster.local:9000 minioadmin minioadmin && \
+              mc mb --ignore-existing localminio/vertica-fleeting && \
+              mc ls localminio
+            "
 
-      - name: Create communal credentials secret
+      - name: Create MinIO Secret
         if: steps.license.outputs.has_license == 'true'
         run: |
-          kubectl delete secret -n vertica communal-creds --ignore-not-found
-          kubectl create secret generic communal-creds -n vertica \
-            --from-literal=accessKeyID=minio \
-            --from-literal=secretAccessKey=minio123
+          kubectl create ns my-verticadb-operator
+          kubectl delete secret communal-creds -n my-verticadb-operator --ignore-not-found
+          kubectl create secret generic communal-creds \
+            -n my-verticadb-operator \
+            --from-literal=accesskey="minioadmin" \
+            --from-literal=secretkey="minioadmin"
+          kubectl get secret communal-creds -n my-verticadb-operator -o yaml || true
 
-      - name: Install cert-manager (for operator webhooks)
-        if: steps.license.outputs.has_license == 'true'
-        run: |
-          kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.4/cert-manager.crds.yaml
-          helm upgrade --install cert-manager jetstack/cert-manager -n cert-manager --create-namespace --set installCRDs=false
-          kubectl wait --for=condition=Available deployment -l app=cert-manager -n cert-manager --timeout=600s || true
-          kubectl get pods -n cert-manager
-
+      # ---------------------------
+      # Vertica Operator + DB Deployment
+      # ---------------------------
       - name: Install Vertica Operator
         if: steps.license.outputs.has_license == 'true'
         run: |
-          helm upgrade --install vertica-operator vertica-charts/verticadb-operator -n vertica --create-namespace
-          kubectl wait --for=condition=Available deployment/verticadb-operator-controller-manager -n vertica --timeout=600s || true
-          # Wait for webhook service endpoints to be ready
-          echo "Waiting for verticadb-operator-webhook-service endpoints..."
-          for i in {1..60}; do
-            EP=$(kubectl get endpoints verticadb-operator-webhook-service -n vertica -o jsonpath='{.subsets[0].addresses[0].ip}' 2>/dev/null || true)
-            if [ -n "$EP" ]; then echo "Webhook endpoints ready: $EP"; break; fi
-            echo "...waiting"; sleep 5;
-          done
-          kubectl get svc -n vertica verticadb-operator-webhook-service || true
-          kubectl get pods -n vertica
+          cat <<'EOF' > operator-values.yaml
+          installCRDs: true
+          controller:
+            extraEnv:
+            - name: AWS_REGION
+              value: "us-east-1"
+            - name: AWS_DEFAULT_REGION
+              value: "us-east-1"
+          EOF
+          helm upgrade --install vdb-op vertica-charts/verticadb-operator \
+            -n my-verticadb-operator -f operator-values.yaml --wait --timeout 10m
+          kubectl -n my-verticadb-operator get pods -o wide || true
 
       - name: Create Vertica license secret
         if: steps.license.outputs.has_license == 'true'
         run: |
           set -euo pipefail
-          kubectl delete secret -n vertica ${V_LICENSE_SECRET} --ignore-not-found
+          NS=my-verticadb-operator
+          kubectl delete secret -n ${NS} vertica-license --ignore-not-found
           LIC_FILE=/tmp/vertica.license
           if [ -n "${{ secrets.VERTICA_LICENSE }}" ]; then
-            # Plain-text license content
             printf "%s" "${{ secrets.VERTICA_LICENSE }}" > "$LIC_FILE"
           elif [ -n "${{ secrets.VERTICA_LICENSE_B64 }}" ]; then
-            # Base64-encoded license content
             printf "%s" "${{ secrets.VERTICA_LICENSE_B64 }}" | base64 -d > "$LIC_FILE"
           else
             echo "No Vertica license secret provided"; exit 1;
           fi
           test -s "$LIC_FILE" || (echo "License file is empty"; exit 1)
-          kubectl create secret generic ${V_LICENSE_SECRET} -n vertica --from-file=license="$LIC_FILE"
+          kubectl create secret generic vertica-license -n ${NS} --from-file=license="$LIC_FILE"
+          echo "Vertica license secret created successfully"
 
       - name: Deploy VerticaDB
         if: steps.license.outputs.has_license == 'true'
@@ -237,77 +213,52 @@ jobs:
           kind: VerticaDB
           metadata:
             name: verticadb-sample
-            namespace: vertica
+            namespace: my-verticadb-operator
+            annotations:
+              vertica.com/k-safety: "0"
           spec:
             image: opentext/vertica-k8s:latest
             dbName: vdb
             licenseSecret: vertica-license
+            initPolicy: Create
             communal:
-              path: s3://communal
+              path: s3://vertica-fleeting/vertica-nodejs/
               credentialSecret: communal-creds
-              endpoint: http://minio.vertica.svc.cluster.local:9000
+              endpoint: http://minio.minio.svc.cluster.local:9000
+              region: us-east-1
+            local:
+              dataPath: /data
+              depotPath: /depot
             subclusters:
-              - name: defaultsubcluster
-                size: 3
+            - name: defaultsubcluster
+              size: 1
           EOF
-          # Wait for StatefulSet to be created by the operator
-          echo "Waiting for Vertica StatefulSet to be created..."
-          for i in {1..60}; do
-            if kubectl get statefulset -n vertica verticadb-sample-defaultsubcluster >/dev/null 2>&1; then
-              break
-            fi
-            echo "...waiting for StatefulSet"; sleep 5;
-          done
-          if kubectl get statefulset -n vertica verticadb-sample-defaultsubcluster >/dev/null 2>&1; then
-            kubectl rollout status statefulset/verticadb-sample-defaultsubcluster -n vertica --timeout=1200s || true
-          else
-            echo "StatefulSet was not created. Dumping diagnostics..."
-            kubectl get verticadb -n vertica verticadb-sample -o yaml || true
-            kubectl logs -n vertica deployment/verticadb-operator-controller-manager || true
-          fi
 
-          # Wait for pods to be created before checking readiness
-          echo "Waiting for Vertica pods to be created..."
-          for i in {1..60}; do
-            CNT=$(kubectl get pods -n vertica -l vertica.com/subcluster-name=defaultsubcluster -o jsonpath='{.items[*].metadata.name}' | wc -w)
-            if [ "$CNT" -ge 1 ]; then break; fi
-            echo "...waiting for pods"; sleep 5;
+      - name: Wait for Vertica readiness
+        if: steps.license.outputs.has_license == 'true'
+        timeout-minutes: 10
+        run: |
+          NS=my-verticadb-operator
+          SS=verticadb-sample-defaultsubcluster
+          POD=${SS}-0
+          for i in {1..30}; do
+            kubectl get pod ${POD} -n ${NS} && break || sleep 10
           done
-          echo "Waiting for Vertica pods to become Ready (2/2)..."
-          if ! kubectl wait --for=condition=Ready pod -l app.kubernetes.io/instance=verticadb-sample -n vertica --timeout=1200s; then
-            echo "Vertica pods did not become Ready. Dumping diagnostics..."
-            kubectl get pods -n vertica -o wide || true
-            kubectl describe pods -n vertica -l app.kubernetes.io/instance=verticadb-sample || true
-            for P in $(kubectl get pods -n vertica -l app.kubernetes.io/instance=verticadb-sample -o jsonpath='{.items[*].metadata.name}'); do
-              echo "--- logs: $P (server)"; kubectl logs -n vertica "$P" -c server || true;
-              echo "--- logs: $P (startup)"; kubectl logs -n vertica "$P" -c startup || true;
-            done
-          fi
-          echo "Waiting for Vertica service endpoints..."
-          for i in {1..180}; do
-            EP=$(kubectl get endpoints verticadb-sample-defaultsubcluster -n vertica -o jsonpath='{.subsets[0].addresses[0].ip}' 2>/dev/null || true)
-            if [ -n "$EP" ]; then echo "Vertica endpoints ready: $EP"; break; fi
-            echo "...waiting"; sleep 5;
-          done
-          if [ -z "$EP" ]; then
-            echo "Vertica endpoints did not become ready; will port-forward directly to a pod";
-            kubectl describe svc verticadb-sample-defaultsubcluster -n vertica || true;
-            kubectl get endpoints verticadb-sample-defaultsubcluster -n vertica -o yaml || true;
-            kubectl get pods -n vertica -o wide || true;
-          fi
-          kubectl get pods -n vertica -o wide || true
+          kubectl wait --for=condition=Ready pod/${POD} -n ${NS} --timeout=5m
 
-      - name: Install Keycloak (official image)
+      # ---------------------------
+      # Keycloak + OAuth setup
+      # ---------------------------
+      - name: Deploy Keycloak
         if: steps.license.outputs.has_license == 'true'
         run: |
+          kubectl create ns keycloak
           cat <<'EOF' | kubectl apply -f -
           apiVersion: apps/v1
           kind: Deployment
           metadata:
             name: keycloak
-            namespace: vertica
-            labels:
-              app: keycloak
+            namespace: keycloak
           spec:
             replicas: 1
             selector:
@@ -319,171 +270,292 @@ jobs:
                   app: keycloak
               spec:
                 containers:
-                  - name: keycloak
-                    image: quay.io/keycloak/keycloak:26.0
-                    args: ["start-dev","--http-enabled=true","--http-port=8080","--hostname-strict=false"]
-                    env:
-                      - name: KEYCLOAK_ADMIN
-                        value: admin
-                      - name: KEYCLOAK_ADMIN_PASSWORD
-                        value: admin
-                    ports:
-                      - containerPort: 8080
-                        name: http
-                    readinessProbe:
-                      httpGet:
-                        path: /
-                        port: 8080
-                      initialDelaySeconds: 10
-                      periodSeconds: 5
+                - name: keycloak
+                  image: quay.io/keycloak/keycloak:23.0.4
+                  args: ["start-dev"]
+                  env:
+                  - name: KEYCLOAK_ADMIN
+                    value: admin
+                  - name: KEYCLOAK_ADMIN_PASSWORD
+                    value: admin
+                  ports:
+                  - containerPort: 8080
+                  readinessProbe:
+                    httpGet:
+                      path: /
+                      port: 8080
+                    initialDelaySeconds: 20
+                    periodSeconds: 5
+                    failureThreshold: 6
           ---
           apiVersion: v1
           kind: Service
           metadata:
             name: keycloak
-            namespace: vertica
-            labels:
-              app: keycloak
+            namespace: keycloak
           spec:
             selector:
               app: keycloak
             ports:
-              - name: http
-                protocol: TCP
-                port: 8080
-                targetPort: 8080
+            - port: 8080
+              targetPort: 8080
           EOF
-          kubectl wait --for=condition=Ready pod -n vertica -l app=keycloak --timeout=600s
-          kubectl get svc -n vertica keycloak
+
+      - name: Wait for Keycloak readiness
+        if: steps.license.outputs.has_license == 'true'
+        run: |
+          kubectl -n keycloak rollout status deploy/keycloak --timeout=2m
+          kubectl -n keycloak get pods -o wide
 
       - name: Configure Keycloak realm, client, and user
         if: steps.license.outputs.has_license == 'true'
         run: |
-          KC_POD=$(kubectl get pods -n vertica -l app=keycloak -o jsonpath='{.items[0].metadata.name}')
-          kubectl exec -n vertica "$KC_POD" -- env \
-            KC_REALM="${KC_REALM}" \
-            KC_USER="${KC_USER}" \
-            KC_PASSWORD="${KC_PASSWORD}" \
-            KC_CLIENT_ID="${KC_CLIENT_ID}" \
-            KC_CLIENT_SECRET="${KC_CLIENT_SECRET}" \
-            bash -lc '
-            set -euo pipefail
-            KC=/opt/keycloak/bin/kcadm.sh
-            # Wait for admin API to be ready
-            for i in {1..60}; do
-              if $KC config credentials --server http://localhost:8080 --realm master --user admin --password admin >/dev/null 2>&1; then
-                break
-              fi
-              echo "...waiting for Keycloak admin API"; sleep 3;
-            done
-            # Idempotent realm, user, client setup
-            $KC create realms -s realm="${KC_REALM}" -s enabled=true || true
-            $KC update realms/${KC_REALM} -s accessTokenLifespan=3600 || true
-            $KC create users -r ${KC_REALM} -s username="${KC_USER}" -s enabled=true || true
-            $KC set-password -r ${KC_REALM} --username "${KC_USER}" --new-password "${KC_PASSWORD}" --temporary=false || true
-            # Create confidential client for password grant
-            $KC create clients -r ${KC_REALM} \
-              -s clientId="${KC_CLIENT_ID}" -s enabled=true \
-              -s protocol=openid-connect -s publicClient=false \
-              -s secret="${KC_CLIENT_SECRET}" \
-              -s directAccessGrantsEnabled=true || true
-            echo "Keycloak realm and client configured"
-          '
+          kubectl -n keycloak exec deploy/keycloak -- \
+            /opt/keycloak/bin/kcadm.sh config credentials \
+            --server http://localhost:8080 --realm master \
+            --user admin --password admin
+          kubectl -n keycloak exec deploy/keycloak -- \
+            /opt/keycloak/bin/kcadm.sh create realms -s realm=${KC_REALM} -s enabled=true
+          kubectl -n keycloak exec deploy/keycloak -- \
+            /opt/keycloak/bin/kcadm.sh update realms/${KC_REALM} -s accessTokenLifespan=3600
+          kubectl -n keycloak exec deploy/keycloak -- \
+            /opt/keycloak/bin/kcadm.sh create clients -r ${KC_REALM} \
+            -s clientId="${KC_CLIENT_ID}" -s enabled=true \
+            -s secret="${KC_CLIENT_SECRET}" \
+            -s 'redirectUris=["*"]' \
+            -s directAccessGrantsEnabled=true
+          kubectl -n keycloak exec deploy/keycloak -- \
+            /opt/keycloak/bin/kcadm.sh create users -r ${KC_REALM} \
+            -s username=${KC_USER} -s enabled=true
+          kubectl -n keycloak exec deploy/keycloak -- \
+            /opt/keycloak/bin/kcadm.sh set-password -r ${KC_REALM} \
+            --username ${KC_USER} --new-password ${KC_PASSWORD}
 
-      - name: Port-forward services (Vertica 5433 and Keycloak 8080)
+      - name: Configure Vertica Authentication
         if: steps.license.outputs.has_license == 'true'
         run: |
-          # Port-forward Vertica pod (fallback if service endpoints empty)
-          V_POD=$(kubectl get pods -n vertica -l app.kubernetes.io/instance=verticadb-sample -o jsonpath='{.items[0].metadata.name}')
-          if [ -z "$V_POD" ]; then
-            V_POD=$(kubectl get pods -n vertica -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep '^verticadb-sample-defaultsubcluster-' | head -n1)
-          fi
-          if [ -n "$V_POD" ]; then
-            nohup kubectl port-forward -n vertica pod/$V_POD 15433:5433 >/tmp/pf-vertica.log 2>&1 &
-          else
-            echo "No Vertica pod found for port-forward"; exit 1;
-          fi
-          # Port-forward Keycloak service to localhost:8080
-          nohup kubectl port-forward -n vertica svc/keycloak 8080:8080 >/tmp/pf-keycloak.log 2>&1 &
-          sleep 5
-          echo "PF logs:" && tail -n +1 /tmp/pf-*.log || true
+          NS=my-verticadb-operator
+          POD=verticadb-sample-defaultsubcluster-0
+          VSQL="kubectl -n ${NS} exec ${POD} -c server -- /opt/vertica/bin/vsql -U dbadmin"
+          # Wait for vsql connectivity
+          echo "Waiting for Vertica to accept vsql connections..."
+          for i in {1..60}; do
+            if $VSQL -c "SELECT 1" >/dev/null 2>&1; then
+              echo "Vertica is accepting connections"; break;
+            fi
+            echo "...waiting ($i)"; sleep 5;
+          done
+          DISC_URL="http://keycloak.keycloak.svc.cluster.local:8080/realms/${KC_REALM}/.well-known/openid-configuration"
+          INTR_URL="http://keycloak.keycloak.svc.cluster.local:8080/realms/${KC_REALM}/protocol/openid-connect/token/introspect"
+          $VSQL -c "CREATE AUTHENTICATION v_oauth METHOD 'oauth' HOST '0.0.0.0/0';" || true
+          $VSQL -c "ALTER AUTHENTICATION v_oauth SET client_id = '${KC_CLIENT_ID}';"
+          $VSQL -c "ALTER AUTHENTICATION v_oauth SET client_secret = '${KC_CLIENT_SECRET}';"
+          $VSQL -c "ALTER AUTHENTICATION v_oauth SET discovery_url = '${DISC_URL}';"
+          $VSQL -c "ALTER AUTHENTICATION v_oauth SET introspect_url = '${INTR_URL}';"
+          $VSQL -c "CREATE USER ${KC_USER};" || true
+          $VSQL -c "GRANT AUTHENTICATION v_oauth TO ${KC_USER};"
+          $VSQL -c "GRANT ALL ON SCHEMA PUBLIC TO ${KC_USER};"
+          $VSQL -c "CREATE AUTHENTICATION v_dbadmin_hash METHOD 'hash' HOST '0.0.0.0/0';" || true
+          $VSQL -c "ALTER AUTHENTICATION v_dbadmin_hash PRIORITY 10000;"
+          $VSQL -c "GRANT AUTHENTICATION v_dbadmin_hash TO dbadmin;"
+          echo "Vertica authentication configured successfully"
 
-      - name: Configure Vertica OAuth and create user
+      # ---------------------------
+      # Port forwarding + OAuth token (single step to keep processes alive)
+      # ---------------------------
+      - name: Set up port forwarding and retrieve OAuth token
         if: steps.license.outputs.has_license == 'true'
         run: |
-          V_POD=$(kubectl get pods -n vertica -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep '^verticadb-sample-defaultsubcluster-' | head -n1)
-          if [ -z "$V_POD" ]; then
-            echo "Failed to locate Vertica server pod";
-            kubectl get pods -n vertica -o wide;
-            exit 1;
+          NS=my-verticadb-operator
+          # Port-forward Vertica (15433 to avoid conflict with mock servers on 5433-5435)
+          kubectl -n ${NS} port-forward svc/verticadb-sample-defaultsubcluster 15433:5433 &
+          PF_V_PID=$!
+          # Port-forward Keycloak (8080)
+          kubectl -n keycloak port-forward svc/keycloak 8080:8080 &
+          PF_K_PID=$!
+          # Wait for port-forwards to be ready
+          echo "Waiting for port-forwards..."
+          for i in {1..24}; do
+            V_OK=false; K_OK=false
+            nc -zv 127.0.0.1 15433 2>/dev/null && V_OK=true
+            nc -zv 127.0.0.1 8080 2>/dev/null && K_OK=true
+            if $V_OK && $K_OK; then echo "Both port-forwards ready"; break; fi
+            echo "  ...V=$V_OK K=$K_OK ($i)"; sleep 5;
+          done
+          nc -zv 127.0.0.1 15433 || { echo "ERROR: Vertica port-forward not ready"; exit 1; }
+          nc -zv 127.0.0.1 8080 || { echo "ERROR: Keycloak port-forward not ready"; exit 1; }
+
+          # Retrieve OAuth access token
+          TOKEN=""
+          for i in {1..10}; do
+            echo "Token attempt $i..."
+            RAW=$(curl -s -X POST \
+              "http://127.0.0.1:8080/realms/${KC_REALM}/protocol/openid-connect/token" \
+              -d "client_id=${KC_CLIENT_ID}" \
+              -d "username=${KC_USER}" \
+              -d "password=${KC_PASSWORD}" \
+              -d "grant_type=password" \
+              -d "client_secret=${KC_CLIENT_SECRET}") || true
+
+            if ! printf '%s' "$RAW" | python3 -c 'import sys,json; json.load(sys.stdin)' >/dev/null 2>&1; then
+              echo "Token endpoint did not return valid JSON:"
+              printf '%s\n' "$RAW"
+              sleep 5
+              continue
+            fi
+
+            TOKEN=$(printf '%s' "$RAW" | python3 -c 'import sys,json; print(json.load(sys.stdin).get("access_token", ""))') || true
+
+            if [ -n "$TOKEN" ] && [ "$TOKEN" != "null" ] && [ "$TOKEN" != "" ]; then
+              echo "Access token retrieved successfully (length: ${#TOKEN})"
+              echo "$TOKEN" > ${GITHUB_WORKSPACE}/access_token.txt
+              break
+            fi
+
+            echo "Token fetch failed, retrying..."
+            sleep 5
+          done
+          if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+            echo "Failed to fetch access token after retries."
+            exit 1
           fi
-          DISCOVERY_URL="http://keycloak.vertica.svc.cluster.local:8080/realms/${KC_REALM}/.well-known/openid-configuration"
-          INTROSPECT_URL="http://keycloak.vertica.svc.cluster.local:8080/realms/${KC_REALM}/protocol/openid-connect/token/introspect"
-          kubectl exec -n vertica -c server "$V_POD" -- bash -lc '
-            set -euo pipefail
-            VSQL="/opt/vertica/bin/vsql -h 127.0.0.1 -p 5433 -U dbadmin -d vdb"
-            # Wait for Vertica to accept connections
-            for i in {1..120}; do
-              if $VSQL -c "select 1" >/dev/null 2>&1; then
-                echo "Vertica is accepting connections"; break;
-              fi
-              echo "...waiting for Vertica to accept connections"; sleep 5;
-            done
-            $VSQL -c "CREATE AUTHENTICATION v_oauth METHOD 'oauth' HOST '0.0.0.0/0';" || true
-            $VSQL -c "ALTER AUTHENTICATION v_oauth SET client_id='${KC_CLIENT_ID}';"
-            $VSQL -c "ALTER AUTHENTICATION v_oauth SET client_secret='${KC_CLIENT_SECRET}';"
-            $VSQL -c "ALTER AUTHENTICATION v_oauth SET discovery_url='${DISCOVERY_URL}';"
-            $VSQL -c "ALTER AUTHENTICATION v_oauth SET introspect_url='${INTROSPECT_URL}';"
-            $VSQL -c "CREATE USER ${KC_USER};" || true
-            $VSQL -c "GRANT AUTHENTICATION v_oauth TO ${KC_USER};"
-            $VSQL -c "GRANT ALL ON SCHEMA PUBLIC TO ${KC_USER};"
-            $VSQL -c "CREATE AUTHENTICATION v_dbadmin_hash METHOD 'hash' HOST '0.0.0.0/0';" || true
-            $VSQL -c "ALTER AUTHENTICATION v_dbadmin_hash PRIORITY 10000;"
-            $VSQL -c "GRANT AUTHENTICATION v_dbadmin_hash TO dbadmin;"
-          '
 
-      - name: Retrieve OAuth access token
-        if: steps.license.outputs.has_license == 'true'
-        run: |
-          echo "Waiting for Keycloak to accept connections..." && sleep 5
-          curl --retry 10 --retry-delay 3 --retry-all-errors \
-            --location --request POST http://127.0.0.1:8080/realms/${KC_REALM}/protocol/openid-connect/token \
-            --header 'Content-Type: application/x-www-form-urlencoded' \
-            --data-urlencode "username=${KC_USER}" \
-            --data-urlencode "password=${KC_PASSWORD}" \
-            --data-urlencode "client_id=${KC_CLIENT_ID}" \
-            --data-urlencode "client_secret=${KC_CLIENT_SECRET}" \
-            --data-urlencode 'grant_type=password' -o oauth.json
-          cat oauth.json | python3 -c 'import json,sys;obj=json.load(sys.stdin);print(obj["access_token"])' > access_token.txt
-          test -s access_token.txt && echo "Token captured" || (echo "Token missing"; exit 1)
+          # Port-forwards will be killed when this step exits.
+          # That's fine — each DB test step starts its own port-forwards.
+          echo "Token saved to ${GITHUB_WORKSPACE}/access_token.txt"
 
+      # ---------------------------
+      # Test steps
+      # ---------------------------
       - name: test-v-connection-string
+        if: ${{ always() && steps.install.outcome == 'success' }}
         run: |
           cd packages/v-connection-string
           yarn test
 
       - name: test-v-pool
-        if: steps.license.outputs.has_license == 'true'
+        if: ${{ always() && steps.install.outcome == 'success' && steps.license.outputs.has_license == 'true' }}
         continue-on-error: true
         run: |
+          # Kill any leftover port-forward processes from previous steps
+          pkill -f 'port-forward.*15433' 2>/dev/null || true
+          sleep 2
+          # Start port-forward to Vertica on 15433 (avoids conflict with mock servers on 5433-5435)
+          kubectl -n my-verticadb-operator port-forward svc/verticadb-sample-defaultsubcluster 15433:5433 &
+          PF_PID=$!
+          for i in {1..12}; do nc -zv 127.0.0.1 15433 2>/dev/null && break; sleep 5; done
+          nc -zv 127.0.0.1 15433 || { echo "ERROR: Vertica port-forward not ready"; exit 1; }
+          # Verify DB connectivity through port-forward before running tests
+          for i in {1..5}; do
+            node -e "const c = new (require('vertica-nodejs').Client)(); c.connect().then(() => c.query('SELECT 1')).then(() => { console.log('DB OK'); c.end(); }).catch(e => { console.error(e.message); process.exit(1); })" && break || sleep 3
+          done
           cd packages/v-pool
-          yarn test
+          npx mocha --timeout 30000
+          kill $PF_PID 2>/dev/null || true
 
       - name: test-v-protocol
+        if: ${{ always() && steps.install.outcome == 'success' }}
         run: |
           cd packages/v-protocol
           yarn test
 
       - name: test-vertica-nodejs
-        if: steps.license.outputs.has_license == 'true'
+        if: ${{ always() && steps.install.outcome == 'success' && steps.license.outputs.has_license == 'true' }}
         continue-on-error: true
         run: |
-          unset V_TLS_MODE
-          export VTEST_OAUTH_ACCESS_TOKEN="$(cat ${GITHUB_WORKSPACE}/access_token.txt)"
+          # Node 16+ changed DNS resolution order (may prefer IPv6) and made
+          # unhandled rejections fatal. Force IPv4-first for localhost tests.
+          NODE_MAJOR=$(node -v | cut -d. -f1 | tr -d v)
+          if [ "$NODE_MAJOR" -ge 16 ]; then
+            export NODE_OPTIONS="${NODE_OPTIONS:-} --dns-result-order=ipv4first"
+          fi
+          # Kill any leftover port-forward processes from previous steps
+          pkill -f 'port-forward.*15433' 2>/dev/null || true
+          pkill -f 'port-forward.*8080' 2>/dev/null || true
+          sleep 2
+          # Start port-forwards (15433 avoids conflict with mock servers on 5433-5435)
+          kubectl -n my-verticadb-operator port-forward svc/verticadb-sample-defaultsubcluster 15433:5433 &
+          PF_V=$!
+          kubectl -n keycloak port-forward svc/keycloak 8080:8080 &
+          PF_K=$!
+          for i in {1..12}; do
+            V_OK=false; K_OK=false
+            nc -zv 127.0.0.1 15433 2>/dev/null && V_OK=true
+            nc -zv 127.0.0.1 8080 2>/dev/null && K_OK=true
+            if $V_OK && $K_OK; then break; fi
+            sleep 5
+          done
+          nc -zv 127.0.0.1 15433 || { echo "ERROR: Vertica port-forward not ready"; exit 1; }
+          nc -zv 127.0.0.1 8080 || { echo "ERROR: Keycloak port-forward not ready"; exit 1; }
+          # Verify DB connectivity through port-forward before running tests
+          for i in {1..5}; do
+            node -e "const c = new (require('vertica-nodejs').Client)(); c.connect().then(() => c.query('SELECT 1')).then(() => { console.log('DB OK'); c.end(); }).catch(e => { console.error(e.message); process.exit(1); })" && break || sleep 3
+          done
+          export VTEST_OAUTH_ACCESS_TOKEN=$(cat ${GITHUB_WORKSPACE}/access_token.txt 2>/dev/null || echo "")
           cd packages/vertica-nodejs
-          yarn test
+
+          # Unset V_TLS_MODE so tests see the driver default ('prefer').
+          # V_TLS_MODE=disable is set globally for DB connectivity probes, but
+          # unit tests (configuration-tests.js) and integration tests (tls-tests.js)
+          # assert the default tls_mode value.
+          unset V_TLS_MODE
+
+          # Run each target individually so one crash doesn't hide others
+          FAIL=0
+          echo "=== test-mocha-unit ==="
+          make test-mocha-unit || { echo "FAILED: test-mocha-unit (exit $?)"; FAIL=1; }
+          echo "=== test-mocha-integration ==="
+          make test-mocha-integration || { echo "FAILED: test-mocha-integration (exit $?)"; FAIL=1; }
+          echo "=== test-unit ==="
+          make test-unit || { echo "FAILED: test-unit (exit $?)"; FAIL=1; }
+          echo "=== test-integration ==="
+          make test-integration || { echo "FAILED: test-integration (exit $?)"; FAIL=1; }
+
+          kill $PF_V $PF_K 2>/dev/null || true
+          if [ "$FAIL" -ne 0 ]; then
+            echo "Some test targets failed — see output above"
+            exit 1
+          fi
+
+      - name: test-vertica-nodejs (unit only, no license)
+        if: ${{ always() && steps.install.outcome == 'success' && steps.license.outputs.has_license != 'true' }}
+        run: |
+          cd packages/vertica-nodejs
+          make test-unit
+          make test-mocha-unit
 
       - name: Skip DB tests (no license secret)
         if: steps.license.outputs.has_license != 'true'
         run: |
-          echo "No Vertica license secret provided; skipping VerticaDB, Keycloak, and vertica-nodejs integration tests."
+          echo "No Vertica license secret provided — skipping VerticaDB, Keycloak, v-pool, and vertica-nodejs integration tests."
+
+      # ---------------------------
+      # Cleanup
+      # ---------------------------
+      - name: Cleanup Kubernetes resources
+        if: ${{ always() && steps.license.outputs.has_license == 'true' }}
+        run: |
+          echo "Starting cleanup..."
+
+          echo "Deleting Keycloak..."
+          kubectl delete deployment keycloak -n keycloak --ignore-not-found || true
+          kubectl delete service keycloak -n keycloak --ignore-not-found || true
+          kubectl delete ns keycloak --ignore-not-found || true
+
+          echo "Deleting VerticaDB and Operator..."
+          kubectl delete verticadb verticadb-sample -n my-verticadb-operator --ignore-not-found || true
+          helm uninstall vdb-op -n my-verticadb-operator || true
+          kubectl delete ns my-verticadb-operator --ignore-not-found || true
+
+          echo "Deleting MinIO..."
+          kubectl delete -f minio.yaml --ignore-not-found || true
+          kubectl delete ns minio --ignore-not-found || true
+
+          echo "Kubernetes resources cleanup done."
+
+      - name: Delete KinD cluster
+        if: ${{ always() && steps.license.outputs.has_license == 'true' }}
+        run: |
+          echo "Deleting KinD cluster..."
+          kind delete cluster --name vertica-ci || true
+          echo "KinD cluster removed successfully"
