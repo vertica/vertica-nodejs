@@ -50,3 +50,14 @@ suite.test('client_os uses "unknown" when both detailed and platform retrieval f
     os.platform = originalPlatform
   }
 })
+
+suite.test('client_os_user_name falls back when os.userInfo() throws', function () {
+  const originalUserInfo = os.userInfo
+  try {
+    os.userInfo = function () { throw new Error('userInfo fail') }
+    const subject = new ConnectionParameters()
+    assert.equal(subject.client_os_user_name, '')
+  } finally {
+    os.userInfo = originalUserInfo
+  }
+})

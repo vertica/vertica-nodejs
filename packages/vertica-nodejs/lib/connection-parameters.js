@@ -16,8 +16,10 @@
 
 var dns = require('dns')
 var os = require('os')
+var path = require('path')
 
 var defaults = require('./defaults')
+var packageJson = require(path.join(__dirname, '..', 'package.json'))
 
 var parse = require('v-connection-string').parse // parses a connection string
 
@@ -129,7 +131,7 @@ class ConnectionParameters {
 
     // client auditing information
     this.client_type = "Node.js Driver"
-    this.client_version = "1.1.4"
+    this.client_version = packageJson.version
 
     try {
       this.client_os_hostname = os.hostname()
